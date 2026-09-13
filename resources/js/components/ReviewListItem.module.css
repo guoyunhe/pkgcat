@@ -1,0 +1,28 @@
+.item {
+  border-bottom: 1px solid var(--ph-border);
+  padding: 16px 0;
+}
+
+.heading {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+
+.link {
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link:hover {
+  color: var(--ph-primary);
+}
+
+.comment {
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
