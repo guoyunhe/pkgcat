@@ -1,6 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 
 import Category from '#models/category'
+import { replaceCategoryTranslations } from '#services/category_translations'
 
 /**
  * Category registry of the freedesktop.org menu specification:
@@ -200,8 +201,9 @@ export default class CategorySeeder extends BaseSeeder {
 
       const category = await Category.updateOrCreate(
         { code },
-        { name: { en, zh }, parentId: parentCategory?.id ?? null },
+        { parentId: parentCategory?.id ?? null },
       )
+      await replaceCategoryTranslations(category, { en, zh })
       byCode.set(code, category)
     }
   }

@@ -12,6 +12,7 @@ import Repo from '#models/repo'
 import { mappedAppId } from '#services/app_pkg_names'
 import AppRegistry from '#services/app_registry'
 import { attachTranslations, localizedTexts, replaceTranslations } from '#services/app_translations'
+import { replaceCategoryTranslations } from '#services/category_translations'
 import RepoAppstreamExtractor, {
   appstreamHomepage,
   appstreamIdVariants,
@@ -545,10 +546,9 @@ export default class RepoSync extends BaseCommand {
 
     for (const code of codes) {
       if (byCode.has(code.toLowerCase())) continue
-      byCode.set(
-        code.toLowerCase(),
-        await Category.create({ code, name: { en: code }, parentId: null }),
-      )
+      const category = await Category.create({ code, parentId: null })
+      await replaceCategoryTranslations(category, { en: code })
+      byCode.set(code.toLowerCase(), category)
     }
 
     await app.related('categories').sync(

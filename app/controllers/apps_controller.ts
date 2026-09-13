@@ -35,7 +35,7 @@ export default class AppsController {
       .preload('icon')
       .preload('aliases')
       .preload('pkgNames')
-      .preload('categories')
+      .preload('categories', (categoriesQuery) => categoriesQuery.preload('translations'))
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
       .withAggregate('favoritedBy', (subQuery) => subQuery.count('*').as('favoriteCount'))
@@ -110,7 +110,7 @@ export default class AppsController {
       .preload('icon')
       .preload('aliases')
       .preload('pkgNames')
-      .preload('categories')
+      .preload('categories', (categoriesQuery) => categoriesQuery.preload('translations'))
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
     if (auth.isAuthenticated) {
@@ -244,7 +244,7 @@ export default class AppsController {
     await app.load('icon')
     await app.load('aliases')
     await app.load('pkgNames')
-    await app.load('categories')
+    await app.load('categories', (categoriesQuery) => categoriesQuery.preload('translations'))
     await attachTranslations([app], null)
   }
 

@@ -143,7 +143,7 @@ export class AuthAccessTokenSchema extends BaseModel {
 }
 
 export class CategorySchema extends BaseModel {
-  static $columns = ['code', 'createdAt', 'id', 'name', 'parentId', 'updatedAt'] as const
+  static $columns = ['code', 'createdAt', 'id', 'parentId', 'updatedAt'] as const
   $columns = CategorySchema.$columns
   @column()
   declare code: string
@@ -151,10 +151,25 @@ export class CategorySchema extends BaseModel {
   declare createdAt: DateTime
   @column({ isPrimary: true })
   declare id: number
-  @column({ prepare: (value)=>value ? JSON.stringify(value) : value, consume: (value)=>typeof value === 'string' ? JSON.parse(value) : value })
-  declare name: Record<string, string>
   @column()
   declare parentId: number | null
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class CategoryTranslationSchema extends BaseModel {
+  static $columns = ['categoryId', 'createdAt', 'id', 'locale', 'name', 'updatedAt'] as const
+  $columns = CategoryTranslationSchema.$columns
+  @column()
+  declare categoryId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare locale: string
+  @column()
+  declare name: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

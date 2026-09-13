@@ -2,6 +2,7 @@ import { BaseTransformer } from '@adonisjs/core/transformers'
 
 import type App from '#models/app'
 import { localizedTexts } from '#services/app_translations'
+import { categoryNames } from '#services/category_translations'
 import ImageTransformer from '#transformers/image_transformer'
 
 export default class AppTransformer extends BaseTransformer<App> {
@@ -49,7 +50,7 @@ export default class AppTransformer extends BaseTransformer<App> {
       categories: (this.resource.categories ?? []).map((category) => ({
         id: category.id,
         code: category.code,
-        name: category.name,
+        name: categoryNames(category.translations),
         parentId: category.parentId,
       })),
       isFavorite: this.resource.favoritedBy ? this.resource.favoritedBy.length > 0 : false,
