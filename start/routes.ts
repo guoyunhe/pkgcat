@@ -37,6 +37,9 @@ router
       .resource('apps', controllers.Apps)
       .apiOnly()
       .use(['store', 'update', 'destroy'], [middleware.auth(), middleware.admin()])
+    router
+      .post('apps/:id/merge', [controllers.Apps, 'merge'])
+      .use([middleware.auth(), middleware.admin()])
     router.post('apps/:id/favorite', [controllers.Favorites, 'store']).use(middleware.auth())
     router.delete('apps/:id/favorite', [controllers.Favorites, 'destroy']).use(middleware.auth())
     router

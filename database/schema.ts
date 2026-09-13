@@ -40,6 +40,21 @@ export class AppSchema extends BaseModel {
   declare version: string | null
 }
 
+export class AppAliasSchema extends BaseModel {
+  static $columns = ['appId', 'appstreamId', 'createdAt', 'id', 'updatedAt'] as const
+  $columns = AppAliasSchema.$columns
+  @column()
+  declare appId: number
+  @column()
+  declare appstreamId: string
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class AppCategorySchema extends BaseModel {
   static $columns = ['appId', 'categoryId', 'createdAt', 'id', 'updatedAt'] as const
   $columns = AppCategorySchema.$columns
@@ -66,6 +81,23 @@ export class AppPkgSchema extends BaseModel {
   declare id: number
   @column()
   declare pkgId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class AppPkgNameSchema extends BaseModel {
+  static $columns = ['appId', 'createdAt', 'id', 'name', 'type', 'updatedAt'] as const
+  $columns = AppPkgNameSchema.$columns
+  @column()
+  declare appId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare name: string
+  @column()
+  declare type: string
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

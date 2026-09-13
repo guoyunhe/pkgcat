@@ -163,6 +163,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['destroy']>>>
     }
   }
+  'apps.merge': {
+    methods: ["POST"]
+    pattern: '/api/apps/:id/merge'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/app').mergeAppValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#validators/app').mergeAppValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['merge']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['merge']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'favorites.store': {
     methods: ["POST"]
     pattern: '/api/apps/:id/favorite'

@@ -167,6 +167,8 @@
     "version": "Version",
     "license": "License",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID aliases",
+    "pkgNames": "Package names",
     "categories": "Categories",
     "homepage": "Homepage",
     "previousScreenshot": "Previous screenshot",
@@ -203,6 +205,10 @@
     "license": "License",
     "homepage": "Homepage",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID aliases",
+    "appstreamIdAliasesHint": "AppStream IDs this application used before. Merging an application registers its IDs here, so that repositories announcing them link to this entry.",
+    "pkgNames": "Package names",
+    "pkgNamesHint": "Packages without AppStream metadata are linked to this application by name, for example vlc. Limit a name to one package format with deb:vlc or rpm:vlc.",
     "appstreamUrl": "AppStream URL",
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "Raw AppStream metadata, usually imported from the AppStream URL.",
@@ -210,6 +216,18 @@
     "desktopContent": "Desktop entry",
     "desktopContentHint": "Contents of the .desktop file, usually imported from the desktop URL.",
     "save": "Save application"
+  },
+  "merge": {
+    "action": "Merge",
+    "title": "Merge another application into this one",
+    "description": "Everything “{{name}}” collected moves into this application, and its AppStream IDs become aliases of it. The merged entry is deleted.",
+    "select": "Application to merge",
+    "placeholder": "Search by name or AppStream ID",
+    "notFound": "No application found.",
+    "warning": "This cannot be undone.",
+    "confirm": "Merge",
+    "error": "Unable to merge the application",
+    "loadError": "Unable to load applications"
   },
   "repos": {
     "eyebrow": "Administration",

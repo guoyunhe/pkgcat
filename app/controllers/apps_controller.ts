@@ -1,9 +1,14 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
 import App from '#models/app'
+import AppAlias from '#models/app_alias'
+import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
+import { mergeApps } from '#services/app_merger'
+import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
+import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
-import { appValidator } from '#validators/app'
+import { appValidator, mergeAppValidator } from '#validators/app'
 
 /** Sort orders the application listing accepts; `newest` is the default. */
 const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
@@ -19,6 +24,8 @@ export default class AppsController {
     const query = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
     const appsQuery = App.query()
       .preload('icon')
+      .preload('aliases')
+      .preload('pkgNames')
       .preload('categories')
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
@@ -51,11 +58,15 @@ export default class AppsController {
       const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`
       appsQuery.where((searchQuery) => {
         searchQuery
-          .whereILike('name', pattern)
-          .orWhereILike('summary', pattern)
+          // `name` and `summary` are JSON columns, which MariaDB stores with the binary collation,
+          // so they have to be lower-cased to be matched case-insensitively; a `whereILike` only
+          // compares case-insensitively on the text columns, where the database collation does it.
+          .whereRaw('lower(name) like ?', [pattern])
+          .orWhereRaw('lower(summary) like ?', [pattern])
           .orWhereILike('version', pattern)
           .orWhereILike('license', pattern)
           .orWhereILike('appstreamId', pattern)
+          .orWhereHas('aliases', (aliasQuery) => aliasQuery.whereILike('appstreamId', pattern))
       })
     }
 
@@ -76,6 +87,8 @@ export default class AppsController {
     const appQuery = App.query()
       .where('id', params.id)
       .preload('icon')
+      .preload('aliases')
+      .preload('pkgNames')
       .preload('categories')
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
@@ -89,10 +102,15 @@ export default class AppsController {
   async store({ request, response, serialize }: HttpContext) {
     const payload = await request.validateUsing(appValidator)
 
-    const app = await App.create(payload)
+    const { appstreamIdAliases, pkgNames, ...attributes } = payload
+    const app = await App.create(attributes)
+    await this.syncAliases(app, appstreamIdAliases)
+    await this.syncPkgNames(app, pkgNames)
     await app.load('icon')
+    await app.load('aliases')
+    await app.load('pkgNames')
     await app.load('categories')
-    response.created()
+    response.status(201)
     return serialize(AppTransformer.transform(app))
   }
 
@@ -100,8 +118,33 @@ export default class AppsController {
     const app = await App.findOrFail(params.id)
     const payload = await request.validateUsing(appValidator, { meta: { appId: app.id } })
 
-    await app.merge(payload).save()
+    const { appstreamIdAliases, pkgNames, ...attributes } = payload
+    await app.merge(attributes).save()
+    await this.syncAliases(app, appstreamIdAliases)
+    await this.syncPkgNames(app, pkgNames)
     await app.load('icon')
+    await app.load('aliases')
+    await app.load('pkgNames')
+    await app.load('categories')
+    return serialize(AppTransformer.transform(app))
+  }
+
+  /**
+   * Fold the application named in the request into the one in the URL, which is what unifies the
+   * catalog entries that were imported under the different AppStream IDs of one application. The
+   * AppStream ID of the merged application becomes an alias of the one that remains, so that
+   * repositories announcing it keep linking to the same entry.
+   */
+  async merge({ params, request, serialize }: HttpContext) {
+    const app = await App.findOrFail(params.id)
+    const { sourceId } = await request.validateUsing(mergeAppValidator)
+    const source = await App.findOrFail(sourceId)
+
+    await mergeApps(app, source)
+    await app.refresh()
+    await app.load('icon')
+    await app.load('aliases')
+    await app.load('pkgNames')
     await app.load('categories')
     return serialize(AppTransformer.transform(app))
   }
@@ -110,6 +153,75 @@ export default class AppsController {
     const app = await App.findOrFail(params.id)
     await app.delete()
     return response.noContent()
+  }
+
+  /**
+   * Replace the aliases of an application with the ones the request lists. Aliases are stored in
+   * the canonical form repositories announce them in, and the ID the application is stored under is
+   * never an alias of itself. A request that omits the aliases leaves the stored ones alone.
+   */
+  private async syncAliases(app: App, aliases: string[] | undefined) {
+    if (!aliases) return
+
+    const wanted = new Map<string, string>()
+    for (const alias of aliases) {
+      const id = canonicalAppstreamId(alias)
+      if (appstreamIdKey(id) === appstreamIdKey(app.appstreamId ?? '')) continue
+      wanted.set(appstreamIdKey(id), id)
+    }
+
+    const stored = await AppAlias.query().where('appId', app.id)
+    const known = new Set<string>()
+    for (const alias of stored) {
+      const key = appstreamIdKey(alias.appstreamId)
+      if (wanted.has(key)) {
+        known.add(key)
+        continue
+      }
+      await alias.delete()
+    }
+
+    for (const [key, id] of wanted) {
+      if (known.has(key)) continue
+      await AppAlias.create({ appId: app.id, appstreamId: id })
+    }
+  }
+
+  /**
+   * Replace the package name mappings of an application with the ones the request lists. The name
+   * is kept the way it is written and the format is normalized to lower case, where an empty format
+   * maps the name in every package format. A request that omits the mappings leaves the stored ones
+   * alone.
+   */
+  private async syncPkgNames(
+    app: App,
+    mappings: Array<{ name: string; type?: string | null }> | undefined,
+  ) {
+    if (!mappings) return
+
+    const wanted = new Map<string, PkgNameMapping>()
+    for (const mapping of mappings) {
+      const name = mapping.name?.trim()
+      if (!name) continue
+      const type = mapping.type?.trim().toLowerCase() ?? ''
+      wanted.set(pkgNameKey(name, type), { name, type })
+    }
+
+    const stored = await AppPkgName.query().where('appId', app.id)
+    const known = new Set<string>()
+    for (const mapping of stored) {
+      const key = pkgNameKey(mapping.name, mapping.type)
+      if (wanted.has(key)) {
+        known.add(key)
+        continue
+      }
+      await mapping.delete()
+    }
+
+    for (const [key, mapping] of wanted) {
+      if (known.has(key)) continue
+      await AppPkgName.create({ appId: app.id, ...mapping })
+    }
   }
 
   private positiveInteger(value: unknown, fallback: number) {

@@ -84,6 +84,12 @@ const routes = {
     tokens: [{"old":"/api/apps/:id","type":0,"val":"api","end":""},{"old":"/api/apps/:id","type":0,"val":"apps","end":""},{"old":"/api/apps/:id","type":1,"val":"id","end":""}],
     types: placeholder as Registry['apps.destroy']['types'],
   },
+  'apps.merge': {
+    methods: ["POST"],
+    pattern: '/api/apps/:id/merge',
+    tokens: [{"old":"/api/apps/:id/merge","type":0,"val":"api","end":""},{"old":"/api/apps/:id/merge","type":0,"val":"apps","end":""},{"old":"/api/apps/:id/merge","type":1,"val":"id","end":""},{"old":"/api/apps/:id/merge","type":0,"val":"merge","end":""}],
+    types: placeholder as Registry['apps.merge']['types'],
+  },
   'favorites.store': {
     methods: ["POST"],
     pattern: '/api/apps/:id/favorite',

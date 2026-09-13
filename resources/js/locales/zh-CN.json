@@ -167,6 +167,8 @@
     "version": "版本",
     "license": "许可证",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID 别名",
+    "pkgNames": "软件包名称",
     "categories": "分类",
     "homepage": "主页",
     "previousScreenshot": "上一张截图",
@@ -203,6 +205,10 @@
     "license": "许可证",
     "homepage": "主页",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID 别名",
+    "appstreamIdAliasesHint": "该应用以前使用过的 AppStream ID。合并应用时会自动登记被合并条目的 ID，使仓库中仍在使用该 ID 的软件包关联到这里。",
+    "pkgNames": "软件包名称",
+    "pkgNamesHint": "没有 AppStream 元数据的软件包将按包名关联到本应用，例如 vlc；如需限定包格式可写 deb:vlc 或 rpm:vlc。",
     "appstreamUrl": "AppStream URL",
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "AppStream 原始元数据，通常从 AppStream URL 导入。",
@@ -210,6 +216,18 @@
     "desktopContent": "Desktop 文件",
     "desktopContentHint": ".desktop 文件内容，通常从 Desktop URL 导入。",
     "save": "保存应用"
+  },
+  "merge": {
+    "action": "合并应用",
+    "title": "将另一个应用合并到当前应用",
+    "description": "“{{name}}”收集的内容会全部转移到当前应用，它的 AppStream ID 会成为当前应用的别名，被合并的条目会被删除。",
+    "select": "要合并的应用",
+    "placeholder": "按名称或 AppStream ID 搜索",
+    "notFound": "未找到应用。",
+    "warning": "此操作不可撤销。",
+    "confirm": "合并",
+    "error": "无法合并应用",
+    "loadError": "无法加载应用"
   },
   "repos": {
     "eyebrow": "系统管理",

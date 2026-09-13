@@ -23,6 +23,24 @@ export default class AppTransformer extends BaseTransformer<App> {
         'iconId',
       ]),
       icon: this.resource.icon ? ImageTransformer.transform(this.resource.icon) : null,
+      /**
+       * Historical AppStream IDs of the application. Repositories that still announce one of them
+       * link their packages here, and a merged ID can no longer create a catalog entry of its own.
+       */
+      appstreamIdAliases: (this.resource.aliases ?? [])
+        .map((alias) => alias.appstreamId)
+        .sort((left, right) => left.localeCompare(right)),
+      /**
+       * Package names the application owns, used to link the packages of repositories that ship no
+       * AppStream metadata for them. The format is `null` when the name is mapped in every format.
+       */
+      pkgNames: (this.resource.pkgNames ?? [])
+        .map((mapping) => ({ name: mapping.name, type: mapping.type || null }))
+        .sort(
+          (left, right) =>
+            left.name.localeCompare(right.name) ||
+            (left.type ?? '').localeCompare(right.type ?? ''),
+        ),
       categories: (this.resource.categories ?? []).map((category) => ({
         id: category.id,
         code: category.code,

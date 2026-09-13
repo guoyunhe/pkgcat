@@ -4,13 +4,15 @@ import chalk from 'chalk'
 import { DateTime } from 'luxon'
 
 import App from '#models/app'
+import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
 import Repo from '#models/repo'
+import { mappedAppId } from '#services/app_pkg_names'
+import AppRegistry from '#services/app_registry'
 import RepoAppstreamExtractor, {
   appstreamHomepage,
-  appstreamIdKey,
   appstreamIdVariants,
   appstreamVersion,
   desktopAppTypes,
@@ -108,6 +110,11 @@ export default class RepoSync extends BaseCommand {
               ` file lists (${chalk.green(String(apps.inferredLinked))} packages linked,` +
               ` ${chalk.green(String(apps.inferredExtracted))} metadata files,` +
               ` ${chalk.green(String(apps.inferredIcons))} icons extracted)`,
+          )
+        }
+        if (apps.mapped > 0) {
+          this.logger.info(
+            `${repo.name}: ${chalk.green(String(apps.mapped))} package(s) linked by package name`,
           )
         }
         for (const pkg of packages.slice(0, this.limit)) {
@@ -231,8 +238,12 @@ export default class RepoSync extends BaseCommand {
       inferredLinked: 0,
       inferredExtracted: 0,
       inferredIcons: 0,
+      mapped: 0,
     }
     const pkgNames = new Set(packages.map((pkg) => pkg.name))
+    // Package names the repository's own metadata already assigns to an application. The package
+    // name mappings only fill in what is left over, so that curated metadata keeps winning.
+    const claimedPkgNames = new Set<string>()
     const candidates = entries.filter(
       (entry) =>
         desktopAppTypes.includes(entry.component.type) &&
@@ -244,25 +255,27 @@ export default class RepoSync extends BaseCommand {
       // Repositories that publish no AppStream metadata at all still name their applications in
       // the files their packages ship, which the file list of the repository reveals.
       if (entries.length === 0) {
-        const inferred = await this.saveInferredApps(repo, appstream, packages, pkgNames)
+        const inferred = await this.saveInferredApps(
+          repo,
+          appstream,
+          packages,
+          pkgNames,
+          claimedPkgNames,
+        )
         result.inferred = inferred.created
         result.inferredLinked = inferred.linked
         result.inferredExtracted = inferred.extracted
         result.inferredIcons = inferred.icons
       }
+      result.mapped = await this.linkMappedPackages(repo, claimedPkgNames)
       return result
     }
 
-    const storedApps = await App.query().preload('icon')
-    // Older catalogs identify a component by its desktop file name, so a stored application may
-    // carry the `.desktop` form of the ID the metadata now uses, and catalogs differ in the casing
-    // of the ID they declare, so both are looked up through the same key.
-    const known = new Map(storedApps.map((app) => [appstreamIdKey(app.appstreamId ?? ''), app]))
+    const registry = await AppRegistry.load()
     const pendingIcons: Array<{ app: App; icon: AppstreamIcon }> = []
 
     for (const entry of candidates) {
-      const key = appstreamIdKey(entry.appstreamId)
-      const current = known.get(key)
+      const current = registry.find(entry.appstreamId)
       // Applications with their own AppStream URL are not overwritten by repository metadata
       if (current?.appstreamUrl) {
         result.skipped += 1
@@ -270,11 +283,14 @@ export default class RepoSync extends BaseCommand {
       }
 
       const app = current ?? new App()
+      // A component naming an alias of an application is that same application under a former ID,
+      // so its metadata updates the stored entry, which keeps the ID it is stored under. Only a
+      // component naming the stored ID itself (in any casing) renames the entry.
+      const renames = !current || registry.owns(current, entry.appstreamId)
       if (current && !appstreamVersionIsNewer(current, appstreamVersion(entry.component))) {
         result.skipped += 1
       } else {
         app.merge({
-          appstreamId: entry.appstreamId,
           name: entry.component.name,
           summary: entry.component.summary,
           version: appstreamVersion(entry.component),
@@ -282,13 +298,14 @@ export default class RepoSync extends BaseCommand {
           homepage: appstreamHomepage(entry.component),
           appstreamContent: entry.content,
         })
+        if (renames) app.appstreamId = entry.appstreamId
         await app.save()
         if (current) {
           result.updated += 1
         } else {
           // Catalogs of one repository can name the same application twice under different casing,
           // so the new row has to be known before the next component is read
-          known.set(key, app)
+          registry.register(app)
           result.created += 1
         }
 
@@ -301,6 +318,7 @@ export default class RepoSync extends BaseCommand {
       // applications, so the links are added rather than replaced.
       const names = entry.component.pkgNames.filter((name) => pkgNames.has(name))
       if (names.length > 0) {
+        for (const name of names) claimedPkgNames.add(name)
         const links = await Pkg.query().where('repoId', repo.id).whereIn('name', names).select('id')
         await app.related('packages').sync(
           links.map((pkg) => pkg.id),
@@ -330,7 +348,48 @@ export default class RepoSync extends BaseCommand {
       }
     }
 
+    result.mapped = await this.linkMappedPackages(repo, claimedPkgNames)
     return result
+  }
+
+  /**
+   * Link the packages of a repository that no AppStream metadata of the repository assigns to an
+   * application to the applications their package name is mapped to. Repositories ship many
+   * packages without any AppStream metadata (libraries, plugins, subpackages) that would otherwise
+   * end up without an application at all. Packages the metadata already links, and packages whose
+   * name no application is mapped to, are left alone, and the links are added rather than
+   * replaced.
+   */
+  private async linkMappedPackages(repo: Repo, claimedPkgNames: Set<string>) {
+    const mappings = await AppPkgName.query()
+    if (mappings.length === 0) return 0
+
+    const claimed = new Set([...claimedPkgNames].map((name) => name.toLowerCase()))
+    const candidates = mappings.filter((mapping) => !claimed.has(mapping.name.toLowerCase()))
+    if (candidates.length === 0) return 0
+
+    const packages: Array<{ id: number; name: string; type: string }> = await Pkg.query()
+      .where('repoId', repo.id)
+      .whereIn('name', [...new Set(candidates.map((mapping) => mapping.name))])
+      .select('id', 'name', 'type')
+
+    // Packages are collected per application, so that one query per application links all of them
+    const byApp = new Map<number, number[]>()
+    for (const pkg of packages) {
+      const appId = mappedAppId(candidates, pkg.name, pkg.type)
+      if (!appId) continue
+      const links = byApp.get(appId) ?? []
+      links.push(pkg.id)
+      byApp.set(appId, links)
+    }
+
+    let linked = 0
+    for (const [appId, ids] of byApp) {
+      const app = await App.findOrFail(appId)
+      await app.related('packages').sync(ids, false)
+      linked += ids.length
+    }
+    return linked
   }
 
   /**
@@ -342,12 +401,16 @@ export default class RepoSync extends BaseCommand {
    *
    * An application without AppStream content or without an icon is then completed from the package
    * itself, because repositories without an AppStream catalog only carry that inside the packages.
+   *
+   * The package names the file list assigns to an application are collected in `claimedPkgNames`,
+   * which keeps the package name mappings from claiming them again.
    */
   private async saveInferredApps(
     repo: Repo,
     appstream: RepoAppstreamExtractor,
     packages: ExtractedPackage[],
     pkgNames: Set<string>,
+    claimedPkgNames: Set<string>,
   ) {
     const result = { created: 0, linked: 0, extracted: 0, icons: 0 }
     const components = await appstream.inferredComponents(repo)
@@ -356,12 +419,9 @@ export default class RepoSync extends BaseCommand {
     )
     if (candidates.length === 0) return result
 
-    const storedApps = await App.query()
-      .preload('icon')
-      .whereIn('appstreamId', [
-        ...new Set(candidates.flatMap((component) => appstreamIdVariants(component.appstreamId))),
-      ])
-    const known = new Map(storedApps.map((app) => [appstreamIdKey(app.appstreamId ?? ''), app]))
+    const registry = await AppRegistry.load([
+      ...new Set(candidates.flatMap((component) => appstreamIdVariants(component.appstreamId))),
+    ])
     const byName = new Map<string, ExtractedPackage[]>()
     for (const pkg of packages) {
       const siblings = byName.get(pkg.name) ?? []
@@ -372,19 +432,19 @@ export default class RepoSync extends BaseCommand {
     const pending: Array<{ app: App; component: InferredComponent }> = []
 
     for (const component of candidates) {
-      const key = appstreamIdKey(component.appstreamId)
-      let app = known.get(key)
+      let app = registry.find(component.appstreamId)
       if (!app) {
         app = await App.create({
           appstreamId: component.appstreamId,
           ...placeholderAppMetadata(this.inferredFile(component, byName)?.pkg),
         })
-        known.set(key, app)
+        registry.register(app)
         result.created += 1
       }
 
       const files = component.files.filter((file) => pkgNames.has(file.pkgName))
       if (files.length > 0) {
+        for (const file of files) claimedPkgNames.add(file.pkgName)
         const links = await Pkg.query()
           .where('repoId', repo.id)
           .whereIn(

@@ -2,6 +2,7 @@ import type { Data } from '@generated/data'
 import xior from 'xior'
 
 import type { Paginated, SerializedPaginated } from '../types/pagination'
+import type { PkgNameMapping } from '../utils/pkgNames'
 import { getAuthToken } from './auth'
 
 export type AppPayload = {
@@ -11,6 +12,10 @@ export type AppPayload = {
   license?: string
   homepage?: string
   appstreamId?: string
+  /** Historical AppStream IDs of the application; omitted keeps the stored aliases. */
+  appstreamIdAliases?: string[]
+  /** Package names the application owns; omitted keeps the stored mappings. */
+  pkgNames?: PkgNameMapping[]
   appstreamUrl?: string
   appstreamContent?: string
   desktopUrl?: string
@@ -124,4 +129,18 @@ export async function updateApp(id: number, payload: AppPayload) {
 
 export async function deleteApp(id: number) {
   await api.delete(`/apps/${id}`, { headers: authHeaders() })
+}
+
+/**
+ * Fold another catalog entry into this application. The merged entry keeps nothing: its packages,
+ * favorites and reviews move here, and its AppStream IDs become aliases of this application, so
+ * that repositories announcing them link to it from then on.
+ */
+export async function mergeApp(id: number, sourceId: number) {
+  const { data } = await api.post<{ data: Data.App }>(
+    `/apps/${id}/merge`,
+    { sourceId },
+    { headers: authHeaders() },
+  )
+  return data.data
 }

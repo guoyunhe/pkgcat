@@ -1,5 +1,9 @@
 import vine from '@vinejs/vine'
 
+import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
+import { appstreamIdIsClaimed } from '#services/app_registry'
+import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
+
 type LocalizedText = Record<string, string>
 
 /**
@@ -33,6 +37,101 @@ const localizedTextRule = vine.createRule((value, _options, field) => {
 
 const localizedText = () => vine.record(vine.string()).use(localizedTextRule())
 
+/** Application being edited, which is allowed to keep the AppStream IDs it already has. */
+function editedAppId(field: { meta?: unknown }) {
+  return (field.meta as { appId?: number } | undefined)?.appId
+}
+
+/**
+ * An AppStream ID identifies an application across the catalog, and applications answer to the IDs
+ * they are stored under as well as to their aliases, so an ID can only belong to one of them. This
+ * is what keeps the ID of a merged application from creating a second entry.
+ */
+const appstreamIdIsFree = vine.createRule(async (value, _options, field) => {
+  if (typeof value !== 'string' || value === '') return
+  if (await appstreamIdIsClaimed(value, editedAppId(field))) {
+    field.report(
+      'The {{ field }} field is already used by another application',
+      'appstreamIdIsClaimed',
+      field,
+    )
+  }
+})
+
+/**
+ * Aliases are the AppStream IDs an application used to be known by. They are normalized to their
+ * canonical spelling, deduplicated, and the ID the application is stored under is not an alias of
+ * itself. Every other alias has to be free, so that two applications can never answer to the same
+ * ID.
+ */
+const appstreamIdsAreFree = vine.createRule(async (value, _options, field) => {
+  if (!Array.isArray(value)) return
+
+  const appId = editedAppId(field)
+  const storedId = (field.parent as { appstreamId?: string | null } | undefined)?.appstreamId
+  const aliases: string[] = []
+  const seen = new Set<string>()
+
+  for (const item of value) {
+    if (typeof item !== 'string') continue
+    const trimmed = item.trim()
+    if (!trimmed) continue
+
+    const id = canonicalAppstreamId(trimmed)
+    const key = appstreamIdKey(id)
+    if (seen.has(key)) continue
+    seen.add(key)
+    if (storedId && appstreamIdKey(storedId) === key) continue
+
+    if (await appstreamIdIsClaimed(id, appId)) {
+      field.report(
+        'The {{ field }} field contains an ID already used by another application',
+        'appstreamIdIsClaimed',
+        field,
+      )
+      return
+    }
+    aliases.push(id)
+  }
+
+  field.mutate(aliases, field)
+})
+
+/**
+ * Package names are mapped to an application so that packages no AppStream metadata mentions can be
+ * linked by their name. The format is normalized to lower case, an empty format means that the name
+ * belongs to the application in every format, and a name may only be mapped once in the catalog.
+ */
+const pkgNamesAreFree = vine.createRule(async (value, _options, field) => {
+  if (!Array.isArray(value)) return
+
+  const appId = editedAppId(field)
+  const mappings: PkgNameMapping[] = []
+  const seen = new Set<string>()
+
+  for (const item of value as Array<{ name?: unknown; type?: unknown }>) {
+    const name = typeof item?.name === 'string' ? item.name.trim() : ''
+    if (!name) continue
+    const type = typeof item?.type === 'string' ? item.type.trim().toLowerCase() : ''
+
+    const key = pkgNameKey(name, type)
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    if (await pkgNameIsClaimed(name, type, appId)) {
+      field.report(
+        'The {{ field }} field contains a package name already mapped to another application',
+        'pkgNameIsClaimed',
+        field,
+      )
+      return
+    }
+    mappings.push({ name, type })
+  }
+
+  field.mutate(mappings, field)
+})
+
 /**
  * Validator to use when creating or updating an app. The `appId` meta value excludes the app being
  * updated from the unique AppStream identifier check.
@@ -48,18 +147,37 @@ export const appValidator = vine.create({
     .parse(emptyToNull)
     .trim()
     .maxLength(255)
-    .unique({
-      table: 'apps',
-      column: 'appstream_id',
-      filter: (db, _value, field) => {
-        const appId = (field.meta as { appId?: number }).appId
-        if (appId) db.whereNot('id', appId)
-      },
-    })
+    .use(appstreamIdIsFree())
     .nullable(),
+  /**
+   * Historical AppStream IDs of the application. They are read after the stored ID, so that an
+   * alias repeating it can be told apart.
+   */
+  appstreamIdAliases: vine
+    .array(vine.string().trim().maxLength(255))
+    .use(appstreamIdsAreFree())
+    .optional(),
+  /**
+   * Package names the application owns, used to link the packages of repositories that ship no
+   * AppStream metadata for them. An empty `type` maps the name in every package format.
+   */
+  pkgNames: vine
+    .array(
+      vine.object({
+        name: vine.string().trim().maxLength(255),
+        type: vine.string().trim().maxLength(20).nullable().optional(),
+      }),
+    )
+    .use(pkgNamesAreFree())
+    .optional(),
   appstreamUrl: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   appstreamContent: vine.string().parse(emptyToNull).trim().nullable(),
   desktopUrl: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   desktopContent: vine.string().parse(emptyToNull).trim().nullable(),
   iconId: vine.number().parse(emptyToNull).exists({ table: 'images', column: 'id' }).nullable(),
+})
+
+/** Validator of the application a merge folds into the one named in the URL. */
+export const mergeAppValidator = vine.create({
+  sourceId: vine.number().exists({ table: 'apps', column: 'id' }),
 })

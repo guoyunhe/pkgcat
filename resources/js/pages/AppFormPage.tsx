@@ -6,6 +6,7 @@ import {
   Loader,
   Select,
   Stack,
+  TagsInput,
   Text,
   Textarea,
   TextInput,
@@ -21,6 +22,7 @@ import { useAuth } from '../auth'
 import IconUpload from '../components/IconUpload'
 import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
 import { defaultLanguage, languageOptions } from '../utils/languages'
+import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
 
 import styles from './AppFormPage.module.css'
 
@@ -32,6 +34,8 @@ function emptyForm(language: string): AppPayload {
     license: '',
     homepage: '',
     appstreamId: '',
+    appstreamIdAliases: [],
+    pkgNames: [],
     appstreamUrl: '',
     appstreamContent: '',
     desktopUrl: '',
@@ -48,6 +52,8 @@ function formFromApp(app: Data.App): AppPayload {
     license: app.license ?? '',
     homepage: app.homepage ?? '',
     appstreamId: app.appstreamId ?? '',
+    appstreamIdAliases: app.appstreamIdAliases,
+    pkgNames: app.pkgNames,
     appstreamUrl: app.appstreamUrl ?? '',
     appstreamContent: app.appstreamContent ?? '',
     desktopUrl: app.desktopUrl ?? '',
@@ -201,6 +207,18 @@ export default function AppFormPage() {
           label={t('form.appstreamId')}
           value={form.appstreamId ?? ''}
           onChange={(event) => setForm({ ...form, appstreamId: event.currentTarget.value })}
+        />
+        <TagsInput
+          description={t('form.appstreamIdAliasesHint')}
+          label={t('form.appstreamIdAliases')}
+          value={form.appstreamIdAliases ?? []}
+          onChange={(aliases) => setForm({ ...form, appstreamIdAliases: aliases })}
+        />
+        <TagsInput
+          description={t('form.pkgNamesHint')}
+          label={t('form.pkgNames')}
+          value={(form.pkgNames ?? []).map(formatPkgNameMapping)}
+          onChange={(tags) => setForm({ ...form, pkgNames: tags.map(parsePkgNameMapping) })}
         />
         <TextInput
           label={t('form.appstreamUrl')}

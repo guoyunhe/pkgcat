@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
+import AppMergeModal from '../components/AppMergeModal'
 import AverageRating from '../components/AverageRating'
 import CategoryBadges from '../components/CategoryBadges'
 import FavoriteButton from '../components/FavoriteButton'
@@ -29,6 +30,7 @@ import {
   resolveDescription,
   selectScreenshots,
 } from '../utils/appstream'
+import { formatPkgNameMapping } from '../utils/pkgNames'
 
 import styles from './AppDetailPage.module.css'
 
@@ -178,6 +180,7 @@ export default function AppDetailPage() {
         </Button>
         {isAdmin && (
           <Group gap='xs'>
+            <AppMergeModal app={app} onMerged={setApp} />
             <Button
               component={Link}
               href={`/apps/${app.id}/edit`}
@@ -236,6 +239,22 @@ export default function AppDetailPage() {
           </Text>
           <Text>{app.appstreamId ?? t('common.notSpecified')}</Text>
         </div>
+        {app.appstreamIdAliases.length > 0 && (
+          <div>
+            <Text size='sm' c='dimmed'>
+              {t('detail.appstreamIdAliases')}
+            </Text>
+            <Text>{app.appstreamIdAliases.join(', ')}</Text>
+          </div>
+        )}
+        {app.pkgNames.length > 0 && (
+          <div>
+            <Text size='sm' c='dimmed'>
+              {t('detail.pkgNames')}
+            </Text>
+            <Text>{app.pkgNames.map(formatPkgNameMapping).join(', ')}</Text>
+          </div>
+        )}
         {app.categories.length > 0 && (
           <div>
             <Text size='sm' c='dimmed'>

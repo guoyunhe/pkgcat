@@ -167,6 +167,8 @@
     "version": "版本",
     "license": "授權條款",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID 別名",
+    "pkgNames": "軟體套件名稱",
     "categories": "分類",
     "homepage": "首頁",
     "previousScreenshot": "上一張截圖",
@@ -203,6 +205,10 @@
     "license": "授權條款",
     "homepage": "首頁",
     "appstreamId": "AppStream ID",
+    "appstreamIdAliases": "AppStream ID 別名",
+    "appstreamIdAliasesHint": "該應用程式以前使用過的 AppStream ID。合併應用程式時會自動登記被合併項目的 ID，讓倉庫中仍在使用該 ID 的軟體套件關聯到這裡。",
+    "pkgNames": "軟體套件名稱",
+    "pkgNamesHint": "沒有 AppStream 中繼資料的軟體套件將依名稱關聯到本應用程式，例如 vlc；如需限定套件格式可寫 deb:vlc 或 rpm:vlc。",
     "appstreamUrl": "AppStream URL",
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "AppStream 原始中繼資料，通常從 AppStream URL 匯入。",
@@ -210,6 +216,18 @@
     "desktopContent": "Desktop 檔案",
     "desktopContentHint": ".desktop 檔案內容，通常從 Desktop URL 匯入。",
     "save": "儲存應用程式"
+  },
+  "merge": {
+    "action": "合併應用程式",
+    "title": "將另一個應用程式合併到目前應用程式",
+    "description": "「{{name}}」收集的內容會全部轉移到目前應用程式，它的 AppStream ID 會成為目前應用程式的別名，被合併的項目會被刪除。",
+    "select": "要合併的應用程式",
+    "placeholder": "依名稱或 AppStream ID 搜尋",
+    "notFound": "找不到應用程式。",
+    "warning": "此操作無法復原。",
+    "confirm": "合併",
+    "error": "無法合併應用程式",
+    "loadError": "無法載入應用程式"
   },
   "repos": {
     "eyebrow": "系統管理",
