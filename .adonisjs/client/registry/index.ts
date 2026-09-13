@@ -12,12 +12,6 @@ const routes = {
     tokens: [{"old":"/uploads/*","type":0,"val":"uploads","end":""},{"old":"/uploads/*","type":2,"val":"*","end":""}],
     types: placeholder as Registry['drive.fs.serve']['types'],
   },
-  'locales.index': {
-    methods: ["GET","HEAD"],
-    pattern: '/api/locales',
-    tokens: [{"old":"/api/locales","type":0,"val":"api","end":""},{"old":"/api/locales","type":0,"val":"locales","end":""}],
-    types: placeholder as Registry['locales.index']['types'],
-  },
   'auth.register': {
     methods: ["POST"],
     pattern: '/api/auth/register',

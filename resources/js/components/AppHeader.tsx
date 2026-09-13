@@ -24,11 +24,12 @@ import { SquaresFourIcon } from '@phosphor-icons/react/SquaresFour'
 import { SunIcon } from '@phosphor-icons/react/Sun'
 import { UserCircleIcon } from '@phosphor-icons/react/UserCircle'
 import { UserPlusIcon } from '@phosphor-icons/react/UserPlus'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
+import { languageLabel, supportedLocales } from '../utils/languages'
 
 import styles from './AppHeader.module.css'
 
@@ -47,6 +48,12 @@ export default function AppHeader() {
   const query = searchParams.get('q') ?? ''
   const [searchQuery, setSearchQuery] = useState(query)
   const currentLanguage = i18n.resolvedLanguage ?? 'en'
+  // The languages of the interface are the languages of the application, which the shell assigned to
+  // the page; each one is named in its own language, so the list never changes with the interface
+  const languages = useMemo(
+    () => supportedLocales().map((tag) => ({ value: tag, label: languageLabel(tag) })),
+    [],
+  )
 
   useEffect(() => {
     setSearchQuery(query)
@@ -164,12 +171,9 @@ export default function AppHeader() {
             className={styles.lang}
             allowDeselect={false}
             checkIconPosition='right'
-            data={[
-              { value: 'en', label: 'EN' },
-              { value: 'zh-CN', label: '简中' },
-              { value: 'zh-TW', label: '繁中' },
-            ]}
+            data={languages}
             leftSection={<GlobeIcon size={15} />}
+            searchable
             value={currentLanguage}
             variant='default'
             w={100}

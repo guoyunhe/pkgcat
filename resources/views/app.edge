@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PkgCat</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <!--
+      Languages the catalog keeps (config/i18n.ts), which the editor offers when translating an
+      application. The shell assigns them to the page so that no request is made for a list that
+      never changes.
+    -->
+    <script>
+      window.supportedLocales = {{{ supportedLocales }}}
+      window.defaultLocale = {{{ defaultLocale }}}
+    </script>
     <script>
       ;(function () {
         try {

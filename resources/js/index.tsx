@@ -1,16 +1,11 @@
 import '@mantine/core/styles.css'
 import '@mantine/dropzone/styles.css'
 import './styles.css'
-import './i18n'
 import { MantineProvider, localStorageColorSchemeManager } from '@mantine/core'
 import { createRoot } from 'react-dom/client'
 
 import App from './App'
-import { getCatalogLanguages } from './services/locales'
-
-// The languages of the catalog tell a translation which language it falls back to, so they are
-// requested as soon as the application starts instead of when the first form opens.
-getCatalogLanguages().catch(() => undefined)
+import { i18nReady } from './i18n'
 
 const colorSchemeManager = localStorageColorSchemeManager({ key: 'color-scheme' })
 
@@ -20,8 +15,16 @@ if (!root) {
   throw new Error('React root element was not found')
 }
 
-createRoot(root).render(
-  <MantineProvider defaultColorScheme='auto' colorSchemeManager={colorSchemeManager}>
-    <App />
-  </MantineProvider>,
-)
+const container = createRoot(root)
+
+function render() {
+  container.render(
+    <MantineProvider defaultColorScheme='auto' colorSchemeManager={colorSchemeManager}>
+      <App />
+    </MantineProvider>,
+  )
+}
+
+// The translations of the interface are read over HTTP, so the page waits for the language it starts
+// in instead of flashing translation keys
+i18nReady.then(render, render)

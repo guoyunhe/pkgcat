@@ -19,18 +19,6 @@ export interface Registry {
       errorResponse: unknown
     }
   }
-  'locales.index': {
-    methods: ["GET","HEAD"]
-    pattern: '/api/locales'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: ExtractResponse<Awaited<ReturnType<import('#controllers/locales_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/locales_controller').default['index']>>>
-    }
-  }
   'auth.register': {
     methods: ["POST"]
     pattern: '/api/auth/register'

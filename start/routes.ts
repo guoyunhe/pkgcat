@@ -10,15 +10,13 @@
 import router from '@adonisjs/core/services/router'
 
 import { controllers } from '#generated/controllers'
+import { fallbackLocale, supportedLocales } from '#services/app_locales'
 import { middleware } from '#start/kernel'
 
 router
   .group(() => {
     // Health check
     router.get('/', () => ({ hello: 'world' }))
-
-    // Languages the catalog keeps, which the editor offers when translating an application
-    router.get('locales', [controllers.Locales, 'index'])
 
     // Auth
     router
@@ -80,4 +78,11 @@ router
   })
   .prefix('/api')
 
-router.on('*').render('app')
+// Every other path serves the application shell, which carries the languages of the catalog so that
+// a page reads them from the document instead of requesting them
+router.on('*').setHandler(({ view }) =>
+  view.render('app', {
+    supportedLocales: JSON.stringify(supportedLocales()),
+    defaultLocale: JSON.stringify(fallbackLocale()),
+  }),
+)

@@ -11,7 +11,6 @@ export const controllers = {
   Distros: () => import('#controllers/distros_controller'),
   Favorites: () => import('#controllers/favorites_controller'),
   Images: () => import('#controllers/images_controller'),
-  Locales: () => import('#controllers/locales_controller'),
   Pkgs: () => import('#controllers/pkgs_controller'),
   Repos: () => import('#controllers/repos_controller'),
   Reviews: () => import('#controllers/reviews_controller'),

@@ -1,8 +1,25 @@
-import { servedCatalogLanguages } from '../services/locales'
+/**
+ * Languages the catalog keeps. The application shell assigns them to the page
+ * (`resources/views/app.edge`), so a page knows them without asking for them, and the list itself
+ * is configured once, in `config/i18n.ts`.
+ */
+declare global {
+  interface Window {
+    /** Languages an application can be translated into, in the order the server lists them. */
+    supportedLocales?: string[]
+    /** Language a translation falls back to, which is the interface's default language as well. */
+    defaultLocale?: string
+  }
+}
+
+/** Languages the catalog keeps, which the application shell assigned to the page. */
+export function supportedLocales(): string[] {
+  return window.supportedLocales ?? []
+}
 
 /** Language used when the requested locale has no translation at all. */
 export function fallbackLanguage() {
-  return servedCatalogLanguages().defaultLocale
+  return window.defaultLocale ?? ''
 }
 
 /**
@@ -20,10 +37,13 @@ export function scriptForRegion(base: string, region: string | undefined) {
   return region ? (hints[region] ?? hints['*']) : hints['*']
 }
 
-/** Human readable name of a language tag, shown in the language of the interface. */
-export function languageLabel(tag: string, uiLanguage: string) {
+/**
+ * Name of a language in that language itself (`日本語`, `Deutsch`, `中文（中国）`), which is what a reader
+ * of it recognizes, whichever language the interface is shown in.
+ */
+export function languageLabel(tag: string) {
   try {
-    return new Intl.DisplayNames([uiLanguage], { type: 'language' }).of(tag) ?? tag
+    return new Intl.DisplayNames([tag], { type: 'language' }).of(tag) ?? tag
   } catch {
     return tag
   }
@@ -53,17 +73,20 @@ function dedupe(tags: string[]) {
  */
 export function languageOptions(
   used: string[],
-  uiLanguage: string,
-  locales: string[] = [],
+  locales: string[] = supportedLocales(),
 ): LanguageOption[] {
   return dedupe([...used, ...locales]).map((value) => ({
     value,
-    label: `${languageLabel(value, uiLanguage)} (${value})`,
+    label: `${languageLabel(value)} (${value})`,
   }))
 }
 
 /** Picks the language a form starts with: the data's own language, else the interface language. */
-export function defaultLanguage(used: string[], uiLanguage?: string, locales: string[] = []) {
+export function defaultLanguage(
+  used: string[],
+  uiLanguage?: string,
+  locales: string[] = supportedLocales(),
+) {
   const pool = dedupe([...used, ...locales])
   const wanted = uiLanguage?.toLowerCase()
   const exact = wanted ? pool.find((tag) => tag.toLowerCase() === wanted) : undefined
