@@ -83,7 +83,14 @@
     "title": "應用程式",
     "subtitle": "探索軟體中繼資料、啟動器與上游來源。",
     "notFound": "找不到應用程式。",
-    "loadError": "無法載入應用程式"
+    "loadError": "無法載入應用程式",
+    "sort": {
+      "label": "排序",
+      "newest": "最新",
+      "name": "名稱",
+      "favorites": "收藏最多",
+      "rating": "評分最高"
+    }
   },
   "categories": {
     "filterLabel": "分類",

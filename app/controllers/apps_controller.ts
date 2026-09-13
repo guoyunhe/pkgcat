@@ -5,10 +5,16 @@ import Category from '#models/category'
 import AppTransformer from '#transformers/app_transformer'
 import { appValidator } from '#validators/app'
 
+/** Sort orders the application listing accepts; `newest` is the default. */
+const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
+
+type AppSort = (typeof appSorts)[number]
+
 export default class AppsController {
   async index({ auth, request, serialize }: HttpContext) {
     const page = this.positiveInteger(request.input('page'), 1)
     const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
+    const sort = this.sortOption(request.input('sort'))
     const rawQuery = request.input('q')
     const query = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
     const appsQuery = App.query()
@@ -16,7 +22,26 @@ export default class AppsController {
       .preload('categories')
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
-      .orderBy('id', 'desc')
+      .withAggregate('favoritedBy', (subQuery) => subQuery.count('*').as('favoriteCount'))
+
+    // Applications that compare equal are ordered by the newest one, so that paging stays stable
+    switch (sort) {
+      case 'name':
+        // `name` is a JSON column, so the untranslated name is extracted to sort by the name itself
+        // instead of by the serialized JSON object. It is lower-cased because the extracted string
+        // compares case-sensitively, which would order `2d` after `2FA`.
+        appsQuery.orderByRaw(`lower(json_unquote(json_extract(apps.name, '$."en"'))) asc`)
+        appsQuery.orderBy('id', 'desc')
+        break
+      case 'favorites':
+        appsQuery.orderBy('favoriteCount', 'desc').orderBy('id', 'desc')
+        break
+      case 'rating':
+        appsQuery.orderBy('avgRating', 'desc').orderBy('id', 'desc')
+        break
+      default:
+        appsQuery.orderBy('id', 'desc')
+    }
 
     if (auth.isAuthenticated) {
       appsQuery.preload('favoritedBy', (builder) => builder.where('users.id', auth.user!.id))
@@ -90,6 +115,11 @@ export default class AppsController {
   private positiveInteger(value: unknown, fallback: number) {
     const parsed = Number(value)
     return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
+  }
+
+  /** Sort order requested by the listing; anything the listing does not know sorts by newness. */
+  private sortOption(value: unknown): AppSort {
+    return appSorts.find((sort) => sort === value) ?? 'newest'
   }
 
   /** Category codes of the `category` filter; the query string may repeat or comma-separate them. */

@@ -83,7 +83,14 @@
     "title": "Applications",
     "subtitle": "Discover software metadata, launchers and upstream sources.",
     "notFound": "No applications found.",
-    "loadError": "Unable to load applications"
+    "loadError": "Unable to load applications",
+    "sort": {
+      "label": "Sort by",
+      "newest": "Newest",
+      "name": "Name",
+      "favorites": "Most favorited",
+      "rating": "Highest rated"
+    }
   },
   "categories": {
     "filterLabel": "Category",

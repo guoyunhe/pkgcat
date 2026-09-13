@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Badge, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
+import { Alert, Badge, Group, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
@@ -129,7 +129,11 @@ export default function SearchResultsPage() {
 
       {activeTab === 'packages' && <PkgFilters onChange={setFilters} value={filters} />}
 
-      {activeTab === 'apps' && <CategoryFilter onChange={setAppsCategory} value={appsCategory} />}
+      {activeTab === 'apps' && (
+        <Group mb='lg'>
+          <CategoryFilter onChange={setAppsCategory} value={appsCategory} />
+        </Group>
+      )}
 
       {activeTab === 'apps' &&
         (appsError ? (

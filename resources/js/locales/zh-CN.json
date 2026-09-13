@@ -83,7 +83,14 @@
     "title": "应用程序",
     "subtitle": "发现软件元数据、启动器和上游来源。",
     "notFound": "未找到应用。",
-    "loadError": "无法加载应用"
+    "loadError": "无法加载应用",
+    "sort": {
+      "label": "排序",
+      "newest": "最新",
+      "name": "名称",
+      "favorites": "收藏最多",
+      "rating": "评分最高"
+    }
   },
   "categories": {
     "filterLabel": "分类",

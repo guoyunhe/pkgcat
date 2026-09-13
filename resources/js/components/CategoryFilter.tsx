@@ -58,7 +58,8 @@ type CategoryFilterProps = {
 
 /**
  * Category filter of the application listings. Selecting a category also matches the applications
- * filed under its nested categories, which is resolved by the API.
+ * filed under its nested categories, which is resolved by the API. The row spacing is left to the
+ * listing that renders the filter, which may put further controls next to it.
  */
 export default function CategoryFilter({ value, onChange }: CategoryFilterProps) {
   const { t, i18n } = useTranslation()
@@ -84,7 +85,7 @@ export default function CategoryFilter({ value, onChange }: CategoryFilterProps)
   )
 
   return (
-    <Group align='flex-end' gap='sm' mb='lg'>
+    <Group align='flex-end' gap='sm'>
       <Select
         clearable
         data={groups}

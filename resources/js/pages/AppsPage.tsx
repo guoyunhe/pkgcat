@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Loader, Pagination, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Pagination, Select, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,7 +9,7 @@ import { useAuth } from '../auth'
 import AppList from '../components/AppList'
 import CategoryFilter from '../components/CategoryFilter'
 import FavoriteButton from '../components/FavoriteButton'
-import { getApps } from '../services/apps'
+import { appSort, appSorts, getApps, type AppSort } from '../services/apps'
 import type { Paginated } from '../types/pagination'
 
 import styles from './AppsPage.module.css'
@@ -25,14 +25,20 @@ export default function AppsPage() {
   const [error, setError] = useState<string | null>(null)
   const query = searchParams.get('q') ?? ''
   const category = searchParams.get('category')
+  const sort = appSort(searchParams.get('sort'))
   const page = Number(searchParams.get('page') ?? 1) || 1
 
-  /** The listing is driven by the URL, so query, category and page stay shareable and reloadable. */
-  function appsUrl(options: { category?: string | null; page?: number } = {}) {
+  /**
+   * The listing is driven by the URL, so query, category, sort order and page stay shareable and
+   * reloadable.
+   */
+  function appsUrl(options: { category?: string | null; page?: number; sort?: AppSort } = {}) {
     const params = new URLSearchParams()
     if (query) params.set('q', query)
     const nextCategory = options.category === undefined ? category : options.category
     if (nextCategory) params.set('category', nextCategory)
+    const nextSort = options.sort ?? sort
+    if (nextSort !== 'newest') params.set('sort', nextSort)
     if (options.page && options.page > 1) params.set('page', String(options.page))
     return `/apps${params.toString() ? `?${params}` : ''}`
   }
@@ -40,7 +46,7 @@ export default function AppsPage() {
   async function loadApps() {
     try {
       setLoading(true)
-      setResult(await getApps(query, page, 12, category))
+      setResult(await getApps(query, page, 12, category, sort))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('apps.loadError'))
     } finally {
@@ -50,7 +56,9 @@ export default function AppsPage() {
 
   useEffect(() => {
     void loadApps()
-  }, [category, page, query])
+  }, [category, page, query, sort])
+
+  const sortOptions = appSorts.map((value) => ({ value, label: t(`apps.sort.${value}`) }))
 
   return (
     <main className={styles.page}>
@@ -76,10 +84,20 @@ export default function AppsPage() {
           {error}
         </Alert>
       )}
-      <CategoryFilter
-        onChange={(nextCategory) => navigate(appsUrl({ category: nextCategory }))}
-        value={category}
-      />
+      <Group align='flex-end' gap='sm' mb='lg'>
+        <CategoryFilter
+          onChange={(nextCategory) => navigate(appsUrl({ category: nextCategory }))}
+          value={category}
+        />
+        <Select
+          allowDeselect={false}
+          data={sortOptions}
+          label={t('apps.sort.label')}
+          onChange={(nextSort) => navigate(appsUrl({ sort: appSort(nextSort) }))}
+          value={sort}
+          w={180}
+        />
+      </Group>
       {loading ? (
         <div className={styles.loading}>
           <Loader color='orange' />

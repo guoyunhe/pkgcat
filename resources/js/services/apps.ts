@@ -49,13 +49,30 @@ function filterParams(filters: PkgFilters) {
   }
 }
 
-export async function getApps(query = '', page = 1, perPage = 12, category: string | null = null) {
+/** Sort orders the application listing accepts; `newest` is the default. */
+export const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
+
+export type AppSort = (typeof appSorts)[number]
+
+/** Sort order named by a listing query, falling back to the newest applications. */
+export function appSort(value: string | null | undefined): AppSort {
+  return appSorts.find((sort) => sort === value) ?? 'newest'
+}
+
+export async function getApps(
+  query = '',
+  page = 1,
+  perPage = 12,
+  category: string | null = null,
+  sort: AppSort = 'newest',
+) {
   const { data } = await api.get<SerializedPaginated<Data.App>>('/apps', {
     params: {
       page,
       perPage,
       q: query || undefined,
       category: category || undefined,
+      sort,
     },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.App>
