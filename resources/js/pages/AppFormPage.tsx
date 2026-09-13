@@ -21,6 +21,7 @@ import { Redirect, useLocation, useRoute } from 'wouter'
 import { useAuth } from '../auth'
 import IconUpload from '../components/IconUpload'
 import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
+import { useCatalogLanguages } from '../services/locales'
 import { defaultLanguage, languageOptions } from '../utils/languages'
 import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
 
@@ -80,14 +81,17 @@ export default function AppFormPage() {
     () => [...new Set([...Object.keys(form.name), ...Object.keys(form.summary)])],
     [form.name, form.summary],
   )
+  // The languages of a translation are the languages of the catalog, which the server serves
+  const catalog = useCatalogLanguages()
+  const locales = useMemo(() => catalog?.locales ?? [], [catalog])
   const languages = useMemo(
-    () => languageOptions(usedLanguages, i18n.language),
-    [usedLanguages, i18n.language],
+    () => languageOptions(usedLanguages, i18n.language, locales),
+    [usedLanguages, i18n.language, locales],
   )
   const editingLanguage =
     chosenLanguage && languages.some((option) => option.value === chosenLanguage)
       ? chosenLanguage
-      : defaultLanguage(usedLanguages, i18n.language)
+      : defaultLanguage(usedLanguages, i18n.language, locales)
   const nameMissing = !Object.values(form.name).some((value) => value?.trim())
   const summaryMissing = !Object.values(form.summary).some((value) => value?.trim())
 

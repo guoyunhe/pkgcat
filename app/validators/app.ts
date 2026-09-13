@@ -1,5 +1,6 @@
 import vine from '@vinejs/vine'
 
+import { canonicalLocale } from '#services/app_locales'
 import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
@@ -13,18 +14,31 @@ type LocalizedText = Record<string, string>
 const emptyToNull = (value: unknown) => (value === '' || value === undefined ? null : value)
 
 /**
- * Localized text is a JSON object of locale => text. At least one translation is required, while
- * blank and non-string translations are dropped.
+ * Localized text is a JSON object of locale => text. At least one translation is required; blank
+ * and non-string translations are dropped, while a locale is kept under the spelling the catalog
+ * uses (`zh-CN` for `zh_cn`) and only when the catalog keeps that language at all.
  */
 const localizedTextRule = vine.createRule((value, _options, field) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return
 
   const localized: LocalizedText = {}
-  for (const [locale, text] of Object.entries(value as Record<string, unknown>)) {
+  for (const [tag, text] of Object.entries(value as Record<string, unknown>)) {
     if (typeof text !== 'string') continue
 
     const trimmed = text.trim()
-    if (locale && trimmed) localized[locale] = trimmed
+    if (!trimmed) continue
+
+    const locale = canonicalLocale(tag)
+    if (!locale) {
+      field.report(
+        'The {{ field }} field translates "{{ locale }}", which is not a language of the catalog',
+        'supportedLocale',
+        field,
+        { locale: tag },
+      )
+      return
+    }
+    localized[locale] = trimmed
   }
 
   if (Object.keys(localized).length === 0) {

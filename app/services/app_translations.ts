@@ -1,5 +1,6 @@
 import type App from '#models/app'
 import AppTranslation from '#models/app_translation'
+import { canonicalLocale, fallbackLocale, localeKey } from '#services/app_locales'
 
 /**
  * Localized text of an application. Applications carry a name and a summary per locale, which used
@@ -9,9 +10,6 @@ import AppTranslation from '#models/app_translation'
  * has something to display for applications that do not translate the requested locale.
  */
 
-/** Locale the catalog falls back to when an application does not translate the requested one. */
-export const fallbackLocale = 'en'
-
 /** Localized texts, keyed by the locale that translates them. */
 export type LocalizedTexts = Record<string, string>
 
@@ -19,26 +17,17 @@ export type LocalizedTexts = Record<string, string>
 export type TranslatedField = 'name' | 'summary'
 
 /**
- * Key two locales are compared under. Locales are written in either spelling (`zh-CN` in the
- * interface, `zh_cn` in AppStream metadata), and the database compares them case-insensitively, so
- * everything that pairs locales up has to as well.
- */
-export function localeKey(locale: string) {
-  return locale.trim().toLowerCase().replace(/-/g, '_')
-}
-
-/**
  * Locales a request for one locale reads: the tag in both spellings, its base language, and the
  * fallback language. The client still picks the best of them, so nothing is lost by reading a
  * handful of locales instead of every translation of every application.
  */
 export function translationCandidates(locale: string) {
-  const tag = locale.trim().toLowerCase()
-  if (!tag) return [fallbackLocale]
+  const tag = (canonicalLocale(locale) ?? locale.trim()).toLowerCase()
+  if (!tag) return [fallbackLocale()]
 
   const base = tag.split(/[-_]/)[0]
   return [
-    ...new Set([tag, tag.replace(/_/g, '-'), tag.replace(/-/g, '_'), base, fallbackLocale]),
+    ...new Set([tag, tag.replace(/_/g, '-'), tag.replace(/-/g, '_'), base, fallbackLocale()]),
   ].filter((candidate) => candidate !== '')
 }
 
@@ -96,7 +85,9 @@ async function readTranslations(ids: number[], locale?: string | null) {
 /**
  * Replace the translations of an application with the ones a request carries. The editor sends
  * every locale it knows, so a locale that is no longer translated is removed, while a locale that
- * translates only one of the two fields keeps the other one.
+ * translates only one of the two fields keeps the other one. Languages the catalog does not keep
+ * are dropped instead of stored: metadata asks for languages of its own (`sr@ijekavianlatin`),
+ * which are not translated by anyone and which the locale column has no room for.
  */
 export async function replaceTranslations(
   app: App,
@@ -105,9 +96,12 @@ export async function replaceTranslations(
 ) {
   const wanted = new Map<string, { locale: string; name: string | null; summary: string | null }>()
   const collect = (texts: LocalizedTexts, field: TranslatedField) => {
-    for (const [locale, text] of Object.entries(texts)) {
+    for (const [tag, text] of Object.entries(texts)) {
       const trimmed = typeof text === 'string' ? text.trim() : ''
-      if (!locale.trim() || !trimmed) continue
+      if (!trimmed) continue
+
+      const locale = canonicalLocale(tag)
+      if (!locale) continue
 
       const key = localeKey(locale)
       const entry = wanted.get(key) ?? { locale, name: null, summary: null }

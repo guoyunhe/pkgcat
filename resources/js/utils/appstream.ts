@@ -74,7 +74,7 @@ function bestLanguageKey(keys: string[], language: string) {
 }
 
 function fallbackKey(keys: string[]) {
-  return keys.find((key) => key.toLowerCase() === fallbackLanguage)
+  return keys.find((key) => key.toLowerCase() === fallbackLanguage())
 }
 
 /** Picks the value matching the locale, falling back to the default language, then to any value. */
@@ -150,7 +150,7 @@ export function selectScreenshots(
   }
 
   const fallback = selected.filter(
-    (slide) => slide.language && languageScore(slide.language, fallbackLanguage) > 0,
+    (slide) => slide.language && languageScore(slide.language, fallbackLanguage()) > 0,
   )
   return fallback.length > 0 ? fallback : selected
 }

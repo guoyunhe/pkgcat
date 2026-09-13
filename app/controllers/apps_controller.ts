@@ -4,9 +4,10 @@ import App from '#models/app'
 import AppAlias from '#models/app_alias'
 import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
+import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
-import { attachTranslations, fallbackLocale, replaceTranslations } from '#services/app_translations'
+import { attachTranslations, replaceTranslations } from '#services/app_translations'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
 import { appValidator, mergeAppValidator } from '#validators/app'
@@ -49,7 +50,7 @@ export default class AppsController {
         appsQuery
           .select('apps.*')
           .leftJoin('app_translations as sort_name', (join: JoinConditions) => {
-            join.on('sort_name.app_id', 'apps.id').andOnVal('sort_name.locale', fallbackLocale)
+            join.on('sort_name.app_id', 'apps.id').andOnVal('sort_name.locale', fallbackLocale())
           })
         appsQuery.orderBy('sort_name.name', 'asc').orderBy('sort_name.app_id', 'asc')
         break

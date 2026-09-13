@@ -17,6 +17,9 @@ router
     // Health check
     router.get('/', () => ({ hello: 'world' }))
 
+    // Languages the catalog keeps, which the editor offers when translating an application
+    router.get('locales', [controllers.Locales, 'index'])
+
     // Auth
     router
       .group(() => {

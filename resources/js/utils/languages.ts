@@ -1,91 +1,9 @@
-/**
- * Language tags commonly used by AppStream metadata. The list only provides suggestions: any tag
- * stored in the database is offered as well, so translations of any language stay editable.
- */
-export const commonLanguages = [
-  'en',
-  'zh-CN',
-  'zh-TW',
-  'zh',
-  'ja',
-  'ko',
-  'de',
-  'fr',
-  'es',
-  'pt',
-  'pt-BR',
-  'it',
-  'ru',
-  'uk',
-  'pl',
-  'nl',
-  'sv',
-  'da',
-  'nb',
-  'nn',
-  'fi',
-  'is',
-  'cs',
-  'sk',
-  'sl',
-  'hr',
-  'bs',
-  'sr',
-  'mk',
-  'bg',
-  'ro',
-  'hu',
-  'el',
-  'tr',
-  'az',
-  'hy',
-  'ka',
-  'he',
-  'ar',
-  'fa',
-  'ur',
-  'hi',
-  'bn',
-  'pa',
-  'gu',
-  'mr',
-  'ta',
-  'te',
-  'kn',
-  'ml',
-  'si',
-  'ne',
-  'th',
-  'lo',
-  'km',
-  'my',
-  'vi',
-  'id',
-  'ms',
-  'tl',
-  'sw',
-  'am',
-  'af',
-  'sq',
-  'be',
-  'ca',
-  'cy',
-  'et',
-  'eu',
-  'ga',
-  'gl',
-  'kk',
-  'ky',
-  'lt',
-  'lv',
-  'mn',
-  'uz',
-  'tg',
-  'eo',
-]
+import { servedCatalogLanguages } from '../services/locales'
 
 /** Language used when the requested locale has no translation at all. */
-export const fallbackLanguage = commonLanguages[0]
+export function fallbackLanguage() {
+  return servedCatalogLanguages().defaultLocale
+}
 
 /**
  * Script implied by a language tag, keyed by base language then region (with `*` as the fallback
@@ -129,22 +47,27 @@ function dedupe(tags: string[]) {
 }
 
 /**
- * Language tags offered by a form: the ones already present in the data first, then the common
- * suggestions. The label carries the tag itself so the list can be searched by code.
+ * Language tags offered by a form: the ones the data already translates first, so the form lists
+ * what the application carries before the rest of the languages of the catalog. The label carries
+ * the tag itself so the list can be searched by code.
  */
-export function languageOptions(used: string[], uiLanguage: string): LanguageOption[] {
-  return dedupe([...used, ...commonLanguages]).map((value) => ({
+export function languageOptions(
+  used: string[],
+  uiLanguage: string,
+  locales: string[] = [],
+): LanguageOption[] {
+  return dedupe([...used, ...locales]).map((value) => ({
     value,
     label: `${languageLabel(value, uiLanguage)} (${value})`,
   }))
 }
 
 /** Picks the language a form starts with: the data's own language, else the interface language. */
-export function defaultLanguage(used: string[], uiLanguage?: string) {
-  const pool = dedupe([...used, ...commonLanguages])
+export function defaultLanguage(used: string[], uiLanguage?: string, locales: string[] = []) {
+  const pool = dedupe([...used, ...locales])
   const wanted = uiLanguage?.toLowerCase()
   const exact = wanted ? pool.find((tag) => tag.toLowerCase() === wanted) : undefined
   const base = wanted?.split('-')[0]
   const interfaceLanguage = base ? pool.find((tag) => tag.toLowerCase() === base) : undefined
-  return used[0] ?? exact ?? interfaceLanguage ?? fallbackLanguage
+  return used[0] ?? exact ?? interfaceLanguage ?? locales[0] ?? uiLanguage ?? ''
 }

@@ -4,8 +4,8 @@ import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 
 import type App from '#models/app'
 import AppAlias from '#models/app_alias'
+import { localeKey } from '#services/app_locales'
 import { appstreamIdIsClaimed } from '#services/app_registry'
-import { localeKey } from '#services/app_translations'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 
 /** What a merge moved out of the application that was merged away. */

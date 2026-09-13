@@ -6,6 +6,11 @@ import { MantineProvider, localStorageColorSchemeManager } from '@mantine/core'
 import { createRoot } from 'react-dom/client'
 
 import App from './App'
+import { getCatalogLanguages } from './services/locales'
+
+// The languages of the catalog tell a translation which language it falls back to, so they are
+// requested as soon as the application starts instead of when the first form opens.
+getCatalogLanguages().catch(() => undefined)
 
 const colorSchemeManager = localStorageColorSchemeManager({ key: 'color-scheme' })
 
