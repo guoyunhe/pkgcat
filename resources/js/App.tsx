@@ -1,8 +1,8 @@
 import { AppShell } from '@mantine/core'
 
+import AppRoutes from './AppRoutes'
 import { AuthProvider } from './auth'
 import AppHeader from './components/AppHeader'
-import AppRoutes from './components/AppRoutes'
 
 /** Application shell: the authentication provider, the header and the routed page. */
 export default function App() {
