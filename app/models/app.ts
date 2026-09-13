@@ -12,11 +12,19 @@ export default class App extends AppSchema {
   @belongsTo(() => Image, { foreignKey: 'iconId' })
   declare icon: BelongsTo<typeof Image>
 
-  @hasMany(() => Pkg)
-  declare packages: HasMany<typeof Pkg>
-
   @hasMany(() => Review)
   declare reviews: HasMany<typeof Review>
+
+  /**
+   * Packages that provide the application. A package ships several applications when it carries
+   * several AppStream metadata files, and one metadata file may hold several components.
+   */
+  @manyToMany(() => Pkg, {
+    pivotTable: 'app_pkgs',
+    pivotForeignKey: 'app_id',
+    pivotRelatedForeignKey: 'pkg_id',
+  })
+  declare packages: ManyToMany<typeof Pkg>
 
   @manyToMany(() => Category, {
     pivotTable: 'app_categories',

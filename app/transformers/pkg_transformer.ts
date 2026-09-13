@@ -23,7 +23,9 @@ export default class PkgTransformer extends BaseTransformer<Pkg> {
       ]),
       // Uploaded package files are served from the local disk, keyed by their stored path.
       url: this.resource.path ? `/uploads/${this.resource.path}` : null,
-      app: this.resource.app ? { id: this.resource.app.id, name: this.resource.app.name } : null,
+      // A package may provide several applications, and an application may be made of several
+      // packages (the link is a many-to-many one)
+      apps: (this.resource.apps ?? []).map((app) => ({ id: app.id, name: app.name })),
     }
   }
 }

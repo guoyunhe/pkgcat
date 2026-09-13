@@ -13,11 +13,21 @@ export const pkgTypes = ['deb', 'rpm', 'appimage', 'flatpak', 'snap', 'tar.gz'] 
 const emptyToNull = (value: unknown) => (value === '' || value === undefined ? null : value)
 
 /**
+ * Application selection of a package: no selection arrives as `null` or an empty string, while an
+ * omitted field leaves the stored links alone.
+ */
+const emptyToArray = (value: unknown) => (value === null || value === '' ? [] : value)
+
+/**
  * Validator to use when creating or updating a package.
  */
 export const pkgValidator = vine.create({
-  // Packages extracted from a repository are not tied to a catalog application
-  appId: vine.number().parse(emptyToNull).exists({ table: 'apps', column: 'id' }).nullable(),
+  // A package belongs to every application it provides: one package may ship several AppStream
+  // metadata files, and one file may declare several components
+  appIds: vine
+    .array(vine.number().exists({ table: 'apps', column: 'id' }))
+    .parse(emptyToArray)
+    .optional(),
   type: vine.enum(pkgTypes),
   name: vine.string().trim().minLength(1).maxLength(255),
   version: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),

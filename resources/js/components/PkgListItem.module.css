@@ -30,6 +30,20 @@
   color: var(--ph-primary);
 }
 
+/* Applications the package provides, shown as chips next to the other metadata */
+.appLink {
+  border: 1px solid var(--ph-border);
+  color: inherit;
+  font-size: 12px;
+  padding: 2px 6px;
+  text-decoration: none;
+}
+
+.appLink:hover {
+  border-color: var(--ph-primary);
+  color: var(--ph-primary);
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;

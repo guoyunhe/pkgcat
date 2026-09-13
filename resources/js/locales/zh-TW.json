@@ -125,7 +125,7 @@
     "deleteConfirm": "確定要刪除軟體套件 {{name}} 嗎？",
     "deleteError": "無法刪除軟體套件",
     "fields": {
-      "app": "應用程式",
+      "apps": "應用程式",
       "type": "類型",
       "name": "名稱",
       "version": "版本",
@@ -238,7 +238,6 @@
       "type": "類型",
       "name": "倉庫",
       "distro": "發行版",
-      "status": "狀態",
       "syncInterval": "同步週期",
       "lastSynced": "上次同步"
     },

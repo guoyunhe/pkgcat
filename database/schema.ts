@@ -55,6 +55,21 @@ export class AppCategorySchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class AppPkgSchema extends BaseModel {
+  static $columns = ['appId', 'createdAt', 'id', 'pkgId', 'updatedAt'] as const
+  $columns = AppPkgSchema.$columns
+  @column()
+  declare appId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare pkgId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = ['abilities', 'createdAt', 'expiresAt', 'hash', 'id', 'lastUsedAt', 'name', 'tokenableId', 'type', 'updatedAt'] as const
   $columns = AuthAccessTokenSchema.$columns
@@ -159,10 +174,8 @@ export class ImageSchema extends BaseModel {
 }
 
 export class PkgSchema extends BaseModel {
-  static $columns = ['appId', 'arch', 'checksum', 'checksumType', 'createdAt', 'description', 'downloadUrl', 'id', 'installCommand', 'license', 'name', 'path', 'release', 'repoId', 'size', 'summary', 'type', 'updatedAt', 'userId', 'version'] as const
+  static $columns = ['arch', 'checksum', 'checksumType', 'createdAt', 'description', 'downloadUrl', 'id', 'installCommand', 'license', 'name', 'path', 'release', 'repoId', 'size', 'summary', 'type', 'updatedAt', 'userId', 'version'] as const
   $columns = PkgSchema.$columns
-  @column()
-  declare appId: number | null
   @column()
   declare arch: string | null
   @column()

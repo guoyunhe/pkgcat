@@ -297,10 +297,15 @@ export default class RepoSync extends BaseCommand {
       }
 
       // Packages are linked even when the metadata is not imported, so that new packages of an
-      // already known application still show up on its page
+      // already known application still show up on its page. A package may provide several
+      // applications, so the links are added rather than replaced.
       const names = entry.component.pkgNames.filter((name) => pkgNames.has(name))
       if (names.length > 0) {
-        await Pkg.query().where('repoId', repo.id).whereIn('name', names).update({ appId: app.id })
+        const links = await Pkg.query().where('repoId', repo.id).whereIn('name', names).select('id')
+        await app.related('packages').sync(
+          links.map((pkg) => pkg.id),
+          false,
+        )
         result.linked += names.length
       }
 
@@ -380,13 +385,17 @@ export default class RepoSync extends BaseCommand {
 
       const files = component.files.filter((file) => pkgNames.has(file.pkgName))
       if (files.length > 0) {
-        await Pkg.query()
+        const links = await Pkg.query()
           .where('repoId', repo.id)
           .whereIn(
             'name',
             files.map((file) => file.pkgName),
           )
-          .update({ appId: app.id })
+          .select('id')
+        await app.related('packages').sync(
+          links.map((pkg) => pkg.id),
+          false,
+        )
         result.linked += files.length
       }
 

@@ -26,11 +26,11 @@ export default class PkgsController {
   async index({ params, request, serialize }: HttpContext) {
     const page = this.positiveInteger(request.input('page'), 1)
     const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
-    const pkgsQuery = Pkg.query().preload('app').orderBy('id', 'desc')
+    const pkgsQuery = Pkg.query().preload('apps').orderBy('id', 'desc')
 
     if (params.app_id) {
       await App.findOrFail(params.app_id)
-      pkgsQuery.where('appId', params.app_id)
+      pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
     } else {
       const rawQuery = request.input('q')
       const keyword = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
@@ -67,7 +67,7 @@ export default class PkgsController {
   }
 
   async show({ params, serialize }: HttpContext) {
-    const pkg = await Pkg.query().where('id', params.id).preload('app').firstOrFail()
+    const pkg = await Pkg.query().where('id', params.id).preload('apps').firstOrFail()
     return serialize(PkgTransformer.transform(pkg))
   }
 
@@ -80,11 +80,12 @@ export default class PkgsController {
     if (context.params.app_id) return this.storeFromUpload(context)
 
     const { request, response, serialize } = context
-    const payload = await request.validateUsing(pkgValidator)
+    const { appIds, ...attributes } = await request.validateUsing(pkgValidator)
 
-    const pkg = await Pkg.create(payload)
-    await pkg.load('app')
-    response.created()
+    const pkg = await Pkg.create(attributes)
+    if (appIds && appIds.length > 0) await pkg.related('apps').attach(appIds)
+    await pkg.load('apps')
+    response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
 
@@ -110,7 +111,6 @@ export default class PkgsController {
     await file.move(app.makePath('storage', 'packages'), { name: fileName, overwrite: true })
 
     const pkg = await Pkg.create({
-      appId: application.id,
       userId: auth.getUserOrFail().id,
       type: metadata.type,
       name: metadata.name,
@@ -126,17 +126,20 @@ export default class PkgsController {
       path,
     })
 
-    await pkg.load('app')
+    await pkg.related('apps').attach([application.id])
+    await pkg.load('apps')
     response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
 
   async update({ params, request, serialize }: HttpContext) {
     const pkg = await Pkg.findOrFail(params.id)
-    const payload = await request.validateUsing(pkgValidator)
+    const { appIds, ...attributes } = await request.validateUsing(pkgValidator)
 
-    await pkg.merge(payload).save()
-    await pkg.load('app')
+    await pkg.merge(attributes).save()
+    // The form lists every application of the package, so the stored links follow the selection
+    if (appIds) await pkg.related('apps').sync(appIds, true)
+    await pkg.load('apps')
     return serialize(PkgTransformer.transform(pkg))
   }
 

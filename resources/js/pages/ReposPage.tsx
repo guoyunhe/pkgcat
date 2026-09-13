@@ -94,7 +94,6 @@ export default function ReposPage() {
               <Table.Th>{t('repos.columns.type')}</Table.Th>
               <Table.Th>{t('repos.columns.name')}</Table.Th>
               <Table.Th>{t('repos.columns.distro')}</Table.Th>
-              <Table.Th>{t('repos.columns.status')}</Table.Th>
               <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
               <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
               {isAdmin && <Table.Th />}

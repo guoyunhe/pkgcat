@@ -94,11 +94,10 @@ export default class AppSeeder extends BaseSeeder {
     packages: Array<{ arch: string; downloadUrl: string; version: string }>,
   ) {
     for (const pkg of packages) {
-      await Pkg.updateOrCreate(
-        { appId: app.id, type: 'appimage', version: pkg.version, arch: pkg.arch },
+      const stored = await Pkg.updateOrCreate(
+        { type: 'appimage', name: 'RetroArch', version: pkg.version, arch: pkg.arch },
         {
           ...pkg,
-          appId: app.id,
           type: 'appimage',
           name: 'RetroArch',
           release: null,
@@ -109,6 +108,7 @@ export default class AppSeeder extends BaseSeeder {
           installCommand: '7z x RetroArch.7z && chmod +x RetroArch*.AppImage',
         },
       )
+      await stored.related('apps').sync([app.id], true)
     }
   }
 

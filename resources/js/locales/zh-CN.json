@@ -125,7 +125,7 @@
     "deleteConfirm": "确定删除软件包 {{name}} 吗？",
     "deleteError": "无法删除软件包",
     "fields": {
-      "app": "应用",
+      "apps": "应用",
       "type": "类型",
       "name": "名称",
       "version": "版本",
@@ -238,7 +238,6 @@
       "type": "类型",
       "name": "仓库",
       "distro": "发行版",
-      "status": "状态",
       "syncInterval": "同步周期",
       "lastSynced": "上次同步"
     },

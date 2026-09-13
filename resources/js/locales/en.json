@@ -125,7 +125,7 @@
     "deleteConfirm": "Delete package {{name}}?",
     "deleteError": "Unable to delete package",
     "fields": {
-      "app": "Application",
+      "apps": "Applications",
       "type": "Type",
       "name": "Name",
       "version": "Version",
@@ -238,7 +238,6 @@
       "type": "Type",
       "name": "Repository",
       "distro": "Distribution",
-      "status": "Status",
       "syncInterval": "Sync interval",
       "lastSynced": "Last synced"
     },

@@ -4,6 +4,7 @@ import {
   Button,
   Group,
   Loader,
+  MultiSelect,
   NumberInput,
   Select,
   Stack,
@@ -21,7 +22,7 @@ import { Redirect, useLocation, useRoute, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import { getApps } from '../services/apps'
-import { createPkg, getPkg, updatePkg } from '../services/pkgs'
+import { createPkg, getPkg, updatePkg, type PkgPayload } from '../services/pkgs'
 import { localized } from '../utils/appstream'
 import { packageTypes } from '../utils/pkgTypes'
 
@@ -29,12 +30,13 @@ import styles from './AppFormPage.module.css'
 
 const checksumTypes = ['sha256', 'sha512', 'sha1', 'md5']
 
-// The API takes a flat `appId` (and not the `app` object the transformer returns).
-type PkgFormValues = Partial<Data.Pkg> & { appId: number | null }
+// The API takes the selected applications as flat `appIds` (and not the `apps` the transformer
+// returns), because a package may provide several applications.
+type PkgFormValues = PkgPayload & { appIds: number[] }
 
 function emptyForm(): PkgFormValues {
   return {
-    appId: null,
+    appIds: [],
     type: 'deb',
     name: '',
     version: '',
@@ -78,7 +80,7 @@ export default function PkgFormPage() {
     getPkg(pkgId)
       .then((pkg) =>
         form.initialize({
-          appId: pkg.app?.id ?? null,
+          appIds: pkg.apps.map((app) => app.id),
           type: pkg.type,
           name: pkg.name,
           version: pkg.version ?? '',
@@ -103,7 +105,7 @@ export default function PkgFormPage() {
   useEffect(() => {
     if (pkgId || !presetAppId) return
     const id = Number(presetAppId)
-    if (Number.isInteger(id) && id > 0) form.setFieldValue('appId', id)
+    if (Number.isInteger(id) && id > 0) form.setFieldValue('appIds', [id])
   }, [pkgId, presetAppId])
 
   const appOptions = useMemo(
@@ -168,14 +170,14 @@ export default function PkgFormPage() {
       )}
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack className={styles.form}>
-          <Select
-            label={t('packages.fields.app')}
+          <MultiSelect
+            label={t('packages.fields.apps')}
             clearable
             searchable
             data={appOptions}
-            value={form.values.appId === null ? null : String(form.values.appId)}
-            onChange={(value) => form.setFieldValue('appId', value ? Number(value) : null)}
-            error={form.errors.appId}
+            value={form.values.appIds.map(String)}
+            onChange={(values) => form.setFieldValue('appIds', values.map(Number))}
+            error={form.errors.appIds}
           />
           <Select
             label={t('packages.fields.type')}
