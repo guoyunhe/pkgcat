@@ -27,7 +27,7 @@ import { UserPlusIcon } from '@phosphor-icons/react/UserPlus'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Route, Switch } from 'wouter'
-import { Link, useLocation, useSearchParams } from 'wouter'
+import { Link, Redirect, useLocation, useSearchParams } from 'wouter'
 
 import { AuthProvider, useAuth } from './auth'
 import AppDetailPage from './pages/AppDetailPage'
@@ -51,9 +51,19 @@ function AppRoutes() {
       <Route path='/login' component={LoginPage} />
       <Route path='/register' component={RegisterPage} />
       <Route path='/search' component={SearchResultsPage} />
-      <Route path='/packages/new' component={PkgFormPage} />
-      <Route path='/packages/:id/edit' component={PkgFormPage} />
-      <Route path='/packages' component={PkgsPage} />
+      <Route path='/pkgs/new' component={PkgFormPage} />
+      <Route path='/pkgs/:id/edit' component={PkgFormPage} />
+      <Route path='/pkgs' component={PkgsPage} />
+      {/* Package pages used to live under `/packages` and keep redirecting, so old links still work */}
+      <Route path='/packages/new'>
+        <Redirect replace to='/pkgs/new' />
+      </Route>
+      <Route path='/packages/:id/edit'>
+        {({ id }) => <Redirect replace to={`/pkgs/${id}/edit`} />}
+      </Route>
+      <Route path='/packages'>
+        <Redirect replace to='/pkgs' />
+      </Route>
       <Route path='/repos/new' component={RepoFormPage} />
       <Route path='/repos/:id/edit' component={RepoFormPage} />
       <Route path='/repos' component={ReposPage} />
@@ -132,7 +142,7 @@ function AppHeader() {
           </Button>
           <Button
             component={Link}
-            href='/packages'
+            href='/pkgs'
             className='app-header__nav-button'
             color='gray'
             leftSection={<PackageIcon size={18} />}

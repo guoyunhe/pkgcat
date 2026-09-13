@@ -313,7 +313,7 @@ export default function AppDetailPage() {
               <PackageUpload appId={app.id} onUploaded={handlePackageUploaded} />
               <Button
                 component={Link}
-                href={`/packages/new?appId=${app.id}`}
+                href={`/pkgs/new?appId=${app.id}`}
                 leftSection={<PlusIcon size={16} weight='bold' />}
                 size='xs'
               >
@@ -341,7 +341,7 @@ export default function AppDetailPage() {
                         <Button
                           aria-label={t('detail.editPackage')}
                           component={Link}
-                          href={`/packages/${pkg.id}/edit`}
+                          href={`/pkgs/${pkg.id}/edit`}
                           size='xs'
                           variant='subtle'
                         >

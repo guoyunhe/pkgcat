@@ -73,7 +73,7 @@ export default function PkgsPage() {
         {isAdmin && (
           <Button
             component={Link}
-            href='/packages/new'
+            href='/pkgs/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
             {t('packages.addPackage')}
@@ -103,7 +103,7 @@ export default function PkgsPage() {
                       <Button
                         aria-label={t('packages.editPackage')}
                         component={Link}
-                        href={`/packages/${pkg.id}/edit`}
+                        href={`/pkgs/${pkg.id}/edit`}
                         size='xs'
                         variant='subtle'
                       >

@@ -55,7 +55,7 @@ export default function PkgFormPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/packages/:id/edit')
+  const [, params] = useRoute('/pkgs/:id/edit')
   const [searchParams] = useSearchParams()
   const pkgId = params?.id ? Number(params.id) : undefined
   const presetAppId = searchParams.get('appId')
@@ -122,7 +122,7 @@ export default function PkgFormPage() {
       </div>
     )
   if (!user) return <Redirect to='/login' />
-  if (user.role !== 'admin') return <Redirect to='/packages' />
+  if (user.role !== 'admin') return <Redirect to='/pkgs' />
   if (loading)
     return (
       <div className={styles.loading}>
@@ -136,7 +136,7 @@ export default function PkgFormPage() {
       setError(null)
       if (pkgId) await updatePkg(pkgId, values)
       else await createPkg(values)
-      navigate('/packages')
+      navigate('/pkgs')
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('packages.saveError'))
     } finally {
@@ -156,7 +156,7 @@ export default function PkgFormPage() {
         <Button
           leftSection={<XIcon size={18} />}
           variant='default'
-          onClick={() => navigate('/packages')}
+          onClick={() => navigate('/pkgs')}
         >
           {t('common.cancel')}
         </Button>
