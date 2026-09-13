@@ -30,6 +30,8 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 
+import styles from './AppHeader.module.css'
+
 /**
  * Header of the application shell: the navigation to the listings, the application search and the
  * account controls. The search box mirrors the `q` query of the current location, so that a
@@ -56,17 +58,17 @@ export default function AppHeader() {
   }
 
   return (
-    <AppShell.Header className='app-header'>
-      <div className='app-header__inner'>
-        <nav className='app-header__nav'>
-          <Text component={Link} href='/' className='app-header__brand' fw={700}>
-            <img src='/favicon.svg' alt='' className='app-header__icon' />
+    <AppShell.Header className={styles.header}>
+      <div className={styles.inner}>
+        <nav className={styles.nav}>
+          <Text component={Link} href='/' className={styles.brand} fw={700}>
+            <img src='/favicon.svg' alt='' className={styles.icon} />
             PkgCat
           </Text>
           <Button
             component={Link}
             href='/apps'
-            className='app-header__nav-button'
+            className={styles.navButton}
             color='gray'
             leftSection={<SquaresFourIcon size={18} />}
             variant='subtle'
@@ -76,7 +78,7 @@ export default function AppHeader() {
           <Button
             component={Link}
             href='/repos'
-            className='app-header__nav-button'
+            className={styles.navButton}
             color='gray'
             leftSection={<HardDrivesIcon size={18} />}
             variant='subtle'
@@ -86,7 +88,7 @@ export default function AppHeader() {
           <Button
             component={Link}
             href='/distros'
-            className='app-header__nav-button'
+            className={styles.navButton}
             color='gray'
             leftSection={<LinuxLogoIcon size={18} />}
             variant='subtle'
@@ -96,7 +98,7 @@ export default function AppHeader() {
           <Button
             component={Link}
             href='/pkgs'
-            className='app-header__nav-button'
+            className={styles.navButton}
             color='gray'
             leftSection={<PackageIcon size={18} />}
             variant='subtle'
@@ -104,7 +106,7 @@ export default function AppHeader() {
             {t('header.packages')}
           </Button>
           <form
-            className='app-header__search-form'
+            className={styles.searchForm}
             onSubmit={(event) => {
               event.preventDefault()
               const value = searchQuery.trim()
@@ -113,7 +115,7 @@ export default function AppHeader() {
           >
             <TextInput
               aria-label={t('header.searchApplications')}
-              className='app-header__search'
+              className={styles.search}
               leftSection={<MagnifyingGlassIcon size={18} />}
               placeholder={t('header.searchApplications')}
               value={searchQuery}
@@ -159,7 +161,7 @@ export default function AppHeader() {
           </Menu>
           <Select
             aria-label={t('language')}
-            className='app-header__lang'
+            className={styles.lang}
             allowDeselect={false}
             checkIconPosition='right'
             data={[

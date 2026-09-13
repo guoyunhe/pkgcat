@@ -102,8 +102,8 @@ export default function ReposPage() {
           <Table.Tbody>
             {repos.map((repo) => (
               <Table.Tr
+                className={isAdmin ? styles.clickableRow : styles.row}
                 key={repo.id}
-                style={{ cursor: isAdmin ? 'pointer' : 'default' }}
                 onClick={() => {
                   if (isAdmin) navigate(`/repos/${repo.id}/edit`)
                 }}

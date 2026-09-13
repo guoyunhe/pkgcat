@@ -106,8 +106,8 @@ export default function DistrosPage() {
           <Table.Tbody>
             {distros.map((distro) => (
               <Table.Tr
+                className={isAdmin ? styles.clickableRow : styles.row}
                 key={distro.id}
-                style={{ cursor: isAdmin ? 'pointer' : 'default' }}
                 onClick={() => {
                   if (isAdmin) navigate(`/distros/${distro.id}/edit`)
                 }}

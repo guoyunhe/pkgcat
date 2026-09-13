@@ -1,0 +1,80 @@
+.header {
+  background: var(--ph-header-bg);
+  border-bottom: 1px solid var(--ph-border);
+  backdrop-filter: blur(12px);
+}
+
+.inner {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 24px;
+  width: 100%;
+}
+
+.nav {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.brand {
+  align-items: center;
+  color: var(--ph-primary);
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  margin-right: 8px;
+  text-decoration: none;
+}
+
+.icon {
+  height: 28px;
+  width: 28px;
+}
+
+.navButton {
+  flex: 0 0 auto;
+}
+
+.searchForm {
+  flex: 1 1 320px;
+  margin-left: 12px;
+}
+
+.search {
+  width: 100%;
+}
+
+.lang {
+  flex: 0 0 auto;
+}
+
+/* The navigation shrinks to its icons on small screens */
+@media (max-width: 600px) {
+  .inner {
+    gap: 8px;
+    padding: 0 18px;
+  }
+
+  .nav {
+    gap: 0;
+  }
+
+  .brand {
+    margin-right: 2px;
+  }
+
+  .searchForm {
+    flex: 1 1 auto;
+    margin-left: 8px;
+    min-width: 0;
+  }
+
+  .header :global(.mantine-Button-label) {
+    display: none;
+  }
+}
