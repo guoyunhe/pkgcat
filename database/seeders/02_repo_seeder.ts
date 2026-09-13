@@ -3,27 +3,8 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Distro from '#models/distro'
 import Repo from '#models/repo'
 
+/** Repositories of the catalog that are not shipped by the distribution itself. */
 const repos = [
-  {
-    name: 'openSUSE Tumbleweed OSS',
-    type: 'rpm',
-    source: 'distro',
-    baseUrl: 'https://download.opensuse.org/tumbleweed/repo/oss/',
-    distroName: 'openSUSE Tumbleweed',
-    distroVersion: null,
-    configContent: null,
-    syncIntervalDays: 7,
-  },
-  {
-    name: 'openSUSE Tumbleweed Non-OSS',
-    source: 'distro',
-    baseUrl: 'https://download.opensuse.org/tumbleweed/repo/non-oss/',
-    distroName: 'openSUSE Tumbleweed',
-    distroVersion: null,
-    type: 'rpm',
-    configContent: null,
-    syncIntervalDays: 7,
-  },
   {
     name: 'VLC for openSUSE Tumbleweed',
     type: 'rpm',
@@ -42,36 +23,6 @@ enabled=1
     configUrl: 'https://download.videolan.org/SuSE/Tumbleweed/SuSE.repo',
     installScript: `pkexec zypper addrepo -y https://download.videolan.org/SuSE/Tumbleweed/SuSE.repo`,
     syncIntervalDays: 1,
-  },
-  {
-    name: 'Debian 13 Main',
-    source: 'distro',
-    baseUrl: 'https://deb.debian.org/debian/',
-    distroName: 'Debian',
-    distroVersion: '13',
-    type: 'deb',
-    configContent:
-      'deb https://deb.debian.org/debian trixie main contrib non-free non-free-firmware',
-  },
-  {
-    name: 'Debian 13 Updates',
-    source: 'distro',
-    baseUrl: 'https://deb.debian.org/debian/',
-    distroName: 'Debian',
-    distroVersion: '13',
-    type: 'deb',
-    configContent:
-      'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
-  },
-  {
-    name: 'Debian 13 Security',
-    type: 'deb',
-    source: 'distro',
-    distroName: 'Debian',
-    distroVersion: '13',
-    baseUrl: 'https://security.debian.org/debian-security/',
-    configContent:
-      'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
   },
   ...['42', '43', '44'].map((ver) => ({
     name: `RPM Fusion for Fedora ${ver} - Free`,
