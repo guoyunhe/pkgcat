@@ -3,6 +3,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import App from '#models/app'
 import Review from '#models/review'
 import User from '#models/user'
+import { attachTranslations } from '#services/app_translations'
 import ReviewTransformer from '#transformers/review_transformer'
 import { reviewValidator } from '#validators/review'
 
@@ -32,6 +33,11 @@ export default class ReviewsController {
       .orderBy('createdAt', 'desc')
       .paginate(page, perPage)
 
+    const locale = request.input('locale')
+    await attachTranslations(
+      paginator.all().flatMap((review) => (review.app ? [review.app] : [])),
+      typeof locale === 'string' ? locale : null,
+    )
     return serialize(ReviewTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 

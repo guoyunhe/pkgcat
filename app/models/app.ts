@@ -4,6 +4,7 @@ import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relat
 import { AppSchema } from '#database/schema'
 import AppAlias from '#models/app_alias'
 import AppPkgName from '#models/app_pkg_name'
+import AppTranslation from '#models/app_translation'
 import Category from '#models/category'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
@@ -30,6 +31,13 @@ export default class App extends AppSchema {
    */
   @hasMany(() => AppPkgName)
   declare pkgNames: HasMany<typeof AppPkgName>
+
+  /**
+   * Name and summary of the application per locale. A response carries the locale the client asked
+   * for (see `attachTranslations`), and the editor carries every translation it has.
+   */
+  @hasMany(() => AppTranslation)
+  declare translations: HasMany<typeof AppTranslation>
 
   /**
    * Packages that provide the application. A package ships several applications when it carries

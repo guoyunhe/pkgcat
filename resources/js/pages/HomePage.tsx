@@ -13,21 +13,21 @@ import { getDistros, type Distro } from '../services/distros'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [apps, setApps] = useState<Data.App[]>([])
   const [distros, setDistros] = useState<Distro[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([getApps('', 1), getDistros()])
+    Promise.all([getApps('', 1, 12, null, 'newest', i18n.language), getDistros()])
       .then(([appPage, distroList]) => {
         setApps(appPage.data.slice(0, 6))
         setDistros(distroList)
       })
       .catch((reason) => setError(reason instanceof Error ? reason.message : t('home.loadError')))
       .finally(() => setLoading(false))
-  }, [])
+  }, [i18n.language])
 
   return (
     <main className={styles.page}>

@@ -1,6 +1,7 @@
 import { BaseTransformer } from '@adonisjs/core/transformers'
 
 import type App from '#models/app'
+import { localizedTexts } from '#services/app_translations'
 import ImageTransformer from '#transformers/image_transformer'
 
 export default class AppTransformer extends BaseTransformer<App> {
@@ -10,8 +11,6 @@ export default class AppTransformer extends BaseTransformer<App> {
     return {
       ...this.pick(this.resource, [
         'id',
-        'name',
-        'summary',
         'version',
         'license',
         'homepage',
@@ -22,6 +21,12 @@ export default class AppTransformer extends BaseTransformer<App> {
         'desktopContent',
         'iconId',
       ]),
+      /**
+       * Name and summary per locale. A response carries the locale the client asked for (plus the
+       * language the catalog falls back to), while the editor receives every translation.
+       */
+      name: localizedTexts(this.resource.translations, 'name'),
+      summary: localizedTexts(this.resource.translations, 'summary'),
       icon: this.resource.icon ? ImageTransformer.transform(this.resource.icon) : null,
       /**
        * Historical AppStream IDs of the application. Repositories that still announce one of them

@@ -15,7 +15,7 @@ import type { Paginated } from '../types/pagination'
 import styles from './AppsPage.module.css'
 
 export default function AppsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const isAdmin = ready && user?.role === 'admin'
   const [, navigate] = useLocation()
@@ -46,7 +46,7 @@ export default function AppsPage() {
   async function loadApps() {
     try {
       setLoading(true)
-      setResult(await getApps(query, page, 12, category, sort))
+      setResult(await getApps(query, page, 12, category, sort, i18n.language))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('apps.loadError'))
     } finally {
@@ -56,7 +56,7 @@ export default function AppsPage() {
 
   useEffect(() => {
     void loadApps()
-  }, [category, page, query, sort])
+  }, [category, i18n.language, page, query, sort])
 
   const sortOptions = appSorts.map((value) => ({ value, label: t(`apps.sort.${value}`) }))
 

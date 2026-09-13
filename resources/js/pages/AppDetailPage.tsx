@@ -64,12 +64,12 @@ export default function AppDetailPage() {
       setError(t('detail.invalidId'))
       return
     }
-    getApp(appId)
+    getApp(appId, i18n.language)
       .then(setApp)
       .catch((reason) =>
         setError(reason instanceof Error ? reason.message : t('detail.loadAppError')),
       )
-  }, [appId])
+  }, [appId, i18n.language])
 
   useEffect(() => {
     setPackagesPage(1)
@@ -80,26 +80,26 @@ export default function AppDetailPage() {
 
     setPackagesLoading(true)
     setPackagesError(null)
-    getAppPackages(appId, packagesPage, pkgFilters)
+    getAppPackages(appId, packagesPage, pkgFilters, i18n.language)
       .then(setPackages)
       .catch((reason) =>
         setPackagesError(reason instanceof Error ? reason.message : t('detail.loadPackagesError')),
       )
       .finally(() => setPackagesLoading(false))
-  }, [appId, packagesPage, packagesRefresh, pkgFilters])
+  }, [appId, i18n.language, packagesPage, packagesRefresh, pkgFilters])
 
   useEffect(() => {
     if (!appId) return
 
     setReviewsLoading(true)
     setReviewsError(null)
-    getAppReviews(appId, reviewsPage)
+    getAppReviews(appId, reviewsPage, i18n.language)
       .then(setReviews)
       .catch((reason) =>
         setReviewsError(reason instanceof Error ? reason.message : t('reviews.loadError')),
       )
       .finally(() => setReviewsLoading(false))
-  }, [appId, reviewsPage, reviewsRefresh])
+  }, [appId, i18n.language, reviewsPage, reviewsRefresh])
 
   if (error) {
     return (

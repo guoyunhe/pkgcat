@@ -5,6 +5,7 @@ import xior, { isXiorError } from 'xior'
 import App from '#models/app'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
+import { replaceTranslations } from '#services/app_translations'
 import { appstreamHomepage, appstreamVersion } from '#services/repo_appstream_extractor'
 
 const applications = [
@@ -77,13 +78,17 @@ export default class AppSeeder extends BaseSeeder {
       const app = await App.updateOrCreate(
         { appstreamId: application.appstreamId },
         {
-          ...application,
+          appstreamId: application.appstreamId,
+          version: application.version,
+          license: application.license,
+          homepage: application.homepage,
           appstreamUrl,
           appstreamContent,
           desktopUrl: desktopUrl ?? null,
           desktopContent,
         },
       )
+      await replaceTranslations(app, application.name, application.summary)
       await this.updateIcon(app, iconUrl)
       await this.updatePackages(app, packages)
     }

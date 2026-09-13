@@ -11,6 +11,7 @@ import Pkg from '#models/pkg'
 import Repo from '#models/repo'
 import { mappedAppId } from '#services/app_pkg_names'
 import AppRegistry from '#services/app_registry'
+import { attachTranslations, localizedTexts, replaceTranslations } from '#services/app_translations'
 import RepoAppstreamExtractor, {
   appstreamHomepage,
   appstreamIdVariants,
@@ -291,8 +292,6 @@ export default class RepoSync extends BaseCommand {
         result.skipped += 1
       } else {
         app.merge({
-          name: entry.component.name,
-          summary: entry.component.summary,
           version: appstreamVersion(entry.component),
           license: entry.component.projectLicense ?? null,
           homepage: appstreamHomepage(entry.component),
@@ -300,6 +299,7 @@ export default class RepoSync extends BaseCommand {
         })
         if (renames) app.appstreamId = entry.appstreamId
         await app.save()
+        await replaceTranslations(app, entry.component.name, entry.component.summary)
         if (current) {
           result.updated += 1
         } else {
@@ -434,10 +434,12 @@ export default class RepoSync extends BaseCommand {
     for (const component of candidates) {
       let app = registry.find(component.appstreamId)
       if (!app) {
+        const placeholder = placeholderAppMetadata(this.inferredFile(component, byName)?.pkg)
         app = await App.create({
           appstreamId: component.appstreamId,
-          ...placeholderAppMetadata(this.inferredFile(component, byName)?.pkg),
+          license: placeholder.license,
         })
+        await replaceTranslations(app, placeholder.name, placeholder.summary)
         registry.register(app)
         result.created += 1
       }
@@ -472,21 +474,25 @@ export default class RepoSync extends BaseCommand {
 
         const extracted = packaged.app
         if (!app.appstreamContent) {
-          app.merge({
-            name:
-              Object.keys(extracted.component.name).length > 0
-                ? extracted.component.name
-                : app.name,
-            summary:
-              Object.keys(extracted.component.summary).length > 0
-                ? extracted.component.summary
-                : app.summary,
+          const name = Object.keys(extracted.component.name).length > 0
+          const summary = Object.keys(extracted.component.summary).length > 0
+          await app.merge({
             version: appstreamVersion(extracted.component) ?? app.version,
             license: extracted.component.projectLicense ?? app.license,
             homepage: appstreamHomepage(extracted.component) ?? app.homepage,
             appstreamContent: extracted.content,
           })
           await app.save()
+          // The metadata of the package completes the placeholder, but a field the package does not
+          // translate keeps the translation it already had
+          if (name || summary) {
+            await attachTranslations([app], null)
+            await replaceTranslations(
+              app,
+              name ? extracted.component.name : localizedTexts(app.translations, 'name'),
+              summary ? extracted.component.summary : localizedTexts(app.translations, 'summary'),
+            )
+          }
           result.extracted += 1
         }
 

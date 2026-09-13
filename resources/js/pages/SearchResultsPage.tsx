@@ -17,7 +17,7 @@ import styles from './AppsPage.module.css'
 type SearchTab = 'apps' | 'packages'
 
 export default function SearchResultsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q')?.trim() ?? ''
 
@@ -52,7 +52,7 @@ export default function SearchResultsPage() {
     let active = true
     setAppsLoading(true)
     setAppsError(null)
-    getApps(query, appsPage, 12, appsCategory)
+    getApps(query, appsPage, 12, appsCategory, 'newest', i18n.language)
       .then((result) => {
         if (active) setAppsResult(result)
       })
@@ -67,13 +67,13 @@ export default function SearchResultsPage() {
     return () => {
       active = false
     }
-  }, [appsCategory, appsPage, query, t])
+  }, [appsCategory, appsPage, i18n.language, query, t])
 
   useEffect(() => {
     let active = true
     setPkgsLoading(true)
     setPkgsError(null)
-    searchPackages(query, pkgsPage, filters)
+    searchPackages(query, pkgsPage, filters, i18n.language)
       .then((result) => {
         if (active) setPkgsResult(result)
       })
@@ -88,7 +88,7 @@ export default function SearchResultsPage() {
     return () => {
       active = false
     }
-  }, [filters, pkgsPage, query, t])
+  }, [filters, i18n.language, pkgsPage, query, t])
 
   return (
     <main className={styles.page}>

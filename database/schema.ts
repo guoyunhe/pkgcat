@@ -8,7 +8,7 @@ import { BaseModel, column } from '@adonisjs/lucid/orm'
 import { DateTime } from 'luxon'
 
 export class AppSchema extends BaseModel {
-  static $columns = ['appstreamContent', 'appstreamId', 'appstreamUrl', 'createdAt', 'desktopContent', 'desktopUrl', 'homepage', 'iconId', 'id', 'license', 'name', 'summary', 'updatedAt', 'version'] as const
+  static $columns = ['appstreamContent', 'appstreamId', 'appstreamUrl', 'createdAt', 'desktopContent', 'desktopUrl', 'homepage', 'iconId', 'id', 'license', 'updatedAt', 'version'] as const
   $columns = AppSchema.$columns
   @column()
   declare appstreamContent: string | null
@@ -30,10 +30,6 @@ export class AppSchema extends BaseModel {
   declare id: number
   @column()
   declare license: string | null
-  @column({ prepare: (value)=>value ? JSON.stringify(value) : value, consume: (value)=>typeof value === 'string' ? JSON.parse(value) : value })
-  declare name: Record<string, string>
-  @column({ prepare: (value)=>value ? JSON.stringify(value) : value, consume: (value)=>typeof value === 'string' ? JSON.parse(value) : value })
-  declare summary: Record<string, string>
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
   @column()
@@ -98,6 +94,25 @@ export class AppPkgNameSchema extends BaseModel {
   declare name: string
   @column()
   declare type: string
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
+export class AppTranslationSchema extends BaseModel {
+  static $columns = ['appId', 'createdAt', 'id', 'locale', 'name', 'summary', 'updatedAt'] as const
+  $columns = AppTranslationSchema.$columns
+  @column()
+  declare appId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare locale: string
+  @column()
+  declare name: string | null
+  @column()
+  declare summary: string | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }

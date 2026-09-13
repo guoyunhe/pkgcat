@@ -16,16 +16,16 @@ export type ReviewPayload = {
   comment?: string
 }
 
-export async function getAppReviews(appId: number, page = 1) {
+export async function getAppReviews(appId: number, page = 1, locale?: string) {
   const { data } = await api.get<SerializedPaginated<Data.Review>>(`/apps/${appId}/reviews`, {
-    params: { page },
+    params: { page, locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Review>
 }
 
-export async function getUserReviews(userId: number, page = 1) {
+export async function getUserReviews(userId: number, page = 1, locale?: string) {
   const { data } = await api.get<SerializedPaginated<Data.Review>>(`/users/${userId}/reviews`, {
-    params: { page },
+    params: { page, locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Review>
 }

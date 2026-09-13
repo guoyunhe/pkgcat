@@ -53,7 +53,7 @@ export default function UserDetailPage() {
       const foundUser = await getUser(userId)
       setProfile(foundUser)
 
-      const favorites = await getUserFavorites(userId, page)
+      const favorites = await getUserFavorites(userId, page, i18n.language)
       if (favorites.data.length === 0 && page > 1) {
         navigate(`/users/${userId}?page=${favorites.meta.lastPage || 1}`, { replace: true })
         return
@@ -76,20 +76,20 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     void loadPage()
-  }, [userId, page])
+  }, [i18n.language, userId, page])
 
   useEffect(() => {
     if (!Number.isInteger(userId) || userId <= 0) return
 
     setReviewsLoading(true)
     setReviewsError(null)
-    getUserReviews(userId, reviewsPage)
+    getUserReviews(userId, reviewsPage, i18n.language)
       .then(setReviews)
       .catch((reason) =>
         setReviewsError(reason instanceof Error ? reason.message : t('reviews.loadError')),
       )
       .finally(() => setReviewsLoading(false))
-  }, [userId, reviewsPage, reviewsRefresh])
+  }, [i18n.language, userId, reviewsPage, reviewsRefresh])
 
   async function handleDeleteReview(review: Data.Review) {
     if (!review.app || !window.confirm(t('reviews.deleteConfirm'))) return

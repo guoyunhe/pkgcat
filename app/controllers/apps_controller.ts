@@ -6,6 +6,7 @@ import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
+import { attachTranslations, fallbackLocale, replaceTranslations } from '#services/app_translations'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
 import { appValidator, mergeAppValidator } from '#validators/app'
@@ -15,11 +16,18 @@ const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
 
 type AppSort = (typeof appSorts)[number]
 
+/** Conditions Lucid hands to a join callback; knex's join clause, which Lucid types loosely. */
+type JoinConditions = {
+  on(column: string, otherColumn: string): JoinConditions
+  andOnVal(column: string, value: unknown): JoinConditions
+}
+
 export default class AppsController {
   async index({ auth, request, serialize }: HttpContext) {
     const page = this.positiveInteger(request.input('page'), 1)
     const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
     const sort = this.sortOption(request.input('sort'))
+    const locale = this.locale(request.input('locale'))
     const rawQuery = request.input('q')
     const query = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
     const appsQuery = App.query()
@@ -34,11 +42,16 @@ export default class AppsController {
     // Applications that compare equal are ordered by the newest one, so that paging stays stable
     switch (sort) {
       case 'name':
-        // `name` is a JSON column, so the untranslated name is extracted to sort by the name itself
-        // instead of by the serialized JSON object. It is lower-cased because the extracted string
-        // compares case-sensitively, which would order `2d` after `2FA`.
-        appsQuery.orderByRaw(`lower(json_unquote(json_extract(apps.name, '$."en"'))) asc`)
-        appsQuery.orderBy('id', 'desc')
+        // The name is translated per locale in its own table, so the listing joins the locale it
+        // sorts by and orders along its `(locale, name)` index, instead of extracting the name out
+        // of a JSON column row by row, which no index can serve. Applications that do not translate
+        // the sort locale keep coming first, the way the extracted NULL name did.
+        appsQuery
+          .select('apps.*')
+          .leftJoin('app_translations as sort_name', (join: JoinConditions) => {
+            join.on('sort_name.app_id', 'apps.id').andOnVal('sort_name.locale', fallbackLocale)
+          })
+        appsQuery.orderBy('sort_name.name', 'asc').orderBy('sort_name.app_id', 'asc')
         break
       case 'favorites':
         appsQuery.orderBy('favoriteCount', 'desc').orderBy('id', 'desc')
@@ -58,15 +71,21 @@ export default class AppsController {
       const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`
       appsQuery.where((searchQuery) => {
         searchQuery
-          // `name` and `summary` are JSON columns, which MariaDB stores with the binary collation,
-          // so they have to be lower-cased to be matched case-insensitively; a `whereILike` only
-          // compares case-insensitively on the text columns, where the database collation does it.
-          .whereRaw('lower(name) like ?', [pattern])
-          .orWhereRaw('lower(summary) like ?', [pattern])
-          .orWhereILike('version', pattern)
-          .orWhereILike('license', pattern)
-          .orWhereILike('appstreamId', pattern)
-          .orWhereHas('aliases', (aliasQuery) => aliasQuery.whereILike('appstreamId', pattern))
+          // The name and the summary are translated per locale in their own table, so the search
+          // covers every language an application carries. The text columns are compared through
+          // `lower()` as well, because the pattern is lower-cased and their collation is the only
+          // thing that would make the comparison case-insensitive otherwise.
+          .whereRaw('lower(version) like ?', [pattern])
+          .orWhereRaw('lower(license) like ?', [pattern])
+          .orWhereRaw('lower(appstream_id) like ?', [pattern])
+          .orWhereHas('aliases', (aliasQuery) =>
+            aliasQuery.whereRaw('lower(appstream_id) like ?', [pattern]),
+          )
+          .orWhereHas('translations', (translationQuery) =>
+            translationQuery
+              .whereRaw('lower(name) like ?', [pattern])
+              .orWhereRaw('lower(summary) like ?', [pattern]),
+          )
       })
     }
 
@@ -80,10 +99,11 @@ export default class AppsController {
     }
 
     const paginator = await appsQuery.paginate(page, perPage)
+    await attachTranslations(paginator.all(), locale)
     return serialize(AppTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
-  async show({ auth, params, serialize }: HttpContext) {
+  async show({ auth, params, request, serialize }: HttpContext) {
     const appQuery = App.query()
       .where('id', params.id)
       .preload('icon')
@@ -96,20 +116,19 @@ export default class AppsController {
       appQuery.preload('favoritedBy', (builder) => builder.where('users.id', auth.user!.id))
     }
     const app = await appQuery.firstOrFail()
+    await attachTranslations([app], this.locale(request.input('locale')))
     return serialize(AppTransformer.transform(app))
   }
 
   async store({ request, response, serialize }: HttpContext) {
     const payload = await request.validateUsing(appValidator)
 
-    const { appstreamIdAliases, pkgNames, ...attributes } = payload
+    const { appstreamIdAliases, pkgNames, name, summary, ...attributes } = payload
     const app = await App.create(attributes)
     await this.syncAliases(app, appstreamIdAliases)
     await this.syncPkgNames(app, pkgNames)
-    await app.load('icon')
-    await app.load('aliases')
-    await app.load('pkgNames')
-    await app.load('categories')
+    await replaceTranslations(app, name, summary)
+    await this.loadApp(app)
     response.status(201)
     return serialize(AppTransformer.transform(app))
   }
@@ -118,14 +137,12 @@ export default class AppsController {
     const app = await App.findOrFail(params.id)
     const payload = await request.validateUsing(appValidator, { meta: { appId: app.id } })
 
-    const { appstreamIdAliases, pkgNames, ...attributes } = payload
+    const { appstreamIdAliases, pkgNames, name, summary, ...attributes } = payload
     await app.merge(attributes).save()
     await this.syncAliases(app, appstreamIdAliases)
     await this.syncPkgNames(app, pkgNames)
-    await app.load('icon')
-    await app.load('aliases')
-    await app.load('pkgNames')
-    await app.load('categories')
+    await replaceTranslations(app, name, summary)
+    await this.loadApp(app)
     return serialize(AppTransformer.transform(app))
   }
 
@@ -142,10 +159,7 @@ export default class AppsController {
 
     await mergeApps(app, source)
     await app.refresh()
-    await app.load('icon')
-    await app.load('aliases')
-    await app.load('pkgNames')
-    await app.load('categories')
+    await this.loadApp(app)
     return serialize(AppTransformer.transform(app))
   }
 
@@ -222,6 +236,21 @@ export default class AppsController {
       if (known.has(key)) continue
       await AppPkgName.create({ appId: app.id, ...mapping })
     }
+  }
+
+  /** Relations every application response carries, with the translations the editor needs. */
+  private async loadApp(app: App) {
+    await app.load('icon')
+    await app.load('aliases')
+    await app.load('pkgNames')
+    await app.load('categories')
+    await attachTranslations([app], null)
+  }
+
+  /** Locale a listing or a page is localized to; a request without one receives every translation. */
+  private locale(value: unknown) {
+    const locale = typeof value === 'string' ? value.trim() : ''
+    return locale === '' ? null : locale
   }
 
   private positiveInteger(value: unknown, fallback: number) {

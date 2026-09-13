@@ -5,6 +5,7 @@ import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type App from '#models/app'
 import AppAlias from '#models/app_alias'
 import { appstreamIdIsClaimed } from '#services/app_registry'
+import { localeKey } from '#services/app_translations'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 
 /** What a merge moved out of the application that was merged away. */
@@ -15,6 +16,7 @@ export type MergeSummary = {
   reviews: number
   aliases: number
   pkgNames: number
+  translations: number
 }
 
 /** Link tables that are shared between two catalog entries of the same application. */
@@ -34,8 +36,10 @@ type SharedOwnerColumn = 'pkg_id' | 'category_id' | 'user_id'
  * - The AppStream ID of the merged application, and the aliases it had collected, become aliases of
  *   the remaining one, so that repositories announcing any of them link to it from then on
  * - The package names the merged application owns are moved over, so that the packages mapped by name
- *   end up on the remaining one
- * - Metadata the remaining application is missing, such as its icon, is completed from the merged one
+ *   end up on the remaining one * - The translations of the merged application are moved over as
+ *   well: a locale the remaining application does not translate yet is handed to it, and one it
+ *   already translates only receives the fields it was missing * - Metadata the remaining
+ *   application is missing, such as its icon, is completed from the merged one
  *
  * The whole merge runs in a transaction, so that a failure leaves both entries untouched.
  */
@@ -55,6 +59,7 @@ export async function mergeApps(target: App, source: App): Promise<MergeSummary>
       reviews: 0,
       aliases: 0,
       pkgNames: 0,
+      translations: 0,
     }
 
     summary.packages = await moveSharedRows(trx, 'app_pkgs', 'pkg_id', target.id, source.id)
@@ -73,10 +78,50 @@ export async function mergeApps(target: App, source: App): Promise<MergeSummary>
 
     summary.aliases = await moveAppstreamIds(trx, target, source)
     summary.pkgNames = await movePkgNames(trx, target, source)
+    summary.translations = await moveTranslations(trx, target, source)
 
     await source.useTransaction(trx).delete()
     return summary
   })
+}
+
+/**
+ * Hand the translations of the merged application to the remaining one. A locale the remaining
+ * application does not translate is moved over; a locale it already translates only receives the
+ * fields it was missing, and the row of the merged application is dropped.
+ */
+async function moveTranslations(trx: TransactionClientContract, target: App, source: App) {
+  const rows: Array<{ id: number; locale: string; name: string | null; summary: string | null }> =
+    await trx
+      .from('app_translations')
+      .where('app_id', source.id)
+      .select('id', 'locale', 'name', 'summary')
+  if (rows.length === 0) return 0
+
+  const stored: Array<{ id: number; locale: string; name: string | null; summary: string | null }> =
+    await trx
+      .from('app_translations')
+      .where('app_id', target.id)
+      .select('id', 'locale', 'name', 'summary')
+  const byLocale = new Map(stored.map((row) => [localeKey(row.locale), row]))
+
+  let moved = 0
+  for (const row of rows) {
+    const existing = byLocale.get(localeKey(row.locale))
+    if (!existing) {
+      await trx.from('app_translations').where('id', row.id).update({ app_id: target.id })
+      moved += 1
+      continue
+    }
+
+    const name = existing.name ?? row.name
+    const summary = existing.summary ?? row.summary
+    if (name !== existing.name || summary !== existing.summary) {
+      await trx.from('app_translations').where('id', existing.id).update({ name, summary })
+    }
+    await trx.from('app_translations').where('id', row.id).delete()
+  }
+  return moved
 }
 
 /**
@@ -194,13 +239,4 @@ function mergeMetadata(target: App, source: App) {
   if (!target.desktopUrl && source.desktopUrl) target.desktopUrl = source.desktopUrl
   if (!target.desktopContent && source.desktopContent) target.desktopContent = source.desktopContent
   if (!target.iconId && source.iconId) target.iconId = source.iconId
-
-  target.name = withMissingTranslations(target.name, source.name)
-  target.summary = withMissingTranslations(target.summary, source.summary)
-}
-
-/** Translations of the merged application that the kept one does not have yet. */
-function withMissingTranslations(kept: Record<string, string>, merged: Record<string, string>) {
-  const missing = Object.entries(merged ?? {}).filter(([locale, text]) => text && !kept?.[locale])
-  return missing.length === 0 ? kept : { ...kept, ...Object.fromEntries(missing) }
 }

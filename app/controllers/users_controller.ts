@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 import App from '#models/app'
 import User from '#models/user'
+import { attachTranslations } from '#services/app_translations'
 import AppTransformer from '#transformers/app_transformer'
 import UserTransformer from '#transformers/user_transformer'
 
@@ -30,6 +31,8 @@ export default class UsersController {
     }
 
     const paginator = await appsQuery.paginate(page, perPage)
+    const locale = request.input('locale')
+    await attachTranslations(paginator.all(), typeof locale === 'string' ? locale : null)
     return serialize(AppTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 

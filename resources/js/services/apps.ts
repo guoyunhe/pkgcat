@@ -70,6 +70,8 @@ export async function getApps(
   perPage = 12,
   category: string | null = null,
   sort: AppSort = 'newest',
+  /** Locale the names and summaries are read in; omitted returns every translation. */
+  locale?: string,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.App>>('/apps', {
     params: {
@@ -78,6 +80,7 @@ export async function getApps(
       q: query || undefined,
       category: category || undefined,
       sort,
+      locale,
     },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.App>
@@ -88,8 +91,12 @@ export async function getCategories() {
   return data.data
 }
 
-export async function getApp(id: number) {
-  const { data } = await api.get<{ data: Data.App }>(`/apps/${id}`)
+/**
+ * Read one application. Without a locale every translation is returned, which is what the editor
+ * needs; a page passes its interface language so that the response only carries that one.
+ */
+export async function getApp(id: number, locale?: string) {
+  const { data } = await api.get<{ data: Data.App }>(`/apps/${id}`, { params: { locale } })
   return data.data
 }
 
@@ -97,9 +104,10 @@ export async function getAppPackages(
   id: number,
   page = 1,
   filters: PkgFilters = { distroId: null, type: null, arch: null },
+  locale?: string,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>(`/apps/${id}/pkgs`, {
-    params: { page, ...filterParams(filters) },
+    params: { page, ...filterParams(filters), locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
 }
@@ -108,9 +116,10 @@ export async function searchPackages(
   query = '',
   page = 1,
   filters: PkgFilters = { distroId: null, type: null, arch: null },
+  locale?: string,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
-    params: { page, q: query || undefined, ...filterParams(filters) },
+    params: { page, q: query || undefined, ...filterParams(filters), locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
 }

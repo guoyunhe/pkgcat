@@ -14,6 +14,7 @@ import drive from '@adonisjs/drive/services/main'
 import App from '#models/app'
 import Distro from '#models/distro'
 import Pkg from '#models/pkg'
+import { attachTranslations } from '#services/app_translations'
 import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
 import { pkgValidator } from '#validators/pkg'
@@ -63,12 +64,28 @@ export default class PkgsController {
     if (type) pkgsQuery.where('type', type)
 
     const paginator = await pkgsQuery.paginate(page, perPage)
+    await this.loadAppNames(paginator.all(), request.input('locale'))
     return serialize(PkgTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
-  async show({ params, serialize }: HttpContext) {
+  async show({ params, request, serialize }: HttpContext) {
     const pkg = await Pkg.query().where('id', params.id).preload('apps').firstOrFail()
+    await this.loadAppNames([pkg], request.input('locale'))
     return serialize(PkgTransformer.transform(pkg))
+  }
+
+  /** Locale localized names of the linked applications are read for. */
+  private locale(value: unknown) {
+    const locale = typeof value === 'string' ? value.trim() : ''
+    return locale === '' ? null : locale
+  }
+
+  /** Read the localized names the packages carry for their applications. */
+  private async loadAppNames(pkgs: Pkg[], value: unknown) {
+    await attachTranslations(
+      pkgs.flatMap((pkg) => pkg.apps ?? []),
+      this.locale(value),
+    )
   }
 
   /**
@@ -85,6 +102,7 @@ export default class PkgsController {
     const pkg = await Pkg.create(attributes)
     if (appIds && appIds.length > 0) await pkg.related('apps').attach(appIds)
     await pkg.load('apps')
+    await this.loadAppNames([pkg], request.input('locale'))
     response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
@@ -128,6 +146,7 @@ export default class PkgsController {
 
     await pkg.related('apps').attach([application.id])
     await pkg.load('apps')
+    await this.loadAppNames([pkg], request.input('locale'))
     response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
@@ -140,6 +159,7 @@ export default class PkgsController {
     // The form lists every application of the package, so the stored links follow the selection
     if (appIds) await pkg.related('apps').sync(appIds, true)
     await pkg.load('apps')
+    await this.loadAppNames([pkg], request.input('locale'))
     return serialize(PkgTransformer.transform(pkg))
   }
 

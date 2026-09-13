@@ -16,9 +16,9 @@ export async function getUser(id: number) {
   return data.data
 }
 
-export async function getUserFavorites(id: number, page = 1) {
+export async function getUserFavorites(id: number, page = 1, locale?: string) {
   const { data } = await api.get<SerializedPaginated<Data.App>>(`/users/${id}/favorites`, {
-    params: { page },
+    params: { page, locale },
     headers: authHeaders(),
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.App>

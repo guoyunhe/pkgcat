@@ -17,7 +17,7 @@ import type { Paginated } from '../types/pagination'
 import styles from './AppsPage.module.css'
 
 export default function PkgsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const isAdmin = ready && user?.role === 'admin'
   const [page, setPage] = useState(1)
@@ -35,7 +35,7 @@ export default function PkgsPage() {
     let active = true
     setLoading(true)
     setError(null)
-    searchPackages('', page, filters)
+    searchPackages('', page, filters, i18n.language)
       .then((res) => {
         if (active) setResult(res)
       })
@@ -50,7 +50,7 @@ export default function PkgsPage() {
     return () => {
       active = false
     }
-  }, [filters, page, t, refresh])
+  }, [filters, i18n.language, page, t, refresh])
 
   async function remove(pkg: Data.Pkg) {
     if (!window.confirm(t('packages.deleteConfirm', { name: pkg.name }))) return
