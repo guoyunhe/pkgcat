@@ -52,7 +52,7 @@ export default function AppDetailPage() {
   const [reviewsError, setReviewsError] = useState<string | null>(null)
   const [reviewsRefresh, setReviewsRefresh] = useState(0)
   const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null)
-  const appstream = useMemo(
+  const component = useMemo(
     () => parseAppStreamContent(app?.appstreamContent),
     [app?.appstreamContent],
   )
@@ -115,8 +115,8 @@ export default function AppDetailPage() {
   }
 
   const name = localized(app.name, i18n.language)
-  const description = resolveDescription(appstream.description, i18n.language)
-  const screenshots = selectScreenshots(appstream.screenshots, i18n.language)
+  const description = resolveDescription(component, i18n.language)
+  const screenshots = selectScreenshots(component?.screenshots ?? [], i18n.language)
   const isAdmin = user?.role === 'admin'
   const hasPkgFilters =
     pkgFilters.distroId !== null || pkgFilters.type !== null || pkgFilters.arch !== null

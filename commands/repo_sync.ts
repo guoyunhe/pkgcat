@@ -9,7 +9,9 @@ import Image from '#models/image'
 import Pkg from '#models/pkg'
 import Repo from '#models/repo'
 import RepoAppstreamExtractor, {
+  appstreamHomepage,
   appstreamIdVariants,
+  appstreamVersion,
   canonicalAppstreamId,
   desktopAppTypes,
   iconKey,
@@ -233,11 +235,10 @@ export default class RepoSync extends BaseCommand {
     const pkgNames = new Set(packages.map((pkg) => pkg.name))
     const candidates = entries.filter(
       (entry) =>
-        entry.type !== null &&
-        desktopAppTypes.includes(entry.type) &&
-        Object.keys(entry.name).length > 0 &&
-        Object.keys(entry.summary).length > 0 &&
-        entry.pkgNames.some((name) => pkgNames.has(name)),
+        desktopAppTypes.includes(entry.component.type) &&
+        Object.keys(entry.component.name).length > 0 &&
+        Object.keys(entry.component.summary).length > 0 &&
+        entry.component.pkgNames.some((name) => pkgNames.has(name)),
     )
     if (candidates.length === 0) {
       // Repositories that publish no AppStream metadata at all still name their applications in
@@ -269,16 +270,16 @@ export default class RepoSync extends BaseCommand {
       }
 
       const app = current ?? new App()
-      if (current && !appstreamVersionIsNewer(current, entry.version)) {
+      if (current && !appstreamVersionIsNewer(current, appstreamVersion(entry.component))) {
         result.skipped += 1
       } else {
         app.merge({
           appstreamId: entry.appstreamId,
-          name: entry.name,
-          summary: entry.summary,
-          version: entry.version,
-          license: entry.license,
-          homepage: entry.homepage,
+          name: entry.component.name,
+          summary: entry.component.summary,
+          version: appstreamVersion(entry.component),
+          license: entry.component.projectLicense ?? null,
+          homepage: appstreamHomepage(entry.component),
           appstreamContent: entry.content,
         })
         await app.save()
@@ -291,7 +292,7 @@ export default class RepoSync extends BaseCommand {
 
       // Packages are linked even when the metadata is not imported, so that new packages of an
       // already known application still show up on its page
-      const names = entry.pkgNames.filter((name) => pkgNames.has(name))
+      const names = entry.component.pkgNames.filter((name) => pkgNames.has(name))
       if (names.length > 0) {
         await Pkg.query().where('repoId', repo.id).whereIn('name', names).update({ appId: app.id })
         result.linked += names.length
@@ -299,7 +300,7 @@ export default class RepoSync extends BaseCommand {
 
       // Categories are linked as well, so that a synchronization backfills applications that were
       // imported before categories were extracted
-      if (app.id) result.categories += await this.syncCategories(app, entry.categories)
+      if (app.id) result.categories += await this.syncCategories(app, entry.component.categories)
     }
 
     if (pendingIcons.length > 0) {
@@ -398,11 +399,17 @@ export default class RepoSync extends BaseCommand {
         const extracted = packaged.app
         if (!app.appstreamContent) {
           app.merge({
-            name: Object.keys(extracted.name).length > 0 ? extracted.name : app.name,
-            summary: Object.keys(extracted.summary).length > 0 ? extracted.summary : app.summary,
-            version: extracted.version ?? app.version,
-            license: extracted.license ?? app.license,
-            homepage: extracted.homepage ?? app.homepage,
+            name:
+              Object.keys(extracted.component.name).length > 0
+                ? extracted.component.name
+                : app.name,
+            summary:
+              Object.keys(extracted.component.summary).length > 0
+                ? extracted.component.summary
+                : app.summary,
+            version: appstreamVersion(extracted.component) ?? app.version,
+            license: extracted.component.projectLicense ?? app.license,
+            homepage: appstreamHomepage(extracted.component) ?? app.homepage,
             appstreamContent: extracted.content,
           })
           await app.save()

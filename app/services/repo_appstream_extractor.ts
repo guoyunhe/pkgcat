@@ -1,6 +1,15 @@
 import { basename } from 'node:path'
 import { gunzipSync } from 'node:zlib'
 
+import {
+  DEFAULT_LOCALE,
+  parseAppStreamComponent,
+  type Component,
+  type ComponentType,
+  type Localized,
+  type RichText,
+  type UrlType,
+} from '@guoyunhe/appstream'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import sharp from 'sharp'
 import xior, { isXiorError } from 'xior'
@@ -13,30 +22,25 @@ import type { ExtractedPackage, ResolvedDebSource } from '#services/repo_package
 
 import { readTarEntries } from '../utils/tar.js'
 
+/** Icon of a component, named the way the AppStream icon archive stores it. */
 export type AppstreamIcon = {
   name: string
   width: number | null
   height: number | null
 }
 
+/**
+ * An AppStream component a repository publishes, together with the XML it was read from and the
+ * icons the repository icon archive may hold for it.
+ */
 export type ExtractedApp = {
+  /** Component ID, without the legacy `.desktop` suffix older catalogs identify it by. */
   appstreamId: string
-  type: string | null
-  name: Record<string, string>
-  summary: Record<string, string>
-  version: string | null
-  license: string | null
-  homepage: string | null
-  /**
-   * Category codes of the component (`<categories><category>` / `Categories`). They are identifiers
-   * from the freedesktop.org menu specification, e.g. `Game` or `PackageManager`.
-   */
-  categories: string[]
-  /** Package names the component belongs to (`<pkgname>` / `Package`), used to link packages. */
-  pkgNames: string[]
+  /** Component metadata, as `@guoyunhe/appstream` parsed it. */
+  component: Component
   /** AppStream XML of the component, stored as `appstreamContent`. */
   content: string
-  /** Icons declared by the metadata, cached ones (which name a file) before themed ones. */
+  /** Icons declared by the metadata, largest first. */
   icons: AppstreamIcon[]
 }
 
@@ -54,11 +58,21 @@ export type InferredComponent = {
 }
 
 /** AppStream component types that describe an application users can install. */
-export const desktopAppTypes = ['desktop', 'desktop-application']
+export const desktopAppTypes: ComponentType[] = ['desktop', 'desktop-application']
 
 /** Identity of an icon inside the icon archive, e.g. `128x128/app.png`. */
 export function iconKey(icon: AppstreamIcon) {
   return `${icon.width ?? 0}x${icon.height ?? 0}/${icon.name}`
+}
+
+/** Latest version the component announces (`<releases><release/>`), or `null` when it has none. */
+export function appstreamVersion(component: Component) {
+  return component.releases?.items[0]?.version.trim() || null
+}
+
+/** Homepage the component declares, or `null` when it declares none. */
+export function appstreamHomepage(component: Component) {
+  return component.urls.find((url) => url.type === 'homepage')?.url.trim() || null
 }
 
 /** Directories packages store their AppStream metadata file in. */
@@ -119,101 +133,45 @@ const debIconArchives = [
 
 const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
-type XmlNode =
-  | string
-  | {
-      '#text'?: string
-      '@_xml:lang'?: string
-      '@_type'?: string
-      '@_width'?: string
-      '@_height'?: string
-    }
+/** Matches one `<component/>` element of a catalog document. */
+const componentElement = /<component\b(?:[^>]*)>[\s\S]*?<\/component>/g
 
-type XmlRelease = { '@_version'?: string }
-
-type XmlComponent = {
-  id?: XmlNode
-  '@_type'?: string
-  pkgname?: XmlNode | XmlNode[]
-  name?: XmlNode | XmlNode[]
-  summary?: XmlNode | XmlNode[]
-  icon?: XmlNode | XmlNode[]
-  categories?: { category?: XmlNode | XmlNode[] }
-  project_license?: XmlNode
-  url?: XmlNode | XmlNode[]
-  releases?: { release?: XmlRelease | XmlRelease[] }
-}
-
-type Dep11Record = {
-  Type?: string
-  ID?: string
-  Package?: string
-  ProjectLicense?: string
-  Name?: Record<string, string>
-  Summary?: Record<string, string>
-  Description?: Record<string, string>
-  Icon?: {
-    cached?:
-      | { name?: string; width?: number; height?: number }
-      | Array<{ name?: string; width?: number; height?: number }>
-  }
-  Categories?: string | string[]
-  Url?: Record<string, string>
-  Releases?: { version?: string } | Array<{ version?: string }>
-}
-
-function text(node: XmlNode | undefined): string | null {
-  if (node === undefined || node === null) return null
-  const value = typeof node === 'string' ? node : node['#text']
-  const trimmed = value?.trim()
-  return trimmed ? trimmed : null
-}
-
-/** Component ID a component declares, or `null` when it declares none. */
-function componentId(node: XmlNode | undefined) {
-  const id = text(node)
-  return id ? canonicalAppstreamId(id) : null
-}
-
-function number(value: string | number | undefined): number | null {
-  if (value === undefined || value === '') return null
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : null
+/** Icon of a DEP-11 component, as the YAML documents of deb repositories declare it. */
+type Dep11Icon = {
+  name?: string
+  width?: number
+  height?: number
 }
 
 /**
- * Localized values are keyed by locale. AppStream catalogs use `xml:lang` (the default language has
- * no `xml:lang`), while DEP-11 uses `C` for the untranslated value; both become `en`.
+ * Component of a DEP-11 document (`Components-<arch>.yml.gz`). DEP-11 carries the AppStream catalog
+ * metadata in YAML instead of XML, and names its fields differently.
  */
-function localized(
-  nodes: XmlNode | XmlNode[] | Record<string, string> | undefined,
-): Record<string, string> {
-  if (!nodes) return {}
-
-  if (!Array.isArray(nodes) && typeof nodes === 'object' && !('#text' in nodes)) {
-    const values: Record<string, string> = {}
-    for (const [locale, value] of Object.entries(nodes as Record<string, string>)) {
-      const trimmed = typeof value === 'string' ? value.trim() : ''
-      if (trimmed) values[locale === 'C' ? 'en' : locale] = trimmed
-    }
-    return values
-  }
-
-  const values: Record<string, string> = {}
-  for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
-    const value = text(node)
-    if (!value) continue
-    values[typeof node === 'string' ? 'en' : (node['@_xml:lang'] ?? 'en')] = value
-  }
-  return values
+type Dep11Record = {
+  Type?: ComponentType
+  ID?: string
+  Package?: string
+  ProjectLicense?: string
+  Name?: Localized<string>
+  Summary?: Localized<string>
+  Description?: Localized<RichText>
+  Icon?: { cached?: Dep11Icon | Dep11Icon[] }
+  Categories?: string | string[]
+  Url?: Partial<Record<UrlType, string>>
+  Releases?: { version?: string } | Array<{ version?: string }>
 }
 
-/** Category codes of a component, deduplicated and stripped of empty values. */
-function categoryCodes(nodes: XmlNode | XmlNode[] | undefined): string[] {
-  const codes = (Array.isArray(nodes) ? nodes : [nodes])
-    .map((node) => text(node))
-    .filter((code): code is string => Boolean(code))
-  return [...new Set(codes)]
+/**
+ * DEP-11 keys untranslated values by `C`; AppStream leaves `xml:lang` off them, which
+ * `@guoyunhe/appstream` reports as `DEFAULT_LOCALE`. Both become the same key.
+ */
+function dep11Localized(values: Localized<string> | undefined): Localized<string> {
+  const localized: Localized<string> = {}
+  for (const [locale, value] of Object.entries(values ?? {})) {
+    const trimmed = value.trim()
+    if (trimmed) localized[locale === 'C' ? DEFAULT_LOCALE : locale] = trimmed
+  }
+  return localized
 }
 
 /** DEP-11 stores the categories as a YAML list, or as a single string for one category. */
@@ -225,21 +183,56 @@ function dep11Categories(value: string | string[] | undefined): string[] {
   return [...new Set(codes)]
 }
 
-function firstUrl(nodes: XmlNode | XmlNode[] | undefined, type: string) {
-  for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
-    if (node && typeof node !== 'string' && node['@_type'] === type) {
-      const value = text(node)
-      if (value) return value
-    }
+/** Version of the release DEP-11 announces first, or `null` when it announces none. */
+function dep11Version(record: Dep11Record) {
+  const releases = record.Releases
+  return (Array.isArray(releases) ? releases[0]?.version : releases?.version)?.trim() || null
+}
+
+/** Icons DEP-11 declares as cached, which name a file in the AppStream icon archive. */
+function dep11Icons(record: Dep11Record): Array<Dep11Icon & { name: string }> {
+  const cached = record.Icon?.cached
+  return (Array.isArray(cached) ? cached : [cached]).filter(
+    (icon): icon is Dep11Icon & { name: string } => Boolean(icon?.name),
+  )
+}
+
+/**
+ * Icons the component declares, largest first. A cached icon names a file in the AppStream icon
+ * archive, while a stock icon names a themed icon; both are kept so that the icon can also be found
+ * inside the package, which is where repositories without a catalog keep it.
+ */
+function declaredIcons(component: Component): AppstreamIcon[] {
+  const icons: AppstreamIcon[] = []
+
+  for (const icon of component.icons) {
+    if (icon.type !== undefined && icon.type !== 'cached' && icon.type !== 'stock') continue
+    icons.push({
+      name: icon.type === 'cached' ? basename(icon.value) : icon.value,
+      width: icon.width ?? null,
+      height: icon.height ?? null,
+    })
   }
-  return null
+
+  return icons.sort((a, b) => iconSize(b) - iconSize(a))
+}
+
+/** Extracted app of a parsed component, with the XML it was read from. */
+function toExtractedApp(component: Component, content: string): ExtractedApp {
+  return {
+    appstreamId: canonicalAppstreamId(component.id),
+    component,
+    content,
+    icons: declaredIcons(component),
+  }
 }
 
 export default class RepoAppstreamExtractor {
+  /** Parser for the repository metadata that is not AppStream, such as `repodata/repomd.xml`. */
   private xmlParser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    isArray: (tagName) => ['component', 'pkgname', 'icon', 'category'].includes(tagName),
+    isArray: (tagName) => tagName === 'data',
   })
 
   private xmlBuilder = new XMLBuilder({
@@ -311,7 +304,7 @@ export default class RepoAppstreamExtractor {
     if (!appdata) return []
 
     const xml = await this.downloadText(joinUrl(repo.baseUrl, appdata), { optional: true })
-    return xml ? this.parseAppstreamXml(xml) : []
+    return xml ? this.parseCatalog(xml) : []
   }
 
   /**
@@ -353,11 +346,14 @@ export default class RepoAppstreamExtractor {
     const content = files.get(normalizePackagePath(path))
     if (!content) return null
 
-    const apps = this.parseAppstreamXml(content.toString('utf8'))
-    const app = apps.find((entry) => isSameAppstreamId(entry.appstreamId, appstreamId)) ?? null
-    if (!app) return null
+    const xml = content.toString('utf8')
+    const component = parseAppStreamComponent(xml)
+    if (!component || !isSameAppstreamId(component.id, appstreamId)) return null
 
-    return { app, icon: await packagedIcon(files, app, appstreamId, pkg.name) }
+    return {
+      app: toExtractedApp(component, xml),
+      icon: await packagedIcon(files, declaredIcons(component), appstreamId, pkg.name),
+    }
   }
 
   /**
@@ -456,70 +452,25 @@ export default class RepoAppstreamExtractor {
   }
 
   /**
-   * AppStream catalogs are a single document holding every component. They are split first so that
-   * a large catalog is parsed component by component instead of as one huge object.
+   * AppStream catalogs are a single document holding every component. The components are split out
+   * first, so that a large catalog is parsed component by component and the original XML of every
+   * component can be stored.
    */
-  private parseAppstreamXml(xml: string): ExtractedApp[] {
+  private parseCatalog(xml: string): ExtractedApp[] {
     const apps: ExtractedApp[] = []
 
-    for (const match of xml.matchAll(/<component\b[\s\S]*?<\/component>/g)) {
-      const parsed = this.xmlParser.parse(match[0]) as { component?: XmlComponent[] }
-      const component = parsed.component?.[0]
-      if (!component) continue
-
-      const appstreamId = componentId(component.id)
-      if (!appstreamId) continue
-
-      const releases = component.releases?.release
-      const latestRelease = Array.isArray(releases) ? releases[0] : releases
-      const pkgNames = (Array.isArray(component.pkgname) ? component.pkgname : [component.pkgname])
-        .map((node) => text(node))
-        .filter((name): name is string => Boolean(name))
-
-      apps.push({
-        appstreamId,
-        type: component['@_type'] ?? null,
-        name: localized(component.name),
-        summary: localized(component.summary),
-        version: latestRelease?.['@_version']?.trim() || null,
-        license: text(component.project_license),
-        homepage: firstUrl(component.url, 'homepage'),
-        categories: categoryCodes(component.categories?.category),
-        pkgNames: [...new Set(pkgNames)],
-        content: this.xmlBuilder.build({ component }),
-        icons: this.declaredIcons(component),
-      })
+    for (const match of xml.matchAll(componentElement)) {
+      const component = parseAppStreamComponent(match[0])
+      if (component) apps.push(toExtractedApp(component, match[0]))
     }
 
     return apps
   }
 
   /**
-   * Icons the component declares. A cached icon names a file in the AppStream icon archive, while a
-   * stock icon names a themed icon; both are kept so that the icon can also be found inside the
-   * package, which is where repositories without a catalog keep it.
-   */
-  private declaredIcons(component: XmlComponent): AppstreamIcon[] {
-    const nodes = Array.isArray(component.icon) ? component.icon : [component.icon]
-    const icons: AppstreamIcon[] = []
-
-    for (const node of nodes) {
-      if (!node || typeof node === 'string') continue
-      if (node['@_type'] !== 'cached' && node['@_type'] !== 'stock') continue
-      const name = text(node)
-      if (!name) continue
-      icons.push({
-        name: node['@_type'] === 'cached' ? basename(name) : name,
-        width: number(node['@_width']),
-        height: number(node['@_height']),
-      })
-    }
-
-    return icons.sort((a, b) => iconSize(b) - iconSize(a))
-  }
-
-  /**
-   * DEP-11 documents are separated by `---`, so each component is parsed on its own.
+   * DEP-11 documents are separated by `---`, so each component is parsed on its own. DEP-11 is
+   * YAML, so the record is written back into AppStream XML and parsed with `@guoyunhe/appstream`,
+   * which keeps the stored `appstreamContent` and the extracted metadata in sync.
    */
   private parseDep11(content: string): ExtractedApp[] {
     const apps: ExtractedApp[] = []
@@ -530,43 +481,12 @@ export default class RepoAppstreamExtractor {
       const record = parseYaml(document) as Dep11Record | null
       if (!record?.ID) continue
 
-      const appstreamId = canonicalAppstreamId(record.ID)
-      const version = Array.isArray(record.Releases)
-        ? record.Releases[0]?.version
-        : record.Releases?.version
-
-      apps.push({
-        appstreamId,
-        type: record.Type ?? null,
-        name: localized(record.Name),
-        summary: localized(record.Summary),
-        version: version?.trim() || null,
-        license: record.ProjectLicense?.trim() || null,
-        homepage: record.Url?.homepage?.trim() || null,
-        categories: dep11Categories(record.Categories),
-        pkgNames: record.Package ? [record.Package] : [],
-        content: this.dep11Xml(record),
-        icons: this.dep11Icons(record),
-      })
+      const xml = this.dep11Xml(record)
+      const component = parseAppStreamComponent(xml)
+      if (component) apps.push(toExtractedApp(component, xml))
     }
 
     return apps
-  }
-
-  private dep11Icons(record: Dep11Record): AppstreamIcon[] {
-    const cached = record.Icon?.cached
-    const icons: AppstreamIcon[] = []
-
-    for (const icon of Array.isArray(cached) ? cached : [cached]) {
-      if (!icon?.name) continue
-      icons.push({
-        name: basename(icon.name),
-        width: number(icon.width),
-        height: number(icon.height),
-      })
-    }
-
-    return icons.sort((a, b) => iconSize(b) - iconSize(a))
   }
 
   /**
@@ -574,18 +494,21 @@ export default class RepoAppstreamExtractor {
    * written back into that shape.
    */
   private dep11Xml(record: Dep11Record) {
-    const localizedNodes = (values: Record<string, string> | undefined) => {
-      const entries = Object.entries(localized(values))
+    const localizedNodes = (values: Localized<string> | undefined) => {
+      const entries = Object.entries(dep11Localized(values))
       return entries.length === 0
         ? undefined
         : entries.map(([locale, value]) => ({ '#text': value, '@_xml:lang': locale }))
     }
 
     const categories = dep11Categories(record.Categories)
+    const version = dep11Version(record)
+    const icon = dep11Icons(record)
 
     const component: Record<string, unknown> = {
       '@_type': record.Type ?? 'desktop-application',
       id: canonicalAppstreamId(record.ID ?? ''),
+      pkgname: record.Package,
       name: localizedNodes(record.Name),
       summary: localizedNodes(record.Summary),
       description: localizedNodes(record.Description),
@@ -594,9 +517,16 @@ export default class RepoAppstreamExtractor {
       url: record.Url?.homepage
         ? { '#text': record.Url.homepage, '@_type': 'homepage' }
         : undefined,
-      releases: this.dep11Version(record)
-        ? { release: { '@_version': this.dep11Version(record) } }
-        : undefined,
+      releases: version ? { release: { '@_version': version } } : undefined,
+      icon:
+        icon.length > 0
+          ? icon.map((entry) => ({
+              '#text': entry.name,
+              '@_type': 'cached',
+              '@_width': entry.width ?? undefined,
+              '@_height': entry.height ?? undefined,
+            }))
+          : undefined,
     }
 
     for (const [key, value] of Object.entries(component)) {
@@ -604,11 +534,6 @@ export default class RepoAppstreamExtractor {
     }
 
     return `${this.xmlBuilder.build({ component })}\n`
-  }
-
-  private dep11Version(record: Dep11Record) {
-    const releases = record.Releases
-    return (Array.isArray(releases) ? releases[0]?.version : releases?.version) ?? null
   }
 
   private async downloadText(url: string, options: { optional?: boolean } = {}) {
@@ -656,11 +581,11 @@ type IconCandidate = { data: Buffer; vector: boolean; pixels: number }
  */
 async function packagedIcon(
   files: Map<string, Buffer>,
-  app: ExtractedApp,
+  icons: AppstreamIcon[],
   appstreamId: string,
   pkgName: string,
 ): Promise<Buffer | null> {
-  const wanted = iconBaseNames(app, appstreamId, pkgName)
+  const wanted = iconBaseNames(icons, appstreamId, pkgName)
   let best: IconCandidate | null = null
 
   for (const [path, data] of files) {
@@ -698,7 +623,7 @@ async function iconPixels(data: Buffer): Promise<number | null> {
 }
 
 /** File names the icon may have, taken from the metadata and from the application name. */
-function iconBaseNames(app: ExtractedApp, appstreamId: string, pkgName: string) {
+function iconBaseNames(icons: AppstreamIcon[], appstreamId: string, pkgName: string) {
   const names = new Set<string>()
   const add = (name: string | null | undefined) => {
     const base = basename(name?.trim() ?? '').toLowerCase()
@@ -709,7 +634,7 @@ function iconBaseNames(app: ExtractedApp, appstreamId: string, pkgName: string) 
     for (const extension of iconFileExtensions) names.add(`${base}${extension}`)
   }
 
-  for (const icon of app.icons) add(icon.name)
+  for (const icon of icons) add(icon.name)
   // An application is named either by its full AppStream ID, which is also the name of its desktop
   // file and often of its icon, or by the last segment of that ID.
   add(appstreamId)

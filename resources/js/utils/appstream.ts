@@ -1,9 +1,16 @@
+import {
+  parseAppStreamComponent,
+  type Component,
+  type Localized,
+  type Screenshot,
+  type ScreenshotImage,
+} from '@guoyunhe/appstream'
+
 import { fallbackLanguage, scriptForRegion } from './languages'
 
-export type LocalizedText = Record<string, string>
-
+/** A screenshot flattened into the image the carousel displays. */
 export type AppStreamScreenshot = {
-  caption: LocalizedText | null
+  caption: Localized<string> | null
   height: number | null
   language: string | null
   url: string
@@ -11,223 +18,19 @@ export type AppStreamScreenshot = {
 }
 
 /**
- * AppStream allows a description to be translated, so blocks are grouped by their `xml:lang`.
- * Blocks without a language belong to the component's default (untranslated) language.
+ * AppStream metadata of a stored `appstreamContent`. The content is an AppStream document, so it is
+ * read with the same parser the repositories are read with. Descriptions it returns already keep
+ * only the markup AppStream allows, which is what makes them safe to render. Malformed content
+ * returns `null`, because the page still has to render.
  */
-export type AppStreamDescription = {
-  default: string[]
-  translations: Record<string, string[]>
-}
+export function parseAppStreamContent(content: string | null | undefined): Component | null {
+  if (!content?.trim()) return null
 
-export type AppStreamInfo = {
-  description: AppStreamDescription
-  screenshots: AppStreamScreenshot[]
-}
-
-/** Elements allowed inside a description, with the attributes allowed on each of them. */
-const allowedElements: Record<string, string[]> = {
-  a: ['href', 'title'],
-  b: [],
-  blockquote: [],
-  br: [],
-  code: [],
-  div: [],
-  em: [],
-  i: [],
-  img: ['alt', 'height', 'src', 'width'],
-  li: [],
-  ol: [],
-  p: [],
-  pre: [],
-  span: [],
-  strong: [],
-  ul: [],
-}
-
-/** Elements that are dropped together with their content. */
-const droppedElements = new Set([
-  'embed',
-  'head',
-  'iframe',
-  'math',
-  'noscript',
-  'object',
-  'script',
-  'style',
-  'svg',
-  'template',
-  'title',
-])
-
-function attr(element: Element, name: string) {
-  const value = element.getAttribute(name)?.trim()
-  return value || null
-}
-
-function language(element: Element) {
-  return attr(element, 'xml:lang')?.toLowerCase() ?? null
-}
-
-function size(element: Element, name: string) {
-  const value = Number.parseInt(attr(element, name) ?? '', 10)
-  return Number.isFinite(value) && value > 0 ? value : null
-}
-
-function safeUrl(value: string | null) {
-  return value && /^https?:\/\//i.test(value) ? value : null
-}
-
-function childElement(parent: Element, tag: string) {
-  return Array.from(parent.children).find((child) => child.tagName.toLowerCase() === tag)
-}
-
-function cleanNode(node: Node, document: Document): Node | null {
-  if (node.nodeType === Node.TEXT_NODE) {
-    return document.createTextNode(node.nodeValue ?? '')
-  }
-  if (node.nodeType !== Node.ELEMENT_NODE) {
+  try {
+    return parseAppStreamComponent(content) ?? null
+  } catch {
     return null
   }
-
-  const element = node as Element
-  const tag = element.tagName.toLowerCase()
-  const attributes = allowedElements[tag]
-
-  if (!attributes) {
-    if (droppedElements.has(tag)) {
-      return null
-    }
-    // Unknown wrappers are dropped, but their text content is kept.
-    const fragment = document.createDocumentFragment()
-    for (const child of Array.from(element.childNodes)) {
-      const cleaned = cleanNode(child, document)
-      if (cleaned) fragment.append(cleaned)
-    }
-    return fragment
-  }
-
-  const clone = document.createElement(tag)
-  for (const { name, value } of Array.from(element.attributes)) {
-    const key = name.toLowerCase()
-    if (!attributes.includes(key)) continue
-    const safe = key === 'href' || key === 'src' ? safeUrl(value.trim()) : value
-    if (safe) clone.setAttribute(key, safe)
-  }
-  if (tag === 'a' && clone.hasAttribute('href')) {
-    clone.setAttribute('rel', 'noreferrer')
-    clone.setAttribute('target', '_blank')
-  }
-  for (const child of Array.from(element.childNodes)) {
-    const cleaned = cleanNode(child, document)
-    if (cleaned) clone.append(cleaned)
-  }
-  return clone
-}
-
-/** Strips every tag and attribute that AppStream does not allow, so the result is safe to render. */
-export function sanitizeDescription(html: string) {
-  if (!html) {
-    return ''
-  }
-  const document = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html')
-  const container = document.createElement('div')
-  for (const child of Array.from(document.body.childNodes)) {
-    const cleaned = cleanNode(child, document)
-    if (cleaned) container.append(cleaned)
-  }
-  return container.innerHTML.trim()
-}
-
-function parseDescription(component: Element): AppStreamDescription {
-  const result: AppStreamDescription = { default: [], translations: {} }
-  const description = childElement(component, 'description')
-  if (!description) {
-    return result
-  }
-
-  for (const child of Array.from(description.children)) {
-    // Legacy AppStream versions nested screenshots inside the description.
-    if (child.tagName.toLowerCase() === 'screenshot') continue
-    const html = sanitizeDescription(child.outerHTML)
-    if (!html) continue
-    const code = language(child)
-    if (code) {
-      const blocks = result.translations[code] ?? (result.translations[code] = [])
-      blocks.push(html)
-    } else {
-      result.default.push(html)
-    }
-  }
-
-  // Untranslated descriptions may hold plain text instead of block elements.
-  if (result.default.length === 0 && Object.keys(result.translations).length === 0) {
-    const html = sanitizeDescription(description.innerHTML)
-    if (html) {
-      result.default.push(html)
-    }
-  }
-
-  return result
-}
-
-function parseCaption(screenshot: Element): LocalizedText | null {
-  const caption: LocalizedText = {}
-  for (const child of Array.from(screenshot.children)) {
-    if (child.tagName.toLowerCase() !== 'caption') continue
-    const text = child.textContent?.trim()
-    if (!text) continue
-    caption[language(child) ?? 'en'] = text
-  }
-  return Object.keys(caption).length > 0 ? caption : null
-}
-
-function parseImage(screenshot: Element) {
-  const images = Array.from(screenshot.children).filter(
-    (child) => child.tagName.toLowerCase() === 'image',
-  )
-  const image = images.find((child) => (attr(child, 'type') ?? 'source') === 'source') ?? images[0]
-  const url = safeUrl(image?.textContent?.trim() ?? null)
-  if (!image || !url) {
-    return null
-  }
-  return { url, width: size(image, 'width'), height: size(image, 'height') }
-}
-
-function parseScreenshots(component: Element) {
-  const screenshots: AppStreamScreenshot[] = []
-  const seen = new Set<string>()
-  const nodes = [
-    ...Array.from(component.querySelectorAll('screenshots > screenshot')),
-    ...Array.from(component.querySelectorAll('description > screenshot')),
-  ]
-
-  for (const node of nodes) {
-    const image = parseImage(node)
-    if (!image || seen.has(image.url)) continue
-    seen.add(image.url)
-    screenshots.push({ ...image, caption: parseCaption(node), language: language(node) })
-  }
-
-  return screenshots
-}
-
-/** Parses an AppStream component document into the data the detail page displays. */
-export function parseAppStreamContent(content: string | null | undefined): AppStreamInfo {
-  const empty: AppStreamInfo = { description: { default: [], translations: {} }, screenshots: [] }
-  if (!content?.trim()) {
-    return empty
-  }
-
-  const document = new DOMParser().parseFromString(content, 'application/xml')
-  if (document.querySelector('parsererror')) {
-    return empty
-  }
-  const component = document.querySelector('component') ?? document.documentElement
-  if (!component) {
-    return empty
-  }
-
-  return { description: parseDescription(component), screenshots: parseScreenshots(component) }
 }
 
 /**
@@ -275,7 +78,10 @@ function fallbackKey(keys: string[]) {
 }
 
 /** Picks the value matching the locale, falling back to the default language, then to any value. */
-export function localized(translations: LocalizedText | null | undefined, language: string) {
+export function localized<T>(
+  translations: Localized<T> | null | undefined,
+  language: string,
+): T | undefined {
   if (!translations) {
     return undefined
   }
@@ -284,49 +90,67 @@ export function localized(translations: LocalizedText | null | undefined, langua
   return key ? translations[key] : Object.values(translations)[0]
 }
 
-function descriptionBlocks(description: AppStreamDescription, language: string) {
-  const keys = Object.keys(description.translations)
-  const key = bestLanguageKey(keys, language)
-  const fallback = fallbackKey(keys)
-  return (
-    (key ? description.translations[key] : undefined) ??
-    (description.default.length > 0 ? description.default : undefined) ??
-    (fallback ? description.translations[fallback] : undefined) ??
-    Object.values(description.translations)[0] ??
-    []
-  )
+/** Returns the description HTML in the requested language, or an empty string. */
+export function resolveDescription(component: Component | null, language: string) {
+  const description = component?.description
+  return (description && localized(description, language)) || ''
 }
 
-/** Returns the description HTML in the requested language, or an empty string. */
-export function resolveDescription(description: AppStreamDescription, language: string) {
-  return descriptionBlocks(description, language).join('\n')
+/**
+ * Image of a screenshot that fits the requested locale best: a translation that matches wins over
+ * the untranslated image, which in turn wins over an image translated to another language.
+ * Thumbnails are only used when the screenshot declares no source image.
+ */
+function screenshotImage(screenshot: Screenshot, language: string): ScreenshotImage | null {
+  const images = screenshot.images.filter((image) => image.url)
+  if (images.length === 0) return null
+
+  const sources = images.filter((image) => image.type !== 'thumbnail')
+  let best: { image: ScreenshotImage; rank: number } | null = null
+
+  for (const image of sources.length > 0 ? sources : images) {
+    const rank = image.locale ? (languageScore(image.locale, language) > 0 ? 2 : 0) : 1
+    if (!best || rank > best.rank) best = { image, rank }
+  }
+
+  return best?.image ?? null
 }
 
 /**
  * Keeps the screenshots translated to the requested language (plus the untranslated ones), falling
  * back to the default language, then to every screenshot when no translation matches.
  */
-export function selectScreenshots(screenshots: AppStreamScreenshot[], language: string) {
-  if (screenshots.length === 0) {
-    return screenshots
-  }
-
-  let best = 0
+export function selectScreenshots(
+  screenshots: Screenshot[],
+  language: string,
+): AppStreamScreenshot[] {
+  const selected: AppStreamScreenshot[] = []
   const scores = new Map<AppStreamScreenshot, number>()
+  let best = 0
+
   for (const screenshot of screenshots) {
-    const score = screenshot.language ? languageScore(screenshot.language, language) : 0
-    scores.set(screenshot, score)
+    const image = screenshotImage(screenshot, language)
+    if (!image) continue
+
+    const slide: AppStreamScreenshot = {
+      caption: screenshot.caption ?? null,
+      height: image.height ?? null,
+      language: image.locale ?? null,
+      url: image.url,
+      width: image.width ?? null,
+    }
+    const score = image.locale ? languageScore(image.locale, language) : 0
+    scores.set(slide, score)
     if (score > best) best = score
+    selected.push(slide)
   }
 
   if (best > 0) {
-    return screenshots.filter(
-      (screenshot) => !screenshot.language || scores.get(screenshot) === best,
-    )
+    return selected.filter((slide) => !slide.language || scores.get(slide) === best)
   }
 
-  const fallback = screenshots.filter(
-    (screenshot) => screenshot.language && languageScore(screenshot.language, fallbackLanguage) > 0,
+  const fallback = selected.filter(
+    (slide) => slide.language && languageScore(slide.language, fallbackLanguage) > 0,
   )
-  return fallback.length > 0 ? fallback : screenshots
+  return fallback.length > 0 ? fallback : selected
 }

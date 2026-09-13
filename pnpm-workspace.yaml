@@ -2,3 +2,5 @@ allowBuilds:
   '@swc/core': true
   better-sqlite3: false
   esbuild: true
+minimumReleaseAgeExclude:
+  - '@guoyunhe/appstream@1.0.0'

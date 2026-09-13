@@ -1,10 +1,11 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
-import { XMLParser } from 'fast-xml-parser'
+import { parseAppStreamComponent } from '@guoyunhe/appstream'
 import xior, { isXiorError } from 'xior'
 
 import App from '#models/app'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
+import { appstreamHomepage, appstreamVersion } from '#services/repo_appstream_extractor'
 
 const applications = [
   {
@@ -43,66 +44,25 @@ const applications = [
   },
 ]
 
-type XmlNode = string | { '#text'?: string; '@_xml:lang'?: string; '@_type'?: string }
-type AppStreamComponent = {
-  id?: XmlNode
-  name?: XmlNode | XmlNode[]
-  summary?: XmlNode | XmlNode[]
-  url?: XmlNode | XmlNode[]
-  project_license?: XmlNode
-  releases?: { release?: { '@_version'?: string } | Array<{ '@_version'?: string }> }
-}
-
-const parser = new XMLParser({
-  ignoreAttributes: false,
-  isArray: (tagName) => ['name', 'summary', 'release'].includes(tagName),
-})
 const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
-function text(node: XmlNode | undefined) {
-  return typeof node === 'string' ? node.trim() : node?.['#text']?.trim()
-}
+/** Metadata a wrapper application is created from, read from its AppStream MetaInfo file. */
+function parseMetaInfo(xml: string) {
+  const component = parseAppStreamComponent(xml)
+  const name = component?.name ?? {}
+  const summary = component?.summary ?? {}
 
-function localizations(nodes: XmlNode | XmlNode[] | undefined) {
-  const values: Record<string, string> = {}
-  for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
-    if (!node) continue
-    const value = text(node)
-    if (!value) continue
-    values[typeof node === 'string' ? 'en' : (node['@_xml:lang'] ?? 'en')] = value
-  }
-  return values
-}
-
-function homepageUrl(nodes: XmlNode | XmlNode[] | undefined) {
-  for (const node of Array.isArray(nodes) ? nodes : [nodes]) {
-    if (node && typeof node !== 'string' && node['@_type'] === 'homepage') {
-      const value = text(node)
-      if (value) return value
-    }
-  }
-  return null
-}
-
-function parseAppStream(xml: string) {
-  const { component } = parser.parse(xml) as { component?: AppStreamComponent }
-  const appstreamId = text(component?.id)
-  const name = localizations(component?.name)
-  const summary = localizations(component?.summary)
-  const releases = component?.releases?.release
-  const latestRelease = Array.isArray(releases) ? releases[0] : releases
-
-  if (!appstreamId || !name.en || !summary.en) {
+  if (!component || !name.en || !summary.en) {
     throw new Error('AppStream XML must contain an id, English name, and English summary')
   }
 
   return {
-    appstreamId,
+    appstreamId: component.id,
     name,
     summary,
-    version: latestRelease?.['@_version'] ?? null,
-    license: text(component?.project_license) ?? null,
-    homepage: homepageUrl(component?.url),
+    version: appstreamVersion(component),
+    license: component.projectLicense ?? null,
+    homepage: appstreamHomepage(component),
   }
 }
 
@@ -111,7 +71,7 @@ export default class AppSeeder extends BaseSeeder {
     for (const { appstreamUrl, desktopUrl, iconUrl, packages = [] } of applications) {
       const appstreamData = await this.download(appstreamUrl, 'AppStream XML')
       const appstreamContent = appstreamData.toString('utf8')
-      const application = parseAppStream(appstreamContent)
+      const application = parseMetaInfo(appstreamContent)
       const desktopContent = desktopUrl ? await this.downloadDesktop(desktopUrl) : null
 
       const app = await App.updateOrCreate(
