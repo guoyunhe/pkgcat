@@ -1,11 +1,12 @@
 import type { Data } from '@generated/data'
-import { Alert, Badge, Group, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
+import { Alert, Group, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
 
 import AppList from '../components/AppList'
 import CategoryFilter from '../components/CategoryFilter'
+import CountBadge from '../components/CountBadge'
 import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
 import { getApps, searchPackages } from '../services/apps'
@@ -14,17 +15,6 @@ import type { Paginated } from '../types/pagination'
 import styles from './AppsPage.module.css'
 
 type SearchTab = 'apps' | 'packages'
-
-function CountBadge({ count, loading }: { count?: number; loading: boolean }) {
-  if (loading) {
-    return <Loader color='orange' size={10} />
-  }
-  return (
-    <Badge radius='sm' size='xs' variant='light'>
-      {count ?? 0}
-    </Badge>
-  )
-}
 
 export default function SearchResultsPage() {
   const { t } = useTranslation()
