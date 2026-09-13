@@ -25,6 +25,9 @@ function randomInt(max: number) {
 }
 
 export default class FavoriteSeeder extends BaseSeeder {
+  /** The demo favorites must never be created on a real deployment. */
+  static environment = ['development', 'test']
+
   async run() {
     for (const { email, apps } of favoritesByUser) {
       const user = await User.findByOrFail('email', email)

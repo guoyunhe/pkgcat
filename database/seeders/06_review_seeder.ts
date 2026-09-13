@@ -16,6 +16,9 @@ function randomInt(max: number) {
 }
 
 export default class ReviewSeeder extends BaseSeeder {
+  /** The demo reviews must never be created on a real deployment. */
+  static environment = ['development', 'test']
+
   async run() {
     const apps = await App.all()
     const randomUsers = await User.query().whereNotIn('email', knownEmails)

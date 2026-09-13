@@ -21,6 +21,9 @@ const users = [
 const randomUserCount = 20
 
 export default class UserSeeder extends BaseSeeder {
+  /** The demo accounts must never be created on a real deployment. */
+  static environment = ['development', 'test']
+
   async run() {
     for (const user of users) {
       await User.updateOrCreate({ email: user.email }, user)
