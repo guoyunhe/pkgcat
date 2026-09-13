@@ -104,6 +104,15 @@ export function appstreamIdVariants(id: string) {
 }
 
 /**
+ * Key a component ID is looked up under. Catalogs spell the same identifier with different casing
+ * (`org.naev.Naev` against `org.naev.naev`), and the database compares the unique `appstream_id`
+ * column case-insensitively, so the lookups that decide between insert and update have to as well.
+ */
+export function appstreamIdKey(id: string) {
+  return canonicalAppstreamId(id).toLowerCase()
+}
+
+/**
  * AppStream ID carried by a metadata file path. Packages name their application in the file name,
  * so `/usr/share/metainfo/org.videolan.vlc.appdata.xml` declares `org.videolan.vlc`. Paths that are
  * not AppStream metadata return `null`.

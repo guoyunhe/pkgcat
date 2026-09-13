@@ -10,9 +10,9 @@ import Pkg from '#models/pkg'
 import Repo from '#models/repo'
 import RepoAppstreamExtractor, {
   appstreamHomepage,
+  appstreamIdKey,
   appstreamIdVariants,
   appstreamVersion,
-  canonicalAppstreamId,
   desktopAppTypes,
   iconKey,
   type AppstreamIcon,
@@ -255,14 +255,14 @@ export default class RepoSync extends BaseCommand {
 
     const storedApps = await App.query().preload('icon')
     // Older catalogs identify a component by its desktop file name, so a stored application may
-    // carry the `.desktop` form of the ID the metadata now uses.
-    const known = new Map(
-      storedApps.map((app) => [canonicalAppstreamId(app.appstreamId ?? ''), app]),
-    )
+    // carry the `.desktop` form of the ID the metadata now uses, and catalogs differ in the casing
+    // of the ID they declare, so both are looked up through the same key.
+    const known = new Map(storedApps.map((app) => [appstreamIdKey(app.appstreamId ?? ''), app]))
     const pendingIcons: Array<{ app: App; icon: AppstreamIcon }> = []
 
     for (const entry of candidates) {
-      const current = known.get(entry.appstreamId)
+      const key = appstreamIdKey(entry.appstreamId)
+      const current = known.get(key)
       // Applications with their own AppStream URL are not overwritten by repository metadata
       if (current?.appstreamUrl) {
         result.skipped += 1
@@ -283,8 +283,14 @@ export default class RepoSync extends BaseCommand {
           appstreamContent: entry.content,
         })
         await app.save()
-        if (current) result.updated += 1
-        else result.created += 1
+        if (current) {
+          result.updated += 1
+        } else {
+          // Catalogs of one repository can name the same application twice under different casing,
+          // so the new row has to be known before the next component is read
+          known.set(key, app)
+          result.created += 1
+        }
 
         const icon = entry.icons[0]
         if (icon && appstreamIconIsLarger(app, icon)) pendingIcons.push({ app, icon })
@@ -350,9 +356,7 @@ export default class RepoSync extends BaseCommand {
       .whereIn('appstreamId', [
         ...new Set(candidates.flatMap((component) => appstreamIdVariants(component.appstreamId))),
       ])
-    const known = new Map(
-      storedApps.map((app) => [canonicalAppstreamId(app.appstreamId ?? ''), app]),
-    )
+    const known = new Map(storedApps.map((app) => [appstreamIdKey(app.appstreamId ?? ''), app]))
     const byName = new Map<string, ExtractedPackage[]>()
     for (const pkg of packages) {
       const siblings = byName.get(pkg.name) ?? []
@@ -363,13 +367,14 @@ export default class RepoSync extends BaseCommand {
     const pending: Array<{ app: App; component: InferredComponent }> = []
 
     for (const component of candidates) {
-      let app = known.get(component.appstreamId)
+      const key = appstreamIdKey(component.appstreamId)
+      let app = known.get(key)
       if (!app) {
         app = await App.create({
           appstreamId: component.appstreamId,
           ...placeholderAppMetadata(this.inferredFile(component, byName)?.pkg),
         })
-        known.set(component.appstreamId, app)
+        known.set(key, app)
         result.created += 1
       }
 
@@ -461,11 +466,14 @@ export default class RepoSync extends BaseCommand {
     if (codes.length === 0) return 0
 
     const known = await Category.query().whereIn('code', codes)
-    const byCode = new Map(known.map((category) => [category.code, category]))
+    const byCode = new Map(known.map((category) => [category.code.toLowerCase(), category]))
 
     for (const code of codes) {
-      if (byCode.has(code)) continue
-      byCode.set(code, await Category.create({ code, name: { en: code }, parentId: null }))
+      if (byCode.has(code.toLowerCase())) continue
+      byCode.set(
+        code.toLowerCase(),
+        await Category.create({ code, name: { en: code }, parentId: null }),
+      )
     }
 
     await app.related('categories').sync(
