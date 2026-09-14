@@ -23,6 +23,8 @@
   "registerFailed": "无法创建账号。",
   "header": {
     "searchApplications": "搜索应用",
+    "searchLanguage": "搜索语言",
+    "noLanguage": "没有匹配的语言",
     "addApplication": "添加应用",
     "applications": "应用",
     "repositories": "软件源",

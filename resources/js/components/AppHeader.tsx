@@ -2,11 +2,12 @@ import {
   ActionIcon,
   AppShell,
   Button,
+  Combobox,
   Group,
   Menu,
-  Select,
   Text,
   TextInput,
+  useCombobox,
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core'
@@ -48,6 +49,7 @@ export default function AppHeader() {
   const [searchParams] = useSearchParams()
   const query = searchParams.get('q') ?? ''
   const [searchQuery, setSearchQuery] = useState(query)
+  const [languageQuery, setLanguageQuery] = useState('')
   const currentLanguage = i18n.resolvedLanguage ?? 'en'
   // The languages of the interface are the languages of the application, which the shell assigned to
   // the page; each one is named in its own language, so the list never changes with the interface
@@ -55,6 +57,28 @@ export default function AppHeader() {
     () => supportedLocales().map((tag) => ({ value: tag, label: languageLabel(tag) })),
     [],
   )
+  const visibleLanguages = useMemo(() => {
+    const wanted = languageQuery.trim().toLowerCase()
+    if (!wanted) return languages
+    return languages.filter((language) =>
+      `${language.label} ${language.value}`.toLowerCase().includes(wanted),
+    )
+  }, [languageQuery, languages])
+  // The language list is opened from an icon, so it has no input of its own to type in: the dropdown
+  // focuses its search box instead (`ComboboxProps` carries no `trapFocus`)
+  const languageCombobox = useCombobox({
+    onDropdownClose: () => {
+      setLanguageQuery('')
+      languageCombobox.resetSelectedOption()
+    },
+    onDropdownOpen: () =>
+      languageCombobox.updateSelectedOptionIndex('selected', { scrollIntoView: true }),
+  })
+  const languageDropdownOpened = languageCombobox.dropdownOpened
+
+  useEffect(() => {
+    if (languageDropdownOpened) languageCombobox.focusSearchInput()
+  }, [languageCombobox, languageDropdownOpened])
 
   useEffect(() => {
     setSearchQuery(query)
@@ -131,7 +155,7 @@ export default function AppHeader() {
             />
           </form>
         </nav>
-        <Group gap='xs'>
+        <Group gap='xs' wrap='nowrap'>
           <Menu shadow='md' width={170} position='bottom-end'>
             <Menu.Target>
               <ActionIcon
@@ -167,21 +191,56 @@ export default function AppHeader() {
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>
-          <Select
-            aria-label={t('language')}
-            className={styles.lang}
-            allowDeselect={false}
-            checkIconPosition='right'
-            data={languages}
-            leftSection={<GlobeIcon size={15} />}
-            searchable
-            value={currentLanguage}
-            variant='default'
-            w={100}
-            onChange={(language) => {
-              if (language) void i18n.changeLanguage(language)
+          <Combobox
+            position='bottom-end'
+            shadow='md'
+            store={languageCombobox}
+            width={220}
+            onOptionSubmit={(language) => {
+              void i18n.changeLanguage(language)
+              languageCombobox.closeDropdown()
             }}
-          />
+          >
+            <Combobox.Target targetType='button' withExpandedAttribute>
+              <ActionIcon
+                aria-label={t('language')}
+                size='lg'
+                title={languageLabel(currentLanguage)}
+                variant='default'
+                onClick={() => languageCombobox.toggleDropdown()}
+              >
+                <GlobeIcon size={18} />
+              </ActionIcon>
+            </Combobox.Target>
+            <Combobox.Dropdown>
+              <Combobox.Search
+                placeholder={t('header.searchLanguage')}
+                value={languageQuery}
+                onChange={(event) => {
+                  setLanguageQuery(event.currentTarget.value)
+                  languageCombobox.updateSelectedOptionIndex()
+                }}
+              />
+              {visibleLanguages.length === 0 ? (
+                <Combobox.Empty>{t('header.noLanguage')}</Combobox.Empty>
+              ) : (
+                <Combobox.Options mah={280} style={{ overflowY: 'auto' }}>
+                  {visibleLanguages.map((language) => (
+                    <Combobox.Option
+                      key={language.value}
+                      selected={language.value === currentLanguage}
+                      value={language.value}
+                    >
+                      <Group gap='xs' justify='space-between' wrap='nowrap'>
+                        <span>{language.label}</span>
+                        {language.value === currentLanguage ? <CheckIcon size={14} /> : null}
+                      </Group>
+                    </Combobox.Option>
+                  ))}
+                </Combobox.Options>
+              )}
+            </Combobox.Dropdown>
+          </Combobox>
           {ready && user ? (
             <Menu position='bottom-end' shadow='md' width={220}>
               <Menu.Target>

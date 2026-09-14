@@ -38,19 +38,18 @@
 
 .navButton {
   flex: 0 0 auto;
+  white-space: nowrap;
 }
 
+/* The search box gives up its width first, so the account controls never wrap */
 .searchForm {
   flex: 1 1 320px;
   margin-left: 12px;
+  min-width: 0;
 }
 
 .search {
   width: 100%;
-}
-
-.lang {
-  flex: 0 0 auto;
 }
 
 /* The navigation shrinks to its icons on small screens */
