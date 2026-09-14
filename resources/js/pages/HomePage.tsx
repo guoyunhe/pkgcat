@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
-import HomeAppCard from '../components/home/HomeAppCard'
-import HomeDistroCard from '../components/home/HomeDistroCard'
+import HomeAppCard from '../components/HomeAppCard'
+import HomeDistroCard from '../components/HomeDistroCard'
 import { getApps } from '../services/apps'
 import { getDistros, type Distro } from '../services/distros'
 

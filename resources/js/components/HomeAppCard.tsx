@@ -3,7 +3,7 @@ import { Card, Text } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
-import { localized } from '../../utils/appstream'
+import { localized } from '../utils/appstream'
 
 import styles from './HomeCards.module.css'
 
