@@ -94,6 +94,23 @@ function almalinux(version: string) {
 }
 
 /**
+ * Repositories of one CentOS Stream release. A stream is the rolling compose that leads the next
+ * Enterprise Linux release, so it carries the same `BaseOS` / `AppStream` split as the rebuilds of
+ * that release, and both repositories are synchronized again every week because the compose keeps
+ * replacing its packages. The mirror path names the stream itself, which is what tells the two
+ * releases apart.
+ */
+function centosStream(version: string) {
+  return (arch: string): DistroRepo[] =>
+    ['BaseOS', 'AppStream'].map((repository) => ({
+      name: `CentOS Stream ${version} ${repository}`,
+      type: 'rpm',
+      baseUrl: `https://mirror.stream.centos.org/${version}-stream/${repository}/${arch}/os/`,
+      syncIntervalDays: updateSyncIntervalDays,
+    }))
+}
+
+/**
  * One distribution of the catalog with the architectures it is published for. Every architecture
  * becomes its own entry, and the repositories of the distribution are linked to the entries they
  * serve: a plain array holds the repositories that are read by every architecture of the release
@@ -139,10 +156,10 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
  * Every architecture of a release is seeded as its own entry, and the repositories of a
  * distribution are linked to the entries they serve, so the repository of a release published for
  * several architectures is shared by all of them when its URLs do not name the architecture.
- * Distributions whose packages no extractor reads yet (Arch Linux, Manjaro Linux, NixOS, Gentoo
- * Linux, and SteamOS, which ships pacman repositories) and distributions whose content is behind a
- * subscription (Red Hat Enterprise Linux and SUSE Linux Enterprise) therefore have no `repos`
- * entry.
+ * Distributions whose packages no extractor reads yet (Arch Linux, CachyOS, Manjaro Linux, NixOS,
+ * Gentoo Linux, and SteamOS, which ship pacman repositories) and distributions whose content is
+ * behind a subscription (Red Hat Enterprise Linux and SUSE Linux Enterprise) therefore have no
+ * `repos` entry.
  *
  * The release tree of a distribution is frozen once the release is published, so its repositories
  * keep a `null` sync interval and are only read again with `repo:sync --force`; the update streams
@@ -186,6 +203,34 @@ const distros: DistroSeed[] = [
     arches: desktopArches,
     releaseDate: null,
     eolDate: null,
+  },
+  {
+    name: 'CachyOS',
+    version: null,
+    pkgType: null,
+    // CachyOS is an Arch-based rolling release whose repositories carry the x86-64 machine levels
+    // (x86_64, x86_64_v3, x86_64_v4) of the one architecture it builds for
+    arches: ['x86_64'],
+    releaseDate: null,
+    eolDate: null,
+  },
+  {
+    name: 'CentOS Stream',
+    version: '9',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2021-09-15',
+    eolDate: '2027-05-31',
+    repos: centosStream('9'),
+  },
+  {
+    name: 'CentOS Stream',
+    version: '10',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2024-12-12',
+    eolDate: '2030-05-31',
+    repos: centosStream('10'),
   },
   {
     name: 'Debian',
