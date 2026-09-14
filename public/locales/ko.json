@@ -255,17 +255,15 @@
     "notFound": "아직 등록된 저장소가 없습니다.",
     "filterDistro": "배포판",
     "filterAny": "모든 배포판",
+    "filterSearch": "저장소 검색",
+    "filterSource": "소스",
+    "filterAnySource": "모든 소스",
     "filterEmpty": "이 릴리스를 제공하는 저장소가 없습니다.",
+    "sourceEmpty": "이 소스의 저장소가 없습니다.",
+    "searchEmpty": "검색과 일치하는 저장소가 없습니다.",
     "loadError": "저장소를 불러올 수 없습니다",
     "saveError": "저장소를 저장할 수 없습니다",
     "deleteError": "저장소를 삭제할 수 없습니다",
-    "columns": {
-      "type": "형식",
-      "name": "저장소",
-      "distros": "배포판",
-      "syncInterval": "동기화 주기",
-      "lastSynced": "마지막 동기화"
-    },
     "fields": {
       "type": "형식",
       "name": "이름",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "배포판 제공",
       "community": "커뮤니티 저장소"
+    },
+    "columns": {
+      "type": "형식",
+      "source": "소스",
+      "name": "저장소",
+      "distros": "배포판",
+      "syncInterval": "동기화 주기",
+      "lastSynced": "마지막 동기화"
     }
   },
   "distros": {

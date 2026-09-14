@@ -1,5 +1,6 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Table, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Table, Text, TextInput, Title } from '@mantine/core'
+import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -9,6 +10,7 @@ import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroSelect from '../components/DistroSelect'
+import ListFilter from '../components/ListFilter'
 import { deleteRepo, getRepos } from '../services/repos'
 
 import styles from './ReposPage.module.css'
@@ -27,6 +29,8 @@ export default function ReposPage() {
   // A repository serves the releases of the distributions it publishes, which is how the entries the
   // loaded repositories name become the options that narrow the list down
   const [distroFilter, setDistroFilter] = useState<string | null>(null)
+  const [sourceFilter, setSourceFilter] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
 
   async function loadRepos() {
     try {
@@ -64,18 +68,55 @@ export default function ReposPage() {
   // The releases the loaded repositories name are the entries the filter offers
   const distroEntries = useMemo(() => repos.flatMap((repo) => repo.distros), [repos])
 
-  // The list arrives complete and small, so the filter only narrows what is already loaded, and the
-  // order the API returns — the repositories by name — is left untouched
-  const visibleRepos = useMemo(
-    () =>
-      distroFilter === null
-        ? repos
-        : repos.filter((repo) => repo.distros.some((distro) => String(distro.id) === distroFilter)),
-    [distroFilter, repos],
+  // Where a repository comes from, which the list shows and narrows down by as well
+  const sourceOptions = useMemo(
+    () => [
+      { value: 'distro', label: t('repos.sources.distro') },
+      { value: 'community', label: t('repos.sources.community') },
+    ],
+    [t],
+  )
+  const sourceLabels = useMemo(
+    () => new Map(sourceOptions.map((option) => [option.value, option.label])),
+    [sourceOptions],
   )
 
+  // The list arrives complete and small, so the filters and the search only narrow what is already
+  // loaded, and the order the API returns — the repositories by name — is left untouched
+  const visibleRepos = useMemo(() => {
+    const wanted = search.trim().toLowerCase()
+
+    return repos.filter((repo) => {
+      if (sourceFilter !== null && repo.source !== sourceFilter) return false
+      if (
+        distroFilter !== null &&
+        !repo.distros.some((distro) => String(distro.id) === distroFilter)
+      ) {
+        return false
+      }
+      if (!wanted) return true
+
+      // A repository is found by its name, by the URL it reads from, and by the releases it serves
+      const fields = [
+        repo.name,
+        repo.baseUrl,
+        repo.type,
+        repo.source,
+        ...repo.distros.flatMap((distro) => [distro.name, distro.version ?? '', distro.arch]),
+      ]
+      return fields.join(' ').toLowerCase().includes(wanted)
+    })
+  }, [distroFilter, repos, search, sourceFilter])
+
   // An empty list is a different thing from a filter that matches nothing
-  const emptyMessage = repos.length === 0 ? t('repos.notFound') : t('repos.filterEmpty')
+  const emptyMessage =
+    repos.length === 0
+      ? t('repos.notFound')
+      : search.trim()
+        ? t('repos.searchEmpty')
+        : distroFilter !== null
+          ? t('repos.filterEmpty')
+          : t('repos.sourceEmpty')
 
   return (
     <main className={styles.page}>
@@ -101,18 +142,36 @@ export default function ReposPage() {
           {error}
         </Alert>
       )}
-      {!loading && repos.length > 0 && (
-        <Group mb='lg'>
-          <DistroSelect
-            distros={distroEntries}
-            label={t('repos.filterDistro')}
-            onChange={setDistroFilter}
-            placeholder={t('repos.filterAny')}
-            searchable
-            value={distroFilter}
-          />
-        </Group>
-      )}
+      {!loading &&
+        repos.length > 0 && (
+          // The filter carries a label and the search box does not, so the two are aligned at their
+          // bottom edge, where the inputs themselves are
+          <Group align='flex-end' mb='lg'>
+            <TextInput
+              aria-label={t('repos.filterSearch')}
+              leftSection={<MagnifyingGlassIcon size={18} />}
+              placeholder={t('repos.filterSearch')}
+              value={search}
+              w={240}
+              onChange={(event) => setSearch(event.currentTarget.value)}
+            />
+            <DistroSelect
+              distros={distroEntries}
+              label={t('repos.filterDistro')}
+              onChange={setDistroFilter}
+              placeholder={t('repos.filterAny')}
+              searchable
+              value={distroFilter}
+            />
+            <ListFilter
+              data={sourceOptions}
+              label={t('repos.filterSource')}
+              onChange={setSourceFilter}
+              placeholder={t('repos.filterAnySource')}
+              value={sourceFilter}
+            />
+          </Group>
+        )}
       {loading ? (
         <div className={styles.loading}>
           <Loader color='orange' />
@@ -124,6 +183,7 @@ export default function ReposPage() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>{t('repos.columns.type')}</Table.Th>
+              <Table.Th>{t('repos.columns.source')}</Table.Th>
               <Table.Th>{t('repos.columns.name')}</Table.Th>
               <Table.Th>{t('repos.columns.distros')}</Table.Th>
               <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
@@ -147,6 +207,11 @@ export default function ReposPage() {
                     )}
                     {repo.type}
                   </span>
+                </Table.Td>
+                <Table.Td>
+                  <Text size='sm' c='dimmed'>
+                    {sourceLabels.get(repo.source) ?? repo.source}
+                  </Text>
                 </Table.Td>
                 <Table.Td>
                   <div className={styles.name}>{repo.name}</div>

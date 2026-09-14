@@ -255,17 +255,15 @@
     "notFound": "尚未配置任何仓库。",
     "filterDistro": "发行版",
     "filterAny": "全部发行版",
+    "filterSearch": "搜索仓库",
+    "filterSource": "来源",
+    "filterAnySource": "全部来源",
     "filterEmpty": "没有服务该版本的仓库。",
+    "sourceEmpty": "没有来自该来源的仓库。",
+    "searchEmpty": "没有匹配的仓库。",
     "loadError": "无法加载仓库",
     "saveError": "无法保存仓库",
     "deleteError": "无法删除仓库",
-    "columns": {
-      "type": "类型",
-      "name": "仓库",
-      "distros": "发行版",
-      "syncInterval": "同步周期",
-      "lastSynced": "上次同步"
-    },
     "fields": {
       "type": "类型",
       "name": "名称",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "发行版自带",
       "community": "社区仓库"
+    },
+    "columns": {
+      "type": "类型",
+      "source": "来源",
+      "name": "仓库",
+      "distros": "发行版",
+      "syncInterval": "同步周期",
+      "lastSynced": "上次同步"
     }
   },
   "distros": {

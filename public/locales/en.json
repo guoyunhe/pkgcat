@@ -255,17 +255,15 @@
     "notFound": "No repositories configured yet.",
     "filterDistro": "Distribution",
     "filterAny": "All distributions",
+    "filterSearch": "Search repositories",
+    "filterSource": "Source",
+    "filterAnySource": "All sources",
     "filterEmpty": "No repositories serve this release.",
+    "sourceEmpty": "No repositories from this source.",
+    "searchEmpty": "No repositories match your search.",
     "loadError": "Unable to load repositories",
     "saveError": "Unable to save repository",
     "deleteError": "Unable to delete repository",
-    "columns": {
-      "type": "Type",
-      "name": "Repository",
-      "distros": "Distributions",
-      "syncInterval": "Sync interval",
-      "lastSynced": "Last synced"
-    },
     "fields": {
       "type": "Type",
       "name": "Name",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "Provided by the distribution",
       "community": "Community repository"
+    },
+    "columns": {
+      "type": "Type",
+      "source": "Source",
+      "name": "Repository",
+      "distros": "Distributions",
+      "syncInterval": "Sync interval",
+      "lastSynced": "Last synced"
     }
   },
   "distros": {

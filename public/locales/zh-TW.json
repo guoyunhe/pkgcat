@@ -255,17 +255,15 @@
     "notFound": "尚未設定任何倉庫。",
     "filterDistro": "發行版",
     "filterAny": "全部發行版",
+    "filterSearch": "搜尋軟體來源",
+    "filterSource": "來源",
+    "filterAnySource": "全部來源",
     "filterEmpty": "沒有服務該版本的倉庫。",
+    "sourceEmpty": "沒有來自該來源的軟體來源。",
+    "searchEmpty": "沒有符合的軟體來源。",
     "loadError": "無法載入倉庫",
     "saveError": "無法儲存倉庫",
     "deleteError": "無法刪除倉庫",
-    "columns": {
-      "type": "類型",
-      "name": "倉庫",
-      "distros": "發行版",
-      "syncInterval": "同步週期",
-      "lastSynced": "上次同步"
-    },
     "fields": {
       "type": "類型",
       "name": "名稱",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "發行版內建",
       "community": "社群倉庫"
+    },
+    "columns": {
+      "type": "類型",
+      "source": "來源",
+      "name": "倉庫",
+      "distros": "發行版",
+      "syncInterval": "同步週期",
+      "lastSynced": "上次同步"
     }
   },
   "distros": {

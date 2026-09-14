@@ -255,17 +255,15 @@
     "notFound": "Aucun dépôt configuré pour le moment.",
     "filterDistro": "Distribution",
     "filterAny": "Toutes les distributions",
+    "filterSearch": "Rechercher des dépôts",
+    "filterSource": "Source",
+    "filterAnySource": "Toutes les sources",
     "filterEmpty": "Aucun dépôt ne dessert cette version.",
+    "sourceEmpty": "Aucun dépôt de cette source.",
+    "searchEmpty": "Aucun dépôt ne correspond à votre recherche.",
     "loadError": "Impossible de charger les dépôts",
     "saveError": "Impossible d’enregistrer le dépôt",
     "deleteError": "Impossible de supprimer le dépôt",
-    "columns": {
-      "type": "Type",
-      "name": "Dépôt",
-      "distros": "Distributions",
-      "syncInterval": "Intervalle de synchronisation",
-      "lastSynced": "Dernière synchro"
-    },
     "fields": {
       "type": "Type",
       "name": "Nom",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "Fourni par la distribution",
       "community": "Dépôt communautaire"
+    },
+    "columns": {
+      "type": "Type",
+      "source": "Source",
+      "name": "Dépôt",
+      "distros": "Distributions",
+      "syncInterval": "Intervalle de synchronisation",
+      "lastSynced": "Dernière synchro"
     }
   },
   "distros": {

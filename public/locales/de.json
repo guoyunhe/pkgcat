@@ -255,17 +255,15 @@
     "notFound": "Noch keine Repositories eingerichtet.",
     "filterDistro": "Distribution",
     "filterAny": "Alle Distributionen",
+    "filterSearch": "Repositories durchsuchen",
+    "filterSource": "Quelle",
+    "filterAnySource": "Alle Quellen",
     "filterEmpty": "Kein Repository bedient dieses Release.",
+    "sourceEmpty": "Keine Repositories aus dieser Quelle.",
+    "searchEmpty": "Keine Repositories passen zur Suche.",
     "loadError": "Repositories konnten nicht geladen werden",
     "saveError": "Das Repository konnte nicht gespeichert werden",
     "deleteError": "Das Repository konnte nicht gelöscht werden",
-    "columns": {
-      "type": "Typ",
-      "name": "Repository",
-      "distros": "Distributionen",
-      "syncInterval": "Sync-Intervall",
-      "lastSynced": "Zuletzt synchronisiert"
-    },
     "fields": {
       "type": "Typ",
       "name": "Name",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "Von der Distribution bereitgestellt",
       "community": "Community-Repository"
+    },
+    "columns": {
+      "type": "Typ",
+      "source": "Quelle",
+      "name": "Repository",
+      "distros": "Distributionen",
+      "syncInterval": "Sync-Intervall",
+      "lastSynced": "Zuletzt synchronisiert"
     }
   },
   "distros": {

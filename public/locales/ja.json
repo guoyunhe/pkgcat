@@ -255,17 +255,15 @@
     "notFound": "まだリポジトリが登録されていません。",
     "filterDistro": "ディストリビューション",
     "filterAny": "すべてのディストリビューション",
+    "filterSearch": "リポジトリを検索",
+    "filterSource": "ソース",
+    "filterAnySource": "すべてのソース",
     "filterEmpty": "このリリースに対応するリポジトリはありません。",
+    "sourceEmpty": "このソースのリポジトリはありません。",
+    "searchEmpty": "該当するリポジトリがありません。",
     "loadError": "リポジトリを読み込めません",
     "saveError": "リポジトリを保存できません",
     "deleteError": "リポジトリを削除できません",
-    "columns": {
-      "type": "形式",
-      "name": "リポジトリ",
-      "distros": "ディストリビューション",
-      "syncInterval": "同期間隔",
-      "lastSynced": "最終同期"
-    },
     "fields": {
       "type": "形式",
       "name": "名前",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "ディストリビューション提供",
       "community": "コミュニティリポジトリ"
+    },
+    "columns": {
+      "type": "形式",
+      "source": "ソース",
+      "name": "リポジトリ",
+      "distros": "ディストリビューション",
+      "syncInterval": "同期間隔",
+      "lastSynced": "最終同期"
     }
   },
   "distros": {

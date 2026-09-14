@@ -255,17 +255,15 @@
     "notFound": "Nessun repository configurato.",
     "filterDistro": "Distribuzione",
     "filterAny": "Tutte le distribuzioni",
+    "filterSearch": "Cerca repository",
+    "filterSource": "Sorgente",
+    "filterAnySource": "Tutte le sorgenti",
     "filterEmpty": "Nessun repository serve questa release.",
+    "sourceEmpty": "Nessun repository da questa sorgente.",
+    "searchEmpty": "Nessun repository corrisponde alla ricerca.",
     "loadError": "Impossibile caricare i repository",
     "saveError": "Impossibile salvare il repository",
     "deleteError": "Impossibile eliminare il repository",
-    "columns": {
-      "type": "Tipo",
-      "name": "Repository",
-      "distros": "Distribuzioni",
-      "syncInterval": "Intervallo di sincronizzazione",
-      "lastSynced": "Ultima sincronizzazione"
-    },
     "fields": {
       "type": "Tipo",
       "name": "Nome",
@@ -281,6 +279,14 @@
     "sources": {
       "distro": "Fornito dalla distribuzione",
       "community": "Repository della comunità"
+    },
+    "columns": {
+      "type": "Tipo",
+      "source": "Sorgente",
+      "name": "Repository",
+      "distros": "Distribuzioni",
+      "syncInterval": "Intervallo di sincronizzazione",
+      "lastSynced": "Ultima sincronizzazione"
     }
   },
   "distros": {
