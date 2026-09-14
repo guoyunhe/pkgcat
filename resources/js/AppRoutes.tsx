@@ -3,12 +3,7 @@ import { Redirect, Route, Switch } from 'wouter'
 
 import PageLoader from './components/PageLoader'
 import AppDetailPage from './pages/AppDetailPage'
-import AppsPage from './pages/AppsPage'
-import DistrosPage from './pages/DistrosPage'
 import HomePage from './pages/HomePage'
-import PkgsPage from './pages/PkgsPage'
-import ReposPage from './pages/ReposPage'
-import SearchResultsPage from './pages/SearchResultsPage'
 import UserDetailPage from './pages/UserDetailPage'
 
 // Login, registration and the resource forms are not part of the catalog content, so their code is
@@ -19,6 +14,17 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const PkgFormPage = lazy(() => import('./pages/PkgFormPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const RepoFormPage = lazy(() => import('./pages/RepoFormPage'))
+
+// The list pages are only opened from the navigation, so each one is split in its own chunk and
+// downloaded when the visitor navigates to it
+const AppsPage = lazy(() => import('./pages/AppsPage'))
+const DistrosPage = lazy(() => import('./pages/DistrosPage'))
+const PkgsPage = lazy(() => import('./pages/PkgsPage'))
+const ReposPage = lazy(() => import('./pages/ReposPage'))
+
+// The search results are reached from the header search box, so their code is also split out and
+// downloaded only when a visitor actually searches for something
+const SearchResultsPage = lazy(() => import('./pages/SearchResultsPage'))
 
 /**
  * Page routes of the application. Listing and form pages are grouped by the resource they work on,
