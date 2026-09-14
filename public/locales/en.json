@@ -4,6 +4,8 @@
   "register": "Register",
   "logout": "Logout",
   "language": "Language",
+  "searchLanguage": "Search language",
+  "noLanguage": "No language found",
   "email": "Email address",
   "password": "Password",
   "confirmPassword": "Confirm password",
@@ -23,8 +25,6 @@
   "registerFailed": "Unable to create the account.",
   "header": {
     "searchApplications": "Search applications",
-    "searchLanguage": "Search language",
-    "noLanguage": "No language found",
     "addApplication": "Add application",
     "applications": "Apps",
     "repositories": "Repos",

@@ -22,6 +22,7 @@ export function fallbackLocale() {
  * the glibc modifier is dropped, the separator and the casing are normalized (`zh_CN` is `zh-CN`),
  * a script is dropped to keep the region (`zh-Hans-CN` is `zh-CN`), and a tag that names no
  * language of the list — `en-GB` or `xx_YY` — falls back to its parent language or is dropped.
+ * Chinese is resolved by its script instead, see `chineseLocale()`.
  */
 
 let localeIndex: Map<string, string> | null = null
@@ -42,6 +43,18 @@ export function localeKey(locale: string) {
 }
 
 /**
+ * Chinese is the one language of the list that is written in two scripts, and the catalog keeps the
+ * two scripts as two translations rather than keeping the language itself: a script or a region
+ * subtag decides which one a tag names (`zh-Hant-HK` is `zh-TW`), and a tag that names neither is
+ * the simplified one — which is why `zh` alone is not a language of the list. The interface
+ * resolves a detected language by the same rule (`normalizeLanguage` in `resources/js/i18n.ts`).
+ */
+function chineseLocale(tag: string) {
+  if (!/^zh($|[-_])/i.test(tag)) return null
+  return /(hant|[-_]tw|[-_]hk|[-_]mo)/i.test(tag) ? 'zh-TW' : 'zh-CN'
+}
+
+/**
  * Language a metadata tag or a request asks for, spelled the way the catalog stores it, or `null`
  * when the catalog does not keep that language.
  */
@@ -53,9 +66,13 @@ export function canonicalLocale(tag: string): string | null {
   const exact = supportedLocaleIndex().get(localeKey(normalized))
   if (exact) return exact
 
+  // `zh`, `zh-Hans` and `zh-Hant` name one of the two Chinese translations rather than a language
+  // of their own, so they are resolved before the tag is taken apart
+  const chinese = chineseLocale(normalized)
+  if (chinese) return chinese
+
   // A script subtag names a spelling of the language rather than a language of its own, and the
-  // region is what tells two translations of a language apart, so the script is dropped first:
-  // `zh-Hans-CN` is `zh-CN` while `zh-Hant` is `zh`
+  // region is what tells two translations of a language apart, so the script is dropped first
   const subtags = normalized.split('-').filter((subtag) => subtag && !/^[A-Za-z]{4}$/.test(subtag))
 
   // The rest of the tag is looked up the way RFC 4647 does, parent language by parent language:

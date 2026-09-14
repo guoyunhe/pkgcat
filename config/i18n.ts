@@ -14,14 +14,16 @@ const i18nConfig = defineConfig({
    * use for, so every tag is normalized to this list on its way in: the modifier is dropped
    * (`sr@ijekavianlatin` is `sr`), the separator and the casing are normalized (`zh_CN` is
    * `zh-CN`), a script is dropped to keep the region (`zh-Hans-CN` is `zh-CN`), and a region that
-   * is not listed falls back to its base language (`en-GB` is `en`). A language that is not listed
-   * at all is refused by the API and dropped by the repository sync.
+   * is not listed falls back to its base language (`en-GB` is `en`). Chinese is the exception: the
+   * two translations are told apart by script rather than by language, so every Chinese tag lands
+   * on `zh-CN` or `zh-TW` (`zh` and `zh-Hans` are `zh-CN`, `zh-Hant-HK` is `zh-TW`) and `zh` alone
+   * is deliberately not a language of the list. A language that is not listed at all is refused by
+   * the API and dropped by the repository sync.
    */
   supportedLocales: [
     'en',
     'zh-CN',
     'zh-TW',
-    'zh',
     'ja',
     'ko',
     'de',
