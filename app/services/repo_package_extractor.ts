@@ -1,10 +1,9 @@
-import { gunzipSync, zstdDecompressSync } from 'node:zlib'
-
 import { XMLParser } from 'fast-xml-parser'
 import xior, { isXiorError } from 'xior'
 
 import type Repo from '#models/repo'
 
+import { decompress } from '../utils/compression.js'
 import { splitDebDescription, splitDebVersion } from '../utils/deb.js'
 
 export type RepoPackageType = 'rpm' | 'deb'
@@ -198,17 +197,21 @@ export default class RepoPackageExtractor {
     for (const source of sources) {
       const indexUrls =
         source.suite === '.' || source.suite === './'
-          ? [joinUrl(source.uri, 'Packages.gz')]
+          ? [joinUrl(source.uri, 'Packages')]
           : source.components.map((component) =>
               joinUrl(
                 source.uri,
-                `dists/${source.suite}/${component}/binary-${source.arch}/Packages.gz`,
+                `dists/${source.suite}/${component}/binary-${source.arch}/Packages`,
               ),
             )
 
       for (const url of indexUrls) {
-        // Empty suites/components simply have no Packages index; apt skips them too.
-        const content = await this.downloadText(url, { optional: true })
+        // A suite publishes its index gzipped, but the update streams and the security archive of
+        // Debian only carry the xz one. A suite with no index at all is simply empty, as apt also
+        // treats it.
+        const content =
+          (await this.downloadText(`${url}.gz`, { optional: true })) ??
+          (await this.downloadText(`${url}.xz`, { optional: true }))
         if (content === null) continue
         for (const stanza of parseDebStanzas(content)) {
           const version = splitDebVersion(stanza.Version)
@@ -381,11 +384,10 @@ export default class RepoPackageExtractor {
       })
     }
 
-    if (url.endsWith('.gz')) return gunzipSync(data).toString('utf8')
-    if (url.endsWith('.zst')) return zstdDecompressSync(data).toString('utf8')
-    if (/\.(xz|zck|bz2)$/.test(url)) {
+    if (/\.(zck|bz2)$/.test(url)) {
       throw new Error(`Unsupported repository metadata compression: ${url}`)
     }
-    return data.toString('utf8')
+    const content = await decompress(data, /\.(gz|zst|xz)$/.exec(url)?.[0] ?? '')
+    return content.toString('utf8')
   }
 }

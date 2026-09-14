@@ -1,21 +1,15 @@
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
 import { open } from 'node:fs/promises'
-import { createRequire } from 'node:module'
 import { basename, extname } from 'node:path'
-import { Readable } from 'node:stream'
 import { pipeline } from 'node:stream/promises'
-import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { gunzipSync, zstdDecompressSync } from 'node:zlib'
 
 import { Exception } from '@adonisjs/core/exceptions'
 
+import { decompress as decompressMetadata } from '../utils/compression.js'
 import { splitDebDescription, splitDebVersion } from '../utils/deb.js'
 import { readTarEntries, type TarEntry } from '../utils/tar.js'
-
-// The package is a webpack UMD bundle and does not expose its named exports to the ESM loader.
-const require = createRequire(import.meta.url)
-const { XzReadableStream } = require('xz-decompress') as typeof import('xz-decompress')
 
 export const uploadedPackageTypes = ['deb', 'rpm', 'appimage'] as const
 
@@ -630,24 +624,7 @@ export default class PackageFileExtractor {
   }
 
   private async decompress(data: Buffer, extension: string): Promise<Buffer> {
-    if (extension === '.gz') return gunzipSync(data)
-    if (extension === '.zst') return zstdDecompressSync(data)
-    if (extension === '.xz') {
-      // "xz-decompress" expects the global (WHATWG) ReadableStream type, which differs from the
-      // "node:stream/web" one once the DOM lib is part of the program (client project).
-      const compressed = Readable.toWeb(
-        Readable.from([data]),
-      ) as unknown as ReadableStream<Uint8Array>
-      const stream = new XzReadableStream(compressed)
-      const chunks: Buffer[] = []
-      for await (const chunk of Readable.fromWeb(
-        stream as unknown as WebReadableStream<Uint8Array>,
-      )) {
-        chunks.push(Buffer.from(chunk as Uint8Array))
-      }
-      return Buffer.concat(chunks)
-    }
-    return data
+    return decompressMetadata(data, extension)
   }
 
   private fromDebArch(arch: string) {

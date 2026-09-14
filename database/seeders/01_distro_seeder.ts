@@ -141,7 +141,8 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
  * several architectures is shared by all of them when its URLs do not name the architecture.
  * Distributions whose packages no extractor reads yet (Arch Linux, Manjaro Linux, NixOS, Gentoo
  * Linux, and SteamOS, which ships pacman repositories) and distributions whose content is behind a
- * subscription (Red Hat Enterprise Linux) therefore have no `repos` entry.
+ * subscription (Red Hat Enterprise Linux and SUSE Linux Enterprise) therefore have no `repos`
+ * entry.
  *
  * The release tree of a distribution is frozen once the release is published, so its repositories
  * keep a `null` sync interval and are only read again with `repo:sync --force`; the update streams
@@ -397,7 +398,7 @@ const distros: DistroSeed[] = [
     name: 'openSUSE Leap',
     version: '16.0',
     pkgType: 'rpm',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2025-10-01',
     eolDate: '2027-10-31',
     repos: [
@@ -453,17 +454,59 @@ const distros: DistroSeed[] = [
   },
   {
     name: 'Red Hat Enterprise Linux',
+    version: '8',
+    pkgType: 'rpm',
+    // The rebuilds below build for the architectures Red Hat publishes, and so does the
+    // subscription-gated cdn.redhat.com the catalog cannot read
+    arches: serverArches,
+    releaseDate: '2019-05-07',
+    eolDate: '2029-05-31',
+  },
+  {
+    name: 'Red Hat Enterprise Linux',
     version: '9',
     pkgType: 'rpm',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2022-05-18',
     eolDate: '2032-05-31',
+  },
+  {
+    name: 'Red Hat Enterprise Linux',
+    version: '10',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2025-05-20',
+    eolDate: '2035-05-31',
+  },
+  {
+    name: 'Rocky Linux',
+    version: '8',
+    pkgType: 'rpm',
+    // Rocky Linux 8 was built for the two desktop architectures only
+    arches: desktopArches,
+    releaseDate: '2021-05-01',
+    eolDate: '2029-05-31',
+    repos: (arch) => [
+      {
+        name: 'Rocky Linux 8 BaseOS',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/8/BaseOS/${arch}/os/`,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+      {
+        name: 'Rocky Linux 8 AppStream',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/8/AppStream/${arch}/os/`,
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+    ],
   },
   {
     name: 'Rocky Linux',
     version: '9',
     pkgType: 'rpm',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2022-07-14',
     eolDate: '2032-05-31',
     repos: (arch) => [
@@ -472,6 +515,35 @@ const distros: DistroSeed[] = [
         type: 'rpm',
         baseUrl: `https://dl.rockylinux.org/pub/rocky/9/BaseOS/${arch}/os/`,
         // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+      {
+        name: 'Rocky Linux 9 AppStream',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/9/AppStream/${arch}/os/`,
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+    ],
+  },
+  {
+    name: 'Rocky Linux',
+    version: '10',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2025-06-11',
+    eolDate: '2035-05-31',
+    repos: (arch) => [
+      {
+        name: 'Rocky Linux 10 BaseOS',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/10/BaseOS/${arch}/os/`,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+      {
+        name: 'Rocky Linux 10 AppStream',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/10/AppStream/${arch}/os/`,
         syncIntervalDays: updateSyncIntervalDays,
       },
     ],
@@ -483,6 +555,24 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2022-03-01',
     eolDate: null,
+  },
+  {
+    name: 'SUSE Linux Enterprise',
+    version: '15.7',
+    pkgType: 'rpm',
+    // SLE 15 is the base of openSUSE Leap 15, which publishes these four architectures
+    arches: serverArches,
+    releaseDate: '2025-06-17',
+    eolDate: '2031-07-31',
+  },
+  {
+    name: 'SUSE Linux Enterprise',
+    version: '16.0',
+    pkgType: 'rpm',
+    // SLE 16 is the base of openSUSE Leap 16.0, which publishes these four architectures
+    arches: serverArches,
+    releaseDate: '2025-11-04',
+    eolDate: '2027-11-30',
   },
   {
     name: 'Ubuntu',
@@ -502,6 +592,30 @@ const distros: DistroSeed[] = [
         'Ubuntu 24.04 Ports',
         'deb http://ports.ubuntu.com/ubuntu-ports/ noble main restricted universe multiverse',
         null,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 24.04 Updates',
+        'deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 24.04 Ports Updates',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ noble-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 24.04 Security',
+        'deb http://security.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 24.04 Ports Security',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ noble-security main restricted universe multiverse',
+        updateSyncIntervalDays,
         ['aarch64', 'ppc64le', 's390x'],
       ),
     ],
@@ -524,6 +638,30 @@ const distros: DistroSeed[] = [
         'Ubuntu 26.04 Ports',
         'deb http://ports.ubuntu.com/ubuntu-ports/ resolute main restricted universe multiverse',
         null,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 26.04 Updates',
+        'deb http://archive.ubuntu.com/ubuntu/ resolute-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 26.04 Ports Updates',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ resolute-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 26.04 Security',
+        'deb http://security.ubuntu.com/ubuntu/ resolute-security main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 26.04 Ports Security',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ resolute-security main restricted universe multiverse',
+        updateSyncIntervalDays,
         ['aarch64', 'ppc64le', 's390x'],
       ),
     ],
