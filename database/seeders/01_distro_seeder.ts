@@ -69,6 +69,22 @@ function debRepo(name: string, source: string, syncIntervalDays: number | null):
 const updateSyncIntervalDays = 7
 
 /**
+ * Repositories of one AlmaLinux release: the packages are split between `BaseOS`, which holds the
+ * system itself, and `AppStream`, which holds the applications built from it. Both carry the errata
+ * of the release, and their URLs name the architecture, so the release has one entry per repository
+ * and architecture. The repositories are listed in the order the catalog lists them, by name.
+ */
+function almalinux(version: string) {
+  return (arch: string): DistroRepo[] =>
+    ['AppStream', 'BaseOS'].map((repository) => ({
+      name: `AlmaLinux ${version} ${repository}`,
+      type: 'rpm',
+      baseUrl: `https://repo.almalinux.org/almalinux/${version}/${repository}/${arch}/os/`,
+      syncIntervalDays: updateSyncIntervalDays,
+    }))
+}
+
+/**
  * One distribution of the catalog with the architectures it is published for. Every architecture
  * becomes its own entry, and the repositories of the distribution are linked to the entries they
  * serve: a plain array holds the repositories that serve every architecture of the release (one row
@@ -115,20 +131,30 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
 const distros: DistroSeed[] = [
   {
     name: 'AlmaLinux',
+    version: '8',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2021-03-30',
+    eolDate: '2029-05-31',
+    repos: almalinux('8'),
+  },
+  {
+    name: 'AlmaLinux',
     version: '9',
     pkgType: 'rpm',
     arches: serverArches,
     releaseDate: '2022-05-26',
     eolDate: '2032-05-31',
-    repos: (arch) => [
-      {
-        name: 'AlmaLinux 9 BaseOS',
-        type: 'rpm',
-        baseUrl: `https://repo.almalinux.org/almalinux/9/BaseOS/${arch}/os/`,
-        // Errata are published into the release tree itself, so it keeps changing
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-    ],
+    repos: almalinux('9'),
+  },
+  {
+    name: 'AlmaLinux',
+    version: '10',
+    pkgType: 'rpm',
+    arches: serverArches,
+    releaseDate: '2025-05-27',
+    eolDate: '2035-05-31',
+    repos: almalinux('10'),
   },
   {
     name: 'Arch Linux',
@@ -152,13 +178,13 @@ const distros: DistroSeed[] = [
         null,
       ),
       debRepo(
-        'Debian 13 Updates',
-        'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
+        'Debian 13 Security',
+        'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
         updateSyncIntervalDays,
       ),
       debRepo(
-        'Debian 13 Security',
-        'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
+        'Debian 13 Updates',
+        'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
         updateSyncIntervalDays,
       ),
     ],
@@ -345,16 +371,16 @@ const distros: DistroSeed[] = [
     eolDate: null,
     repos: (arch) => [
       {
+        name: 'openSUSE Tumbleweed Non-OSS',
+        type: 'rpm',
+        baseUrl: opensuseArchive('tumbleweed/repo/non-oss', arch),
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+      {
         name: 'openSUSE Tumbleweed OSS',
         type: 'rpm',
         baseUrl: opensuseArchive('tumbleweed/repo/oss', arch),
         // A rolling release has no frozen tree, so its repositories are read again every week
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-      {
-        name: 'openSUSE Tumbleweed Non-OSS',
-        type: 'rpm',
-        baseUrl: opensuseArchive('tumbleweed/repo/non-oss', arch),
         syncIntervalDays: updateSyncIntervalDays,
       },
     ],
