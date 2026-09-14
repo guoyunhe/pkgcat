@@ -12,6 +12,7 @@ import {
 } from '@mantine/core'
 import { CheckIcon } from '@phosphor-icons/react/Check'
 import { DesktopIcon } from '@phosphor-icons/react/Desktop'
+import { GearSixIcon } from '@phosphor-icons/react/GearSix'
 import { GlobeIcon } from '@phosphor-icons/react/Globe'
 import { HardDrivesIcon } from '@phosphor-icons/react/HardDrives'
 import { LinuxLogoIcon } from '@phosphor-icons/react/LinuxLogo'
@@ -182,25 +183,48 @@ export default function AppHeader() {
             }}
           />
           {ready && user ? (
-            <>
-              <ActionIcon
-                aria-label={t('header.profile')}
-                component={Link}
-                href={`/users/${user.id}`}
-                size='lg'
-                title={t('header.profile')}
-                variant='default'
-              >
-                <UserCircleIcon size={20} />
-              </ActionIcon>
-              <Button
-                leftSection={<SignOutIcon size={18} />}
-                variant='default'
-                onClick={() => void handleLogout()}
-              >
-                {t('logout')}
-              </Button>
-            </>
+            <Menu position='bottom-end' shadow='md' width={220}>
+              <Menu.Target>
+                <ActionIcon
+                  aria-label={t('header.account')}
+                  size='lg'
+                  title={t('header.account')}
+                  variant='default'
+                >
+                  <UserCircleIcon size={20} />
+                </ActionIcon>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>
+                  {user.name}
+                  <Text c='dimmed' size='xs'>
+                    {user.email}
+                  </Text>
+                </Menu.Label>
+                <Menu.Item
+                  component={Link}
+                  href={`/users/${user.id}`}
+                  leftSection={<UserCircleIcon size={16} />}
+                >
+                  {t('header.profile')}
+                </Menu.Item>
+                <Menu.Item
+                  component={Link}
+                  href='/settings'
+                  leftSection={<GearSixIcon size={16} />}
+                >
+                  {t('header.settings')}
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  color='red'
+                  leftSection={<SignOutIcon size={16} />}
+                  onClick={() => void handleLogout()}
+                >
+                  {t('logout')}
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
           ) : ready ? (
             <>
               <Button

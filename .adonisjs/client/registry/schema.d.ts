@@ -67,6 +67,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['user']>>>
     }
   }
+  'auth.update_profile': {
+    methods: ["PATCH"]
+    pattern: '/api/auth/user'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/user').profileValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/user').profileValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updateProfile']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updateProfile']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'auth.update_password': {
+    methods: ["PATCH"]
+    pattern: '/api/auth/password'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/user').passwordValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/user').passwordValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updatePassword']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/auth_controller').default['updatePassword']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'users.show': {
     methods: ["GET","HEAD"]
     pattern: '/api/users/:id'

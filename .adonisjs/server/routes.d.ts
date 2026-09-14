@@ -9,6 +9,8 @@ export type ScannedRoutes = {
     'auth.login': { paramsTuple?: []; params?: {} }
     'auth.logout': { paramsTuple?: []; params?: {} }
     'auth.user': { paramsTuple?: []; params?: {} }
+    'auth.update_profile': { paramsTuple?: []; params?: {} }
+    'auth.update_password': { paramsTuple?: []; params?: {} }
     'users.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'users.favorites': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'reviews.user_index': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
@@ -101,14 +103,16 @@ export type ScannedRoutes = {
     'repos.store': { paramsTuple?: []; params?: {} }
     'distros.store': { paramsTuple?: []; params?: {} }
   }
-  PUT: {
+  PATCH: {
+    'auth.update_profile': { paramsTuple?: []; params?: {} }
+    'auth.update_password': { paramsTuple?: []; params?: {} }
     'apps.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'images.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'pkgs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'repos.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'distros.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
-  PATCH: {
+  PUT: {
     'apps.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'images.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'pkgs.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

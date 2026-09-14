@@ -32,7 +32,9 @@
     "themeAuto": "跟隨系統",
     "themeLight": "淺色模式",
     "themeDark": "深色模式",
-    "profile": "個人資料"
+    "profile": "個人資料",
+    "account": "帳號",
+    "settings": "設定"
   },
   "common": {
     "cancel": "取消",
@@ -320,5 +322,25 @@
       "releaseDate": "發行日期",
       "eolDate": "停止支援日期"
     }
+  },
+  "settings": {
+    "eyebrow": "帳號",
+    "title": "設定",
+    "subtitle": "本目錄中的帳號：對外顯示的名稱與電子郵件，以及保護它的密碼。",
+    "profileTitle": "個人資料",
+    "profileHint": "目錄中顯示在你的評論與收藏旁邊的名稱。",
+    "name": "名稱",
+    "email": "電子郵件",
+    "saveProfile": "儲存資料",
+    "profileSaved": "資料已儲存。",
+    "passwordTitle": "密碼",
+    "passwordHint": "只修改本帳號的密碼，已登入的裝置不會被登出。",
+    "currentPassword": "目前密碼",
+    "newPassword": "新密碼",
+    "newPasswordHint": "至少 8 個字元。",
+    "passwordConfirmation": "重複新密碼",
+    "savePassword": "修改密碼",
+    "passwordSaved": "密碼已修改。",
+    "saveError": "無法儲存帳號"
   }
 }

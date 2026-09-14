@@ -14,6 +14,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'))
 const PkgFormPage = lazy(() => import('./pages/PkgFormPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
 const RepoFormPage = lazy(() => import('./pages/RepoFormPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 // The list pages are only opened from the navigation, so each one is split in its own chunk and
 // downloaded when the visitor navigates to it
@@ -36,6 +37,7 @@ export default function AppRoutes() {
       <Switch>
         <Route path='/login' component={LoginPage} />
         <Route path='/register' component={RegisterPage} />
+        <Route path='/settings' component={SettingsPage} />
         <Route path='/search' component={SearchResultsPage} />
         <Route path='/pkgs/new' component={PkgFormPage} />
         <Route path='/pkgs/:id/edit' component={PkgFormPage} />

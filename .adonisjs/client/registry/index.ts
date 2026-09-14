@@ -36,6 +36,18 @@ const routes = {
     tokens: [{"old":"/api/auth/user","type":0,"val":"api","end":""},{"old":"/api/auth/user","type":0,"val":"auth","end":""},{"old":"/api/auth/user","type":0,"val":"user","end":""}],
     types: placeholder as Registry['auth.user']['types'],
   },
+  'auth.update_profile': {
+    methods: ["PATCH"],
+    pattern: '/api/auth/user',
+    tokens: [{"old":"/api/auth/user","type":0,"val":"api","end":""},{"old":"/api/auth/user","type":0,"val":"auth","end":""},{"old":"/api/auth/user","type":0,"val":"user","end":""}],
+    types: placeholder as Registry['auth.update_profile']['types'],
+  },
+  'auth.update_password': {
+    methods: ["PATCH"],
+    pattern: '/api/auth/password',
+    tokens: [{"old":"/api/auth/password","type":0,"val":"api","end":""},{"old":"/api/auth/password","type":0,"val":"auth","end":""},{"old":"/api/auth/password","type":0,"val":"password","end":""}],
+    types: placeholder as Registry['auth.update_password']['types'],
+  },
   'users.show': {
     methods: ["GET","HEAD"],
     pattern: '/api/users/:id',

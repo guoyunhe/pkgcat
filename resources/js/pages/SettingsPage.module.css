@@ -1,0 +1,31 @@
+.page {
+  margin: 0 auto;
+  max-width: 760px;
+  padding: 72px 24px;
+}
+
+.header {
+  margin-bottom: 32px;
+}
+
+.header h1 {
+  margin: 6px 0;
+}
+
+.eyebrow {
+  color: var(--ph-primary);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 72px 0;
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding: 44px 18px;
+  }
+}

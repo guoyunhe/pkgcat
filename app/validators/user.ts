@@ -17,6 +17,33 @@ export const registerValidator = vine.create({
 })
 
 /**
+ * Validator of the account the user edits itself. The email is unique among the accounts, so the
+ * check leaves the account being edited out of it, which the controllers pass as the `userId` meta
+ * value.
+ */
+export const profileValidator = vine.create({
+  name: vine.string().trim().maxLength(32),
+  email: email().unique({
+    table: 'users',
+    column: 'email',
+    filter: (db, _value, field) => {
+      const userId = (field.meta as { userId?: number }).userId
+      if (userId) db.whereNot('id', userId)
+    },
+  }),
+})
+
+/**
+ * Validator of a password the account replaces itself. The current password is what the request
+ * proves it knows, which the controller verifies before the new one is stored.
+ */
+export const passwordValidator = vine.create({
+  currentPassword: vine.string(),
+  password: password(),
+  passwordConfirmation: password().sameAs('password'),
+})
+
+/**
  * Validator to use before validating user credentials during login
  */
 export const loginValidator = vine.create({

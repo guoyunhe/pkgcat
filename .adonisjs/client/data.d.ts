@@ -10,6 +10,7 @@ import type CategoryTransformer from '#transformers/category_transformer'
 import type DistroTransformer from '#transformers/distro_transformer'
 import type ImageTransformer from '#transformers/image_transformer'
 import type PkgTransformer from '#transformers/pkg_transformer'
+import type ProfileTransformer from '#transformers/profile_transformer'
 import type RepoTransformer from '#transformers/repo_transformer'
 import type ReviewTransformer from '#transformers/review_transformer'
 import type UserTransformer from '#transformers/user_transformer'
@@ -34,6 +35,10 @@ export namespace Data {
   export type Pkg = InferData<PkgTransformer>
   export namespace Pkg {
     export type Variants = InferVariants<PkgTransformer>
+  }
+  export type Profile = InferData<ProfileTransformer>
+  export namespace Profile {
+    export type Variants = InferVariants<ProfileTransformer>
   }
   export type Repo = InferData<RepoTransformer>
   export namespace Repo {

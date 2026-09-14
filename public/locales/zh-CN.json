@@ -32,7 +32,9 @@
     "themeAuto": "跟随系统",
     "themeLight": "浅色模式",
     "themeDark": "深色模式",
-    "profile": "个人资料"
+    "profile": "个人资料",
+    "account": "账户",
+    "settings": "设置"
   },
   "common": {
     "cancel": "取消",
@@ -320,5 +322,25 @@
       "releaseDate": "发布日期",
       "eolDate": "停止支持日期"
     }
+  },
+  "settings": {
+    "eyebrow": "账户",
+    "title": "设置",
+    "subtitle": "本目录中的账户：对外显示的名称与邮箱，以及保护它的密码。",
+    "profileTitle": "个人资料",
+    "profileHint": "目录中显示在你的评价与收藏旁边的名称。",
+    "name": "名称",
+    "email": "邮箱",
+    "saveProfile": "保存资料",
+    "profileSaved": "资料已保存。",
+    "passwordTitle": "密码",
+    "passwordHint": "只修改本账户的密码，已登录的设备不会被退出。",
+    "currentPassword": "当前密码",
+    "newPassword": "新密码",
+    "newPasswordHint": "至少 8 位。",
+    "passwordConfirmation": "重复新密码",
+    "savePassword": "修改密码",
+    "passwordSaved": "密码已修改。",
+    "saveError": "无法保存账户"
   }
 }

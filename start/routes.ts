@@ -25,6 +25,8 @@ router
         router.post('login', [controllers.Auth, 'login'])
         router.post('logout', [controllers.Auth, 'logout']).use(middleware.auth())
         router.get('user', [controllers.Auth, 'user']).use(middleware.auth())
+        router.patch('user', [controllers.Auth, 'updateProfile']).use(middleware.auth())
+        router.patch('password', [controllers.Auth, 'updatePassword']).use(middleware.auth())
       })
       .prefix('auth')
 

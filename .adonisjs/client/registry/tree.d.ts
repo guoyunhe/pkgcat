@@ -12,6 +12,8 @@ export interface ApiDefinition {
     login: typeof routes['auth.login']
     logout: typeof routes['auth.logout']
     user: typeof routes['auth.user']
+    updateProfile: typeof routes['auth.update_profile']
+    updatePassword: typeof routes['auth.update_password']
   }
   users: {
     show: typeof routes['users.show']

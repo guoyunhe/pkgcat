@@ -32,7 +32,9 @@
     "themeAuto": "System",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "profile": "Profile"
+    "profile": "Profile",
+    "account": "Account",
+    "settings": "Settings"
   },
   "common": {
     "cancel": "Cancel",
@@ -320,5 +322,25 @@
       "releaseDate": "Release date",
       "eolDate": "End of life date"
     }
+  },
+  "settings": {
+    "eyebrow": "Account",
+    "title": "Settings",
+    "subtitle": "The account this catalog knows you by: its name and email, and the password that protects it.",
+    "profileTitle": "Profile",
+    "profileHint": "The name the catalog shows next to your reviews and favorites.",
+    "name": "Name",
+    "email": "Email",
+    "saveProfile": "Save profile",
+    "profileSaved": "Your profile has been saved.",
+    "passwordTitle": "Password",
+    "passwordHint": "Only this account's password changes; the devices you are signed in on stay signed in.",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "newPasswordHint": "At least 8 characters.",
+    "passwordConfirmation": "Repeat the new password",
+    "savePassword": "Change password",
+    "passwordSaved": "Your password has been changed.",
+    "saveError": "Unable to save the account"
   }
 }
