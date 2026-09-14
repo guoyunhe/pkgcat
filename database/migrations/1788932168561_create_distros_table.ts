@@ -15,6 +15,19 @@ export default class extends BaseSchema {
       table.string('pkg_type').nullable()
       table.unique(['name', 'version', 'arch'])
 
+      // The release this one is binary compatible with: the packages built for either of them can be
+      // installed on the other. A distribution that continues another one names it here — the
+      // rebuilds point at the release they rebuild — while a release that continues nothing leaves
+      // it empty. Deleting a release only takes the pointer away from the entries that named it,
+      // because they keep working without it.
+      table
+        .integer('compatible_distro_id')
+        .unsigned()
+        .nullable()
+        .references('id')
+        .inTable('distros')
+        .onDelete('SET NULL')
+
       table.date('release_date').nullable()
       table.date('eol_date').nullable()
 

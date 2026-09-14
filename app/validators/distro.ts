@@ -39,6 +39,13 @@ export const distroValidator = vine.create({
   version: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   arch: vine.string().trim().minLength(1).maxLength(255),
   pkgType: vine.enum(pkgTypes).parse(emptyToNull).nullable(),
+  // The entry the distribution is binary compatible with; an entry may be named by several others,
+  // and the form leaves out the distribution being edited, so it can only point at another one
+  compatibleDistroId: vine
+    .number()
+    .parse(emptyToNull)
+    .exists({ table: 'distros', column: 'id' })
+    .nullable(),
   releaseDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
   eolDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
 })

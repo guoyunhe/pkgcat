@@ -126,7 +126,20 @@ type DistroSeed = {
   arches: string[]
   releaseDate: string | null
   eolDate: string | null
+  /**
+   * The release this one is binary compatible with, named the way the entries are named. The
+   * packages built for either of them install on the other, which is what makes a distribution and
+   * the release it continues interchangeable. It is left out by a release that continues nothing,
+   * and the release it names is looked up in the seed data itself, per architecture, so a
+   * compatibility can only point at an entry of the catalog.
+   */
+  compatibleWith?: { name: string; version: string | null }
   repos?: DistroRepo[] | ((arch: string) => DistroRepo[])
+}
+
+/** Key of one entry of the seed data: a distribution is one release for one architecture. */
+function entryKey(name: string, version: string | null, arch: string) {
+  return JSON.stringify([name, version, arch])
 }
 
 /**
@@ -165,6 +178,12 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
  * keep a `null` sync interval and are only read again with `repo:sync --force`; the update streams
  * of the same release, the rolling releases, and the repositories the distribution keeps publishing
  * for the life of a release are synchronized again every week.
+ *
+ * Binary compatibility is seeded with the relations the distributions themselves document: a
+ * rebuild names the release it rebuilds, and a distribution built from another one names the
+ * release it continues, which is also the release its packages are interchangeable with. The
+ * relations are asserted per architecture, and they stay empty for the releases that continue
+ * nothing in this catalog.
  */
 const distros: DistroSeed[] = [
   {
@@ -174,6 +193,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2021-03-30',
     eolDate: '2029-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '8' },
     repos: almalinux('8'),
   },
   {
@@ -183,6 +204,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2022-05-26',
     eolDate: '2032-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '9' },
     repos: almalinux('9'),
   },
   {
@@ -192,6 +215,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2025-05-27',
     eolDate: '2035-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '10' },
     repos: almalinux('10'),
   },
   {
@@ -213,6 +238,8 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: null,
     eolDate: null,
+    // Built from Arch Linux, whose packages it runs
+    compatibleWith: { name: 'Arch Linux', version: null },
   },
   {
     name: 'CentOS Stream',
@@ -290,6 +317,8 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2024-11-26',
     eolDate: '2029-05-31',
+    // Built from Ubuntu 24.04, whose packages it runs
+    compatibleWith: { name: 'Ubuntu', version: '24.04' },
     repos: [
       debRepo(
         'elementary OS 8 Stable',
@@ -398,6 +427,8 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2024-07-25',
     eolDate: '2029-04-01',
+    // Mint 22 is built from Ubuntu 24.04, whose packages it runs
+    compatibleWith: { name: 'Ubuntu', version: '24.04' },
     repos: [
       debRepo(
         'Linux Mint 22 Main',
@@ -414,6 +445,8 @@ const distros: DistroSeed[] = [
     arches: desktopArches,
     releaseDate: null,
     eolDate: null,
+    // Built from Arch Linux, whose packages it runs
+    compatibleWith: { name: 'Arch Linux', version: null },
   },
   {
     name: 'MX Linux',
@@ -422,6 +455,8 @@ const distros: DistroSeed[] = [
     arches: desktopArches,
     releaseDate: '2023-07-31',
     eolDate: '2028-06-10',
+    // MX Linux 23 is built from Debian 12 (bookworm), whose packages it runs
+    compatibleWith: { name: 'Debian', version: '12' },
     repos: [
       debRepo(
         'MX Linux 23 Main',
@@ -446,6 +481,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2025-10-01',
     eolDate: '2027-10-31',
+    // Leap 16.0 is built from SUSE Linux Enterprise 16, whose packages it runs
+    compatibleWith: { name: 'SUSE Linux Enterprise', version: '16.0' },
     repos: [
       {
         name: 'openSUSE Leap 16.0 OSS',
@@ -488,6 +525,8 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2025-12-11',
     eolDate: '2029-05-31',
+    // Pop!_OS 24.04 is built from Ubuntu 24.04, whose packages it runs
+    compatibleWith: { name: 'Ubuntu', version: '24.04' },
     repos: [
       debRepo(
         'Pop!_OS 24.04 Main',
@@ -531,6 +570,8 @@ const distros: DistroSeed[] = [
     arches: desktopArches,
     releaseDate: '2021-05-01',
     eolDate: '2029-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '8' },
     repos: (arch) => [
       {
         name: 'Rocky Linux 8 BaseOS',
@@ -554,6 +595,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2022-07-14',
     eolDate: '2032-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '9' },
     repos: (arch) => [
       {
         name: 'Rocky Linux 9 BaseOS',
@@ -577,6 +620,8 @@ const distros: DistroSeed[] = [
     arches: serverArches,
     releaseDate: '2025-06-11',
     eolDate: '2035-05-31',
+    // A rebuild of Red Hat Enterprise Linux, so their packages are interchangeable
+    compatibleWith: { name: 'Red Hat Enterprise Linux', version: '10' },
     repos: (arch) => [
       {
         name: 'Rocky Linux 10 BaseOS',
@@ -600,6 +645,8 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2022-03-01',
     eolDate: null,
+    // SteamOS 3 is built from Arch Linux, whose packages it runs
+    compatibleWith: { name: 'Arch Linux', version: null },
   },
   {
     name: 'SUSE Linux Enterprise',
@@ -734,13 +781,25 @@ export default class DistroSeeder extends BaseSeeder {
     // Distributions each repository is linked to, collected while the entries are written
     const links = new Map<string, number[]>()
 
-    for (const { arches, repos, ...distro } of distros) {
+    // The releases that name the one they are compatible with, and the entries written for the
+    // triple that identifies them: a compatibility is written once every entry exists, so that it
+    // may name a release the seed data writes after the one that names it
+    const entries = new Map<string, Distro>()
+    const compatibilities: {
+      distro: Distro
+      arch: string
+      compatibleWith: { name: string; version: string | null }
+    }[] = []
+
+    for (const { arches, repos, compatibleWith, ...distro } of distros) {
       for (const arch of arches) {
         // The seed data carries ISO dates, while the Lucid types expect `DateTime` instances
         const distroRecord = await Distro.updateOrCreate(
           { name: distro.name, version: distro.version, arch },
           { ...distro, arch } as any,
         )
+        entries.set(entryKey(distro.name, distro.version, arch), distroRecord)
+        if (compatibleWith) compatibilities.push({ distro: distroRecord, arch, compatibleWith })
 
         for (const definition of repositories(repos, arch)) {
           const repoRecord = await Repo.updateOrCreate(
@@ -752,6 +811,21 @@ export default class DistroSeeder extends BaseSeeder {
           links.set(repoRecord.name, distroIds)
         }
       }
+    }
+
+    // Compatibility holds between the releases of one architecture, which is the entry the named
+    // distribution and version point at, and a release that continues nothing in this catalog is
+    // reported instead of being written half way
+    for (const { distro, arch, compatibleWith } of compatibilities) {
+      const compatible = entries.get(entryKey(compatibleWith.name, compatibleWith.version, arch))
+      if (!compatible) {
+        const release = compatibleWith.version ? ` ${compatibleWith.version}` : ''
+        throw new Error(`Unknown release: ${compatibleWith.name}${release} (${arch})`)
+      }
+      if (distro.compatibleDistroId === compatible.id) continue
+
+      distro.compatibleDistroId = compatible.id
+      await distro.save()
     }
 
     // The repository of a release published for several architectures is linked to all of them

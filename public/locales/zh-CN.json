@@ -299,6 +299,7 @@
       "name": "发行版",
       "version": "版本",
       "pkgType": "包格式",
+      "compatible": "二进制兼容",
       "arch": "架构",
       "releaseDate": "发布日期",
       "eolDate": "停止支持"
@@ -311,6 +312,8 @@
       "pkgTypeHint": "不提供原生软件包的发行版可留空。",
       "arch": "架构",
       "archHint": "使用 uname -m 输出的架构名，同一版本的不同架构是各自独立的条目。",
+      "compatibleDistro": "兼容的发行版",
+      "compatibleDistroHint": "与其二进制兼容的发行版：为其中一方构建的软件包也能安装在另一方上。衍生发行版指向它所延续的版本，重建版指向它重建的版本；只能选择同一架构的条目。",
       "releaseDate": "发布日期",
       "eolDate": "停止支持日期"
     }

@@ -299,6 +299,7 @@
       "name": "Distribution",
       "version": "Version",
       "pkgType": "Package format",
+      "compatible": "Binary compatible",
       "arch": "Architecture",
       "releaseDate": "Released",
       "eolDate": "End of life"
@@ -311,6 +312,8 @@
       "pkgTypeHint": "Leave empty for distributions that ship no native packages.",
       "arch": "Architecture",
       "archHint": "Architecture name as reported by uname -m. Every architecture of a release is a separate entry.",
+      "compatibleDistro": "Compatible release",
+      "compatibleDistroHint": "A release whose packages can be installed here, and the other way around: a rebuild names the release it rebuilds, and a distribution built from another one names the release it continues. Only a release of the same architecture can be named.",
       "releaseDate": "Release date",
       "eolDate": "End of life date"
     }

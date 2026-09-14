@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
+import DistroRelease from '../components/DistroRelease'
 import { deleteDistro, distroLabel, getDistros, type Distro } from '../services/distros'
 
 import styles from './DistrosPage.module.css'
@@ -16,6 +17,15 @@ function formatDate(value: string, language: string) {
   const date = new Date(value)
   if (Number.isNaN(date.getTime())) return value
   return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
+}
+
+/**
+ * Releases an entry is binary compatible with: the one it names, and the ones that name it.
+ * Compatibility holds both ways, so both directions are the same relation and are read as one.
+ */
+function compatibleReleases(distro: Distro) {
+  const releases = [distro.compatibleDistro, ...(distro.compatibleDistros ?? [])]
+  return releases.filter((release): release is Distro => (!release?.id ? false : true))
 }
 
 export default function DistrosPage() {
@@ -127,6 +137,7 @@ export default function DistrosPage() {
               <Table.Th>{t('distros.columns.name')}</Table.Th>
               <Table.Th>{t('distros.columns.arch')}</Table.Th>
               <Table.Th>{t('distros.columns.pkgType')}</Table.Th>
+              <Table.Th>{t('distros.columns.compatible')}</Table.Th>
               <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
               <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
               {isAdmin && <Table.Th />}
@@ -142,21 +153,22 @@ export default function DistrosPage() {
                 }}
               >
                 <Table.Td>
-                  <span className={styles.nameCell}>
-                    <img
-                      alt=''
-                      className={styles.distroIcon}
-                      src={`/distros/${encodeURIComponent(distro.name)}.svg`}
-                    />
-                    <span className={styles.name}>{distro.name}</span>
-                    <span className={styles.version}>{distro.version ?? '∞'}</span>
-                  </span>
+                  <DistroRelease distro={distro} />
                 </Table.Td>
                 <Table.Td>
                   <span className={styles.arch}>{distro.arch}</span>
                 </Table.Td>
                 <Table.Td>
                   <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
+                </Table.Td>
+                <Table.Td>
+                  <span className={styles.compatible}>
+                    {compatibleReleases(distro).length === 0
+                      ? '—'
+                      : compatibleReleases(distro).map((release) => (
+                          <DistroRelease arch={distro.arch} distro={release} key={release.id} />
+                        ))}
+                  </span>
                 </Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}

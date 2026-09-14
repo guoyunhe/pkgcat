@@ -40,29 +40,6 @@
   cursor: pointer;
 }
 
-.nameCell {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.distroIcon {
-  height: 22px;
-  object-fit: contain;
-  width: 22px;
-}
-
-.name {
-  font-weight: 700;
-}
-
-/* The version follows the name in the same cell, since both name the release together */
-.version {
-  color: var(--ph-muted);
-  font-weight: 700;
-}
-
 .pkgType {
   text-transform: uppercase;
 }
@@ -71,6 +48,15 @@
   color: var(--ph-muted);
   font-size: 12px;
   word-break: break-all;
+}
+
+/* The releases an entry is compatible with, which may be several: a release names the one it
+   continues, and the releases that continue it name this one. Each of them is named the same way
+   the entry itself is, so this only lays them out */
+.compatible {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
 }
 
 .expired {

@@ -22,6 +22,15 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+/**
+ * Fields the distribution form sends. The release a distribution is binary compatible with is sent
+ * as its id, while the API answers with the entry itself, in both of the directions that answer
+ * with it.
+ */
+export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro' | 'compatibleDistros'> & {
+  compatibleDistroId?: number | null
+}
+
 export async function getDistros() {
   const { data } = await api.get<{ data: Distro[] }>('/distros')
   return data.data
@@ -32,14 +41,14 @@ export async function getDistro(id: number) {
   return data.data
 }
 
-export async function createDistro(payload: Partial<Distro>) {
+export async function createDistro(payload: DistroPayload) {
   const { data } = await api.post<{ data: Distro }>('/distros', payload, {
     headers: authHeaders(),
   })
   return data.data
 }
 
-export async function updateDistro(id: number, payload: Partial<Distro>) {
+export async function updateDistro(id: number, payload: DistroPayload) {
   const { data } = await api.patch<{ data: Distro }>(`/distros/${id}`, payload, {
     headers: authHeaders(),
   })

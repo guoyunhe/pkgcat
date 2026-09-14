@@ -18,6 +18,8 @@ export default class DistrosController {
     // keep the order stable for releases published on the same day and for the architectures of one
     // entry
     const distros = await Distro.query()
+      .preload('compatibleDistro')
+      .preload('compatibleDistros')
       .orderBy('name')
       .orderByRaw('release_date is null desc')
       .orderBy('releaseDate', 'desc')
@@ -27,8 +29,22 @@ export default class DistrosController {
   }
 
   async show({ params, serialize }: HttpContext) {
-    const distro = await Distro.findOrFail(params.id)
+    const distro = await Distro.query()
+      .where('id', params.id)
+      .preload('compatibleDistro')
+      .preload('compatibleDistros')
+      .firstOrFail()
     return serialize(DistroTransformer.transform(distro))
+  }
+
+  /**
+   * Compatibility holds both ways, so a distribution is written together with the two relations
+   * that answer with it: the release it names and the releases that name it. An entry that names
+   * nothing still has to answer with the entries that name it, and the other way around.
+   */
+  private async loadCompatibilities(distro: Distro) {
+    await distro.load('compatibleDistro')
+    await distro.load('compatibleDistros')
   }
 
   async store({ request, response, serialize }: HttpContext) {
@@ -39,6 +55,7 @@ export default class DistrosController {
       releaseDate: toDateTime(payload.releaseDate),
       eolDate: toDateTime(payload.eolDate),
     })
+    await this.loadCompatibilities(distro)
     // NOTE: `response.created()` sends the response immediately (with an empty body), so the
     // status is set directly to keep the serialized distribution in the payload.
     response.status(201)
@@ -58,6 +75,7 @@ export default class DistrosController {
         eolDate: toDateTime(payload.eolDate),
       })
       .save()
+    await this.loadCompatibilities(distro)
     return serialize(DistroTransformer.transform(distro))
   }
 

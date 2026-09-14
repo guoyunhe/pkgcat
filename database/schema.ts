@@ -175,10 +175,12 @@ export class CategoryTranslationSchema extends BaseModel {
 }
 
 export class DistroSchema extends BaseModel {
-  static $columns = ['arch', 'createdAt', 'eolDate', 'id', 'name', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
+  static $columns = ['arch', 'compatibleDistroId', 'createdAt', 'eolDate', 'id', 'name', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
   $columns = DistroSchema.$columns
   @column()
   declare arch: string
+  @column()
+  declare compatibleDistroId: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column.date()

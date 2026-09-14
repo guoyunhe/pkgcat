@@ -1,0 +1,26 @@
+/* One release reads as a single line: the icon of the distribution, its name, and the version */
+.release {
+  align-items: center;
+  display: inline-flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.icon {
+  flex: 0 0 auto;
+  height: 22px;
+  object-fit: contain;
+  width: 22px;
+}
+
+/* The name and the release version read as one label — together they name the release — so they
+   keep one colour and one weight */
+.name {
+  font-weight: 700;
+}
+
+/* The architecture is only named when it is not the one of the entry the release is shown with */
+.arch {
+  color: var(--ph-muted);
+  font-size: 12px;
+}

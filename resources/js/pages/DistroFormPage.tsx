@@ -18,7 +18,14 @@ import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
-import { createDistro, getDistro, updateDistro } from '../services/distros'
+import {
+  createDistro,
+  distroLabel,
+  getDistro,
+  getDistros,
+  updateDistro,
+  type Distro,
+} from '../services/distros'
 import { packageTypes } from '../utils/pkgTypes'
 
 import styles from './AppFormPage.module.css'
@@ -31,6 +38,8 @@ type DistroFormValues = {
   version: string
   pkgType: string | null
   arch: string
+  // The release the entry is compatible with, as the id the select carries
+  compatibleDistroId: string | null
   releaseDate: string
   eolDate: string
 }
@@ -50,6 +59,9 @@ export default function DistroFormPage() {
   const [loading, setLoading] = useState(Boolean(distroId))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Every entry of the catalog may be the release this one is compatible with, so the form offers
+  // them all and leaves out the entry being edited
+  const [distros, setDistros] = useState<Distro[]>([])
 
   const form = useForm<DistroFormValues>({
     initialValues: {
@@ -57,6 +69,7 @@ export default function DistroFormPage() {
       version: '',
       pkgType: null,
       arch: '',
+      compatibleDistroId: null,
       releaseDate: '',
       eolDate: '',
     },
@@ -71,6 +84,7 @@ export default function DistroFormPage() {
           version: distro.version ?? '',
           pkgType: distro.pkgType,
           arch: distro.arch,
+          compatibleDistroId: distro.compatibleDistro ? String(distro.compatibleDistro.id) : null,
           releaseDate: toDateInput(distro.releaseDate),
           eolDate: toDateInput(distro.eolDate),
         })
@@ -80,6 +94,20 @@ export default function DistroFormPage() {
       )
       .finally(() => setLoading(false))
   }, [distroId])
+
+  useEffect(() => {
+    let active = true
+    getDistros()
+      .then((result) => {
+        if (active) setDistros(result)
+      })
+      .catch(() => {
+        // Without the options the compatibility stays empty, which is the same as naming nothing
+      })
+    return () => {
+      active = false
+    }
+  }, [])
 
   if (!ready)
     return (
@@ -96,6 +124,10 @@ export default function DistroFormPage() {
       </div>
     )
 
+  const compatibleOptions = distros
+    .filter((distro) => distro.id !== distroId)
+    .map((distro) => ({ value: String(distro.id), label: distroLabel(distro) }))
+
   async function handleSubmit(values: DistroFormValues) {
     try {
       setSaving(true)
@@ -105,6 +137,7 @@ export default function DistroFormPage() {
         version: values.version || null,
         pkgType: values.pkgType,
         arch: values.arch,
+        compatibleDistroId: values.compatibleDistroId ? Number(values.compatibleDistroId) : null,
         releaseDate: values.releaseDate || null,
         eolDate: values.eolDate || null,
       }
@@ -173,6 +206,15 @@ export default function DistroFormPage() {
             placeholder='x86_64'
             required
             {...form.getInputProps('arch')}
+          />
+
+          <Select
+            clearable
+            data={compatibleOptions}
+            description={t('distros.fields.compatibleDistroHint')}
+            label={t('distros.fields.compatibleDistro')}
+            searchable
+            {...form.getInputProps('compatibleDistroId')}
           />
 
           <TextInput

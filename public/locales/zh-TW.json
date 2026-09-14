@@ -299,6 +299,7 @@
       "name": "發行版",
       "version": "版本",
       "pkgType": "套件格式",
+      "compatible": "二進位相容",
       "arch": "架構",
       "releaseDate": "發行日期",
       "eolDate": "停止支援"
@@ -311,6 +312,8 @@
       "pkgTypeHint": "不提供原生套件的發行版可留空。",
       "arch": "架構",
       "archHint": "使用 uname -m 輸出的架構名稱，同一版本的不同架構是各自獨立的條目。",
+      "compatibleDistro": "相容的發行版",
+      "compatibleDistroHint": "與其二進位相容的發行版：為其中一方建置的套件也能安裝在另一方。衍生發行版指向它所延續的版本，重建版指向它重建的版本；只能選擇同一架構的條目。",
       "releaseDate": "發行日期",
       "eolDate": "停止支援日期"
     }

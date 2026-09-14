@@ -1,5 +1,5 @@
-import { manyToMany } from '@adonisjs/lucid/orm'
-import type { ManyToMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
@@ -30,6 +30,22 @@ function parseDate(value: string | undefined) {
 }
 
 export default class Distro extends DistroSchema {
+  /**
+   * The release this one is binary compatible with: the packages built for either of them can be
+   * installed on the other. A distribution that continues another one names it here, which is how
+   * the rebuilds of a distribution and the releases it is derived from are related, and a release
+   * that continues nothing leaves it empty.
+   */
+  @belongsTo(() => Distro, { foreignKey: 'compatibleDistroId' })
+  declare compatibleDistro: BelongsTo<typeof Distro>
+
+  /**
+   * The releases that name this one, the other side of `compatibleDistro`. Compatibility holds both
+   * ways, so both relations name the same releases.
+   */
+  @hasMany(() => Distro, { foreignKey: 'compatibleDistroId' })
+  declare compatibleDistros: HasMany<typeof Distro>
+
   /**
    * Repositories of the distribution. A distribution is one release for one architecture, and the
    * repositories that serve it hold the packages of that architecture.
