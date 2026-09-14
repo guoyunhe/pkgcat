@@ -238,24 +238,25 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
   nvidiaRpm('fedora43', 'x86_64', 'Fedora Linux 43', [release('Fedora Linux', '43', 'x86_64')]),
   nvidiaRpm('fedora43', 'aarch64', 'Fedora Linux 43', [release('Fedora Linux', '43', 'aarch64')]),
   nvidiaRpm('fedora44', 'x86_64', 'Fedora Linux 44', [release('Fedora Linux', '44', 'x86_64')]),
-  // `sles16` is the repository of SUSE Linux Enterprise itself, `suse16` the one of openSUSE, which
-  // Leap 16 continues.
-  nvidiaRpm('sles15', 'x86_64', 'SUSE Linux Enterprise 15.7', [
+  // A platform directory of NVIDIA targets a series rather than one release of it: `sles15` is what
+  // every SUSE Linux Enterprise 15.x installs from, the way `rhel9` serves every RHEL 9 release, so
+  // the name says the series while the links name the releases the catalog holds. `sles16` is the
+  // repository of SUSE Linux Enterprise itself, `suse16` the one of openSUSE, which Leap 16
+  // continues.
+  nvidiaRpm('sles15', 'x86_64', 'SUSE Linux Enterprise 15', [
     release('SUSE Linux Enterprise', '15.7', 'x86_64'),
   ]),
-  nvidiaRpm('sles15', 'aarch64', 'SUSE Linux Enterprise 15.7', [
+  nvidiaRpm('sles15', 'aarch64', 'SUSE Linux Enterprise 15', [
     release('SUSE Linux Enterprise', '15.7', 'aarch64'),
   ]),
-  nvidiaRpm('sles16', 'x86_64', 'SUSE Linux Enterprise 16.0', [
+  nvidiaRpm('sles16', 'x86_64', 'SUSE Linux Enterprise 16', [
     release('SUSE Linux Enterprise', '16.0', 'x86_64'),
   ]),
-  nvidiaRpm('sles16', 'aarch64', 'SUSE Linux Enterprise 16.0', [
+  nvidiaRpm('sles16', 'aarch64', 'SUSE Linux Enterprise 16', [
     release('SUSE Linux Enterprise', '16.0', 'aarch64'),
   ]),
-  nvidiaRpm('suse16', 'x86_64', 'openSUSE Leap 16.0', [release('openSUSE Leap', '16.0', 'x86_64')]),
-  nvidiaRpm('suse16', 'aarch64', 'openSUSE Leap 16.0', [
-    release('openSUSE Leap', '16.0', 'aarch64'),
-  ]),
+  nvidiaRpm('suse16', 'x86_64', 'openSUSE Leap 16', [release('openSUSE Leap', '16.0', 'x86_64')]),
+  nvidiaRpm('suse16', 'aarch64', 'openSUSE Leap 16', [release('openSUSE Leap', '16.0', 'aarch64')]),
 ]
 
 /** Release a repository serves, which the seeders of the distributions have to have stored already. */
