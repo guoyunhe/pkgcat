@@ -57,6 +57,12 @@
   font-weight: 700;
 }
 
+/* The version follows the name in the same cell, since both name the release together */
+.version {
+  color: var(--ph-muted);
+  font-weight: 700;
+}
+
 .pkgType {
   text-transform: uppercase;
 }

@@ -6,7 +6,7 @@ import { repoValidator } from '#validators/repo'
 
 export default class ReposController {
   async index({ serialize }: HttpContext) {
-    const repos = await Repo.query().preload('distros').orderBy('type').orderBy('name')
+    const repos = await Repo.query().preload('distros').orderBy('name')
     return serialize(RepoTransformer.transform(repos))
   }
 

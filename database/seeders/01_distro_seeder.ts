@@ -72,11 +72,11 @@ const updateSyncIntervalDays = 7
  * Repositories of one AlmaLinux release: the packages are split between `BaseOS`, which holds the
  * system itself, and `AppStream`, which holds the applications built from it. Both carry the errata
  * of the release, and their URLs name the architecture, so the release has one entry per repository
- * and architecture. The repositories are listed in the order the catalog lists them, by name.
+ * and architecture.
  */
 function almalinux(version: string) {
   return (arch: string): DistroRepo[] =>
-    ['AppStream', 'BaseOS'].map((repository) => ({
+    ['BaseOS', 'AppStream'].map((repository) => ({
       name: `AlmaLinux ${version} ${repository}`,
       type: 'rpm',
       baseUrl: `https://repo.almalinux.org/almalinux/${version}/${repository}/${arch}/os/`,
@@ -178,13 +178,13 @@ const distros: DistroSeed[] = [
         null,
       ),
       debRepo(
-        'Debian 13 Security',
-        'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
+        'Debian 13 Updates',
+        'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
         updateSyncIntervalDays,
       ),
       debRepo(
-        'Debian 13 Updates',
-        'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
+        'Debian 13 Security',
+        'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
         updateSyncIntervalDays,
       ),
     ],
@@ -223,8 +223,10 @@ const distros: DistroSeed[] = [
       {
         name: 'Fedora Linux 42 Updates',
         type: 'rpm',
-        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/42/Everything/${arch}/`,
-        syncIntervalDays: updateSyncIntervalDays,
+        // Fedora 42 is past its end of support and no mirror serves its update stream any more,
+        // which the archive keeps as it was left; a frozen tree is only read when forced
+        baseUrl: `https://archives.fedoraproject.org/pub/archive/fedora/linux/updates/42/Everything/${arch}/`,
+        syncIntervalDays: null,
       },
     ],
   },
@@ -371,16 +373,16 @@ const distros: DistroSeed[] = [
     eolDate: null,
     repos: (arch) => [
       {
-        name: 'openSUSE Tumbleweed Non-OSS',
-        type: 'rpm',
-        baseUrl: opensuseArchive('tumbleweed/repo/non-oss', arch),
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-      {
         name: 'openSUSE Tumbleweed OSS',
         type: 'rpm',
         baseUrl: opensuseArchive('tumbleweed/repo/oss', arch),
         // A rolling release has no frozen tree, so its repositories are read again every week
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+      {
+        name: 'openSUSE Tumbleweed Non-OSS',
+        type: 'rpm',
+        baseUrl: opensuseArchive('tumbleweed/repo/non-oss', arch),
         syncIntervalDays: updateSyncIntervalDays,
       },
     ],

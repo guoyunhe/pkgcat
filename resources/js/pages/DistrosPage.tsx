@@ -94,9 +94,8 @@ export default function DistrosPage() {
           <Table.Thead>
             <Table.Tr>
               <Table.Th>{t('distros.columns.name')}</Table.Th>
-              <Table.Th>{t('distros.columns.version')}</Table.Th>
-              <Table.Th>{t('distros.columns.pkgType')}</Table.Th>
               <Table.Th>{t('distros.columns.arch')}</Table.Th>
+              <Table.Th>{t('distros.columns.pkgType')}</Table.Th>
               <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
               <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
               {isAdmin && <Table.Th />}
@@ -119,14 +118,14 @@ export default function DistrosPage() {
                       src={`/distros/${encodeURIComponent(distro.name)}.svg`}
                     />
                     <span className={styles.name}>{distro.name}</span>
+                    <span className={styles.version}>{distro.version ?? '∞'}</span>
                   </span>
-                </Table.Td>
-                <Table.Td>{distro.version ?? '∞'}</Table.Td>
-                <Table.Td>
-                  <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
                 </Table.Td>
                 <Table.Td>
                   <span className={styles.arch}>{distro.arch}</span>
+                </Table.Td>
+                <Table.Td>
+                  <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
                 </Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}

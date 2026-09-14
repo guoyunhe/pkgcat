@@ -12,7 +12,17 @@ function toDateTime(value: string | null) {
 
 export default class DistrosController {
   async index({ serialize }: HttpContext) {
-    const distros = await Distro.query().orderBy('name').orderBy('version').orderBy('arch')
+    // The releases of one distribution stay together under its name, and follow each other from the
+    // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
+    // A rolling release keeps no date, so it comes first within its name. The remaining keys only
+    // keep the order stable for releases published on the same day and for the architectures of one
+    // entry
+    const distros = await Distro.query()
+      .orderBy('name')
+      .orderByRaw('release_date is null desc')
+      .orderBy('releaseDate', 'desc')
+      .orderBy('version')
+      .orderBy('arch')
     return serialize(DistroTransformer.transform(distros))
   }
 
