@@ -156,6 +156,28 @@ enabled=1
     installScript: `pkexec zypper addrepo -y https://download.videolan.org/SuSE/Tumbleweed/SuSE.repo`,
     syncIntervalDays: 1,
   },
+  // VideoLAN names its openSUSE repositories after the release they serve (`/SuSE/<version>`), and
+  // the `16.0` one is the repository of openSUSE Leap 16.0 — the `vlc.ymp` inside it sets up
+  // `openSUSE:Leap:16.0` next to it. It carries x86_64 and noarch packages only, so it serves the
+  // x86_64 entry of the release.
+  {
+    name: 'VLC for openSUSE Leap 16.0',
+    type: 'rpm',
+    source: 'community',
+    baseUrl: 'https://download.videolan.org/SuSE/16.0/',
+    distros: [release('openSUSE Leap', '16.0', 'x86_64')],
+    configContent: `[SuSE]
+name=VideoLAN repo (16.0)
+type=rpm-md
+baseurl=http://download.videolan.org/SuSE/16.0/
+gpgcheck=1
+gpgkey=http://download.videolan.org/SuSE/16.0/repodata/repomd.xml.key
+enabled=1
+`,
+    configUrl: 'https://download.videolan.org/SuSE/16.0/SuSE.repo',
+    installScript: `pkexec zypper addrepo -y https://download.videolan.org/SuSE/16.0/SuSE.repo`,
+    syncIntervalDays: 1,
+  },
   ...['42', '43', '44'].map((ver) => ({
     name: `RPM Fusion for Fedora ${ver} - Free`,
     type: 'rpm',
