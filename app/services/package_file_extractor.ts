@@ -656,6 +656,8 @@ export default class PackageFileExtractor {
         return 'x86_64'
       case 'arm64':
         return 'aarch64'
+      case 'ppc64el':
+        return 'ppc64le'
       default:
         return arch
     }

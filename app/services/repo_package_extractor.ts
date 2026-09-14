@@ -325,12 +325,18 @@ export default class RepoPackageExtractor {
     return Number.isFinite(parsed) ? parsed : null
   }
 
+  /**
+   * Architecture of a package as Debian spells it. Only the architectures whose Debian name differs
+   * from the platform one have to be listed (`s390x` and `riscv64` are the same in both).
+   */
   private toDebArch(arch: string) {
     switch (arch) {
       case 'x86_64':
         return 'amd64'
       case 'aarch64':
         return 'arm64'
+      case 'ppc64le':
+        return 'ppc64el'
       default:
         return arch
     }
@@ -342,6 +348,8 @@ export default class RepoPackageExtractor {
         return 'x86_64'
       case 'arm64':
         return 'aarch64'
+      case 'ppc64el':
+        return 'ppc64le'
       default:
         return arch
     }

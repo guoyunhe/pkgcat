@@ -7,8 +7,8 @@ import Repo from '#models/repo'
 const desktopArches = ['x86_64', 'aarch64']
 
 /**
- * Architectures of the distributions that publish server builds as well: the Enterprise Linux
- * rebuilds also build for POWER and the mainframe, on top of the two desktop architectures.
+ * Architectures of the distributions that publish server builds as well: Debian and the Enterprise
+ * Linux rebuilds also build for POWER and the mainframe, on top of the two desktop architectures.
  */
 const serverArches = [...desktopArches, 'ppc64le', 's390x']
 
@@ -160,15 +160,42 @@ const distros: DistroSeed[] = [
     name: 'Arch Linux',
     version: null,
     pkgType: null,
-    arches: ['x86_64'],
+    // The distribution itself only builds x86_64; its aarch64 packages come from the Arch Linux ARM
+    // port, which is what the catalog carries for that architecture
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
   },
   {
     name: 'Debian',
+    version: '12',
+    pkgType: 'deb',
+    arches: serverArches,
+    releaseDate: '2023-06-10',
+    eolDate: '2028-06-30',
+    repos: [
+      debRepo(
+        'Debian 12 Main',
+        'deb https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware',
+        null,
+      ),
+      debRepo(
+        'Debian 12 Updates',
+        'deb https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware',
+        updateSyncIntervalDays,
+      ),
+      debRepo(
+        'Debian 12 Security',
+        'deb https://security.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware',
+        updateSyncIntervalDays,
+      ),
+    ],
+  },
+  {
+    name: 'Debian',
     version: '13',
     pkgType: 'deb',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2025-08-09',
     eolDate: '2030-06-30',
     repos: [
