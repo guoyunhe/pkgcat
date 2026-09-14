@@ -6,6 +6,12 @@ import Repo from '#models/repo'
 /** Architecture names follow `uname -m`, the same vocabulary used by the package extractors. */
 const desktopArches = ['x86_64', 'aarch64']
 
+/**
+ * Architectures of the distributions that publish server builds as well: the Enterprise Linux
+ * rebuilds also build for POWER and the mainframe, on top of the two desktop architectures.
+ */
+const serverArches = [...desktopArches, 'ppc64le', 's390x']
+
 /** Ubuntu keeps its x86 packages on the main archive and the ARM ones on the ports archive. */
 function ubuntuArchive(arch: string) {
   return arch === 'aarch64'
@@ -111,7 +117,7 @@ const distros: DistroSeed[] = [
     name: 'AlmaLinux',
     version: '9',
     pkgType: 'rpm',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2022-05-26',
     eolDate: '2032-05-31',
     repos: (arch) => [
