@@ -9,9 +9,10 @@ import { pkgTypes } from '#validators/pkg'
 const emptyToNull = (value: unknown) => (value === '' || value === undefined ? null : value)
 
 /**
- * Validator to use when creating or updating a distribution. The `name` and `version` pair is
- * unique in the database, so the uniqueness check of the name also compares the version. The
- * `distroId` meta value excludes the distribution being updated from that check.
+ * Validator to use when creating or updating a distribution. A distribution is one release of one
+ * distribution for one architecture, and that triple is unique in the database, so the uniqueness
+ * check of the name also compares the version and the architecture. The `distroId` meta value
+ * excludes the distribution being updated from that check.
  */
 export const distroValidator = vine.create({
   name: vine
@@ -29,11 +30,15 @@ export const distroValidator = vine.create({
         const version = (field.data as { version?: string | null })?.version ?? null
         if (!version) db.whereNull('version')
         else db.where('version', version)
+
+        // An invalid payload without an architecture is rejected by its own rule, so the
+        // comparison only has to avoid an undefined binding here.
+        db.where('arch', (field.data as { arch?: string })?.arch ?? '')
       },
     }),
   version: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
+  arch: vine.string().trim().minLength(1).maxLength(255),
   pkgType: vine.enum(pkgTypes).parse(emptyToNull).nullable(),
-  arch: vine.array(vine.string().trim().minLength(1).maxLength(255)).optional(),
   releaseDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
   eolDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
 })

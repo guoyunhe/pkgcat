@@ -9,9 +9,11 @@ export default class extends BaseSchema {
 
       table.string('name').notNullable()
       table.string('version').nullable()
+      // A distribution is stored once per architecture, so the architecture is part of its
+      // identity instead of a list of the architectures it is published for.
+      table.string('arch').notNullable()
       table.string('pkg_type').nullable()
-      table.json('arch').notNullable().defaultTo('[]')
-      table.unique(['name', 'version'])
+      table.unique(['name', 'version', 'arch'])
 
       table.date('release_date').nullable()
       table.date('eol_date').nullable()

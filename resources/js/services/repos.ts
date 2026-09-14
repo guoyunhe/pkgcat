@@ -10,6 +10,12 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+/**
+ * Fields the repository form sends. The distributions a repository serves are sent as their ids,
+ * while the API answers with the distributions themselves.
+ */
+export type RepoPayload = Omit<Partial<Data.Repo>, 'distros'> & { distroIds?: number[] }
+
 export async function getRepos() {
   const { data } = await api.get<{ data: Data.Repo[] }>('/repos')
   return data.data
@@ -20,14 +26,14 @@ export async function getRepo(id: number) {
   return data.data
 }
 
-export async function createRepo(payload: Partial<Data.Repo>) {
+export async function createRepo(payload: RepoPayload) {
   const { data } = await api.post<{ data: Data.Repo }>('/repos', payload, {
     headers: authHeaders(),
   })
   return data.data
 }
 
-export async function updateRepo(id: number, payload: Partial<Data.Repo>) {
+export async function updateRepo(id: number, payload: RepoPayload) {
   const { data } = await api.patch<{ data: Data.Repo }>(`/repos/${id}`, payload, {
     headers: authHeaders(),
   })

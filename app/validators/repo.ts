@@ -12,8 +12,7 @@ const repoSources = ['distro', 'community'] as const
 
 /**
  * HTML forms send empty strings for unset values and JSON clients may omit the key entirely. Both
- * are normalized to null, which is also what Lucid expects for nullable foreign keys like
- * "distroId".
+ * are normalized to null, which is also what Lucid expects for nullable columns like "configUrl".
  */
 const emptyToNull = (value: unknown) => (value === '' || value === undefined ? null : value)
 
@@ -37,7 +36,7 @@ export const repoValidator = vine.create({
   baseUrl: vine.string().trim().maxLength(255),
   type: vine.enum(repoTypes),
   source: vine.enum(repoSources),
-  distroId: vine.number().parse(emptyToNull).exists({ table: 'distros', column: 'id' }).nullable(),
+  distroIds: vine.array(vine.number().exists({ table: 'distros', column: 'id' })).optional(),
   configUrl: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   configContent: vine.string().parse(emptyToNull).trim().nullable(),
   installScript: vine.string().parse(emptyToNull).trim().nullable(),

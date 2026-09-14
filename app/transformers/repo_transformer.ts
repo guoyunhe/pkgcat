@@ -8,7 +8,6 @@ export default class RepoTransformer extends BaseTransformer<Repo> {
     return {
       ...this.pick(this.resource, [
         'id',
-        'distroId',
         'type',
         'source',
         'name',
@@ -21,7 +20,9 @@ export default class RepoTransformer extends BaseTransformer<Repo> {
         'createdAt',
         'updatedAt',
       ]),
-      distro: this.resource.distro ? DistroTransformer.transform(this.resource.distro) : null,
+      // A repository may serve several distributions, and every architecture of a distribution is
+      // its own entry
+      distros: DistroTransformer.transform(this.resource.distros ?? []),
     }
   }
 }

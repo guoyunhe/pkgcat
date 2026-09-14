@@ -53,6 +53,12 @@
   width: 22px;
 }
 
+.distrosCell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 .distroCell {
   align-items: center;
   display: flex;
@@ -68,6 +74,11 @@
 
 .distroVersion {
   color: var(--ph-muted);
+}
+
+.distroArch {
+  color: var(--ph-muted);
+  font-size: 12px;
 }
 
 .name {

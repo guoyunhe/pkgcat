@@ -1,11 +1,11 @@
 import {
   Alert,
+  Autocomplete,
   Button,
   Group,
   Loader,
   Select,
   Stack,
-  TagsInput,
   Text,
   TextInput,
   Title,
@@ -30,7 +30,7 @@ type DistroFormValues = {
   name: string
   version: string
   pkgType: string | null
-  arch: string[]
+  arch: string
   releaseDate: string
   eolDate: string
 }
@@ -56,7 +56,7 @@ export default function DistroFormPage() {
       name: '',
       version: '',
       pkgType: null,
-      arch: [],
+      arch: '',
       releaseDate: '',
       eolDate: '',
     },
@@ -166,10 +166,12 @@ export default function DistroFormPage() {
             {...form.getInputProps('pkgType')}
           />
 
-          <TagsInput
-            label={t('distros.fields.arch')}
-            description={t('distros.fields.archHint')}
+          <Autocomplete
             data={commonArchs}
+            description={t('distros.fields.archHint')}
+            label={t('distros.fields.arch')}
+            placeholder='x86_64'
+            required
             {...form.getInputProps('arch')}
           />
 

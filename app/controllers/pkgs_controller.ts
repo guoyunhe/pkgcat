@@ -19,6 +19,8 @@ import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
 import { pkgValidator } from '#validators/pkg'
 
+import { archIndependentPackageArches } from '../utils/arch.js'
+
 // Package files are uploaded outside of the global multipart limit (see config/bodyparser.ts)
 // and streamed to the disk instead of being buffered in memory.
 const maxPackageSize = 2 * 1024 * 1024 * 1024
@@ -50,11 +52,18 @@ export default class PkgsController {
     // The filters apply both to the package list and to the packages of a single application
     const distroId = Number(this.queryValue(request.input('distro')))
     if (Number.isInteger(distroId) && distroId > 0) {
-      // A distribution matches packages through the package format it uses, while a
-      // distribution without a native package format cannot match any package
+      // A distribution is one release for one architecture, which packages match through the
+      // package format they are built in and their architecture, while a distribution without a
+      // native package format cannot match any package
       const distro = await Distro.find(distroId)
-      if (distro?.pkgType) pkgsQuery.where('type', distro.pkgType)
-      else pkgsQuery.whereRaw('0 = 1')
+      if (distro?.pkgType) {
+        pkgsQuery.where('type', distro.pkgType)
+        pkgsQuery.where((query) => {
+          query.where('arch', distro.arch).orWhereIn('arch', archIndependentPackageArches)
+        })
+      } else {
+        pkgsQuery.whereRaw('0 = 1')
+      }
     }
 
     const arch = this.queryValue(request.input('arch'))

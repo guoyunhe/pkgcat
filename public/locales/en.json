@@ -255,7 +255,7 @@
     "columns": {
       "type": "Type",
       "name": "Repository",
-      "distro": "Distribution",
+      "distros": "Distributions",
       "syncInterval": "Sync interval",
       "lastSynced": "Last synced"
     },
@@ -264,7 +264,8 @@
       "name": "Name",
       "baseUrl": "Base URL",
       "source": "Source",
-      "distro": "Distribution",
+      "distros": "Distributions",
+      "distrosHint": "Every architecture of a distribution is a separate entry. The repository is synchronized for each architecture of the distributions it serves.",
       "configUrl": "Sources list URL",
       "configContent": "Sources list content",
       "installScript": "Install script",
@@ -278,7 +279,7 @@
   "distros": {
     "eyebrow": "Administration",
     "title": "Distributions",
-    "subtitle": "Linux distributions with their package format, architectures and life cycle.",
+    "subtitle": "Linux distribution releases with their package format, architecture and life cycle.",
     "addDistro": "Add distribution",
     "editDistro": "Edit distribution",
     "newEntry": "New distribution",
@@ -295,7 +296,7 @@
       "name": "Distribution",
       "version": "Version",
       "pkgType": "Package format",
-      "arch": "Architectures",
+      "arch": "Architecture",
       "releaseDate": "Released",
       "eolDate": "End of life"
     },
@@ -305,8 +306,8 @@
       "versionHint": "Leave empty for rolling releases that have no version number.",
       "pkgType": "Package format",
       "pkgTypeHint": "Leave empty for distributions that ship no native packages.",
-      "arch": "Architectures",
-      "archHint": "Architecture names as reported by uname -m. Press Enter to add one.",
+      "arch": "Architecture",
+      "archHint": "Architecture name as reported by uname -m. Every architecture of a release is a separate entry.",
       "releaseDate": "Release date",
       "eolDate": "End of life date"
     }

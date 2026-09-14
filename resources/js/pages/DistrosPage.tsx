@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
-import { deleteDistro, getDistros, type Distro } from '../services/distros'
+import { deleteDistro, distroLabel, getDistros, type Distro } from '../services/distros'
 
 import styles from './DistrosPage.module.css'
 
@@ -44,8 +44,7 @@ export default function DistrosPage() {
   }, [])
 
   async function remove(distro: Distro) {
-    const label = distro.version ? `${distro.name} ${distro.version}` : distro.name
-    if (!window.confirm(t('distros.confirmDelete', { name: label }))) return
+    if (!window.confirm(t('distros.confirmDelete', { name: distroLabel(distro) }))) return
     try {
       await deleteDistro(distro.id)
       setDistros((current) => current.filter((item) => item.id !== distro.id))
@@ -127,9 +126,7 @@ export default function DistrosPage() {
                   <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
                 </Table.Td>
                 <Table.Td>
-                  <span className={styles.archs}>
-                    {distro.arch.length > 0 ? distro.arch.join(', ') : '—'}
-                  </span>
+                  <span className={styles.arch}>{distro.arch}</span>
                 </Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}

@@ -4,9 +4,16 @@ import Distro from '#models/distro'
 import Repo from '#models/repo'
 
 /** Architecture names follow `uname -m`, the same vocabulary used by the package extractors. */
-const arches = ['x86_64', 'aarch64']
+const desktopArches = ['x86_64', 'aarch64']
 
-/** Official repository of a distribution; the seeder links it with `distroId` and a distro source. */
+/** Ubuntu keeps its x86 packages on the main archive and the ARM ones on the ports archive. */
+function ubuntuArchive(arch: string) {
+  return arch === 'aarch64'
+    ? 'http://ports.ubuntu.com/ubuntu-ports/'
+    : 'http://archive.ubuntu.com/ubuntu/'
+}
+
+/** Official repository of a distribution; the seeder links it to the entries it serves. */
 type DistroRepo = {
   name: string
   type: string
@@ -17,15 +24,31 @@ type DistroRepo = {
   syncIntervalDays?: number | null
 }
 
-/** One distribution of the catalog, together with the official repositories it ships. */
+/**
+ * One distribution of the catalog with the architectures it is published for. Every architecture
+ * becomes its own entry, and the repositories of the distribution are linked to the entries they
+ * serve: a plain array holds the repositories that serve every architecture of the release (one row
+ * linked to each of them), while a function of the architecture holds those whose URLs name it
+ * (Ubuntu keeps the ARM packages on a separate archive, Fedora and the Enterprise Linux rebuilds
+ * put the architecture in the path), which are stored once per architecture, with the name telling
+ * them apart.
+ */
 type DistroSeed = {
   name: string
   version: string | null
   pkgType: string | null
-  arch: string[]
+  arches: string[]
   releaseDate: string | null
   eolDate: string | null
-  repos?: DistroRepo[]
+  repos?: DistroRepo[] | ((arch: string) => DistroRepo[])
+}
+
+/** Repositories of one architecture of a distribution, named so that entries can be told apart. */
+function repositories(repos: DistroSeed['repos'], arch: string) {
+  if (typeof repos === 'function') {
+    return repos(arch).map((repo) => ({ ...repo, name: `${repo.name} (${arch})` }))
+  }
+  return repos ?? []
 }
 
 /**
@@ -33,27 +56,27 @@ type DistroSeed = {
  * except for the distributions that it does not track, which use the support statement of their
  * vendor. Rolling release distributions have no end of support, so they keep a `null` `eolDate`.
  *
- * `repos` holds the official repositories of the distribution, which are seeded together with it
- * and linked through `distroId`. Distributions whose packages no extractor reads yet (Arch Linux,
- * Manjaro Linux, NixOS, Gentoo Linux, and SteamOS, which ships pacman repositories) and
- * distributions whose content is behind a subscription (Red Hat Enterprise Linux) therefore have no
- * `repos` entry.
+ * Every architecture of a release is seeded as its own entry, and the repositories of a
+ * distribution are linked to the entries they serve, so the repository of a release published for
+ * several architectures is shared by all of them when its URLs do not name the architecture.
+ * Distributions whose packages no extractor reads yet (Arch Linux, Manjaro Linux, NixOS, Gentoo
+ * Linux, and SteamOS, which ships pacman repositories) and distributions whose content is behind a
+ * subscription (Red Hat Enterprise Linux) therefore have no `repos` entry.
  */
 const distros: DistroSeed[] = [
   {
     name: 'Ubuntu',
     version: '24.04',
     pkgType: 'deb',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2024-04-25',
     eolDate: '2029-05-31',
-    repos: [
+    repos: (arch) => [
       {
         name: 'Ubuntu 24.04 Main',
         type: 'deb',
-        baseUrl: 'http://archive.ubuntu.com/ubuntu/',
-        configContent:
-          'deb http://archive.ubuntu.com/ubuntu noble main restricted universe multiverse',
+        baseUrl: ubuntuArchive(arch),
+        configContent: `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
         syncIntervalDays: 7,
       },
     ],
@@ -62,7 +85,7 @@ const distros: DistroSeed[] = [
     name: 'Debian',
     version: '13',
     pkgType: 'deb',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2025-08-09',
     eolDate: '2030-06-30',
     repos: [
@@ -93,22 +116,20 @@ const distros: DistroSeed[] = [
     name: 'Fedora Linux',
     version: '42',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2025-04-15',
     eolDate: '2026-05-27',
-    repos: [
+    repos: (arch) => [
       {
         name: 'Fedora Linux 42 Everything',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/42/Everything/${arch}/os/`,
         syncIntervalDays: 7,
       },
       {
         name: 'Fedora Linux 42 Updates',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/updates/42/Everything/x86_64/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/42/Everything/${arch}/`,
         syncIntervalDays: 7,
       },
     ],
@@ -117,22 +138,20 @@ const distros: DistroSeed[] = [
     name: 'Fedora Linux',
     version: '43',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2025-10-28',
     eolDate: '2026-12-09',
-    repos: [
+    repos: (arch) => [
       {
         name: 'Fedora Linux 43 Everything',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/releases/43/Everything/x86_64/os/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/43/Everything/${arch}/os/`,
         syncIntervalDays: 7,
       },
       {
         name: 'Fedora Linux 43 Updates',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/updates/43/Everything/x86_64/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/43/Everything/${arch}/`,
         syncIntervalDays: 7,
       },
     ],
@@ -141,22 +160,20 @@ const distros: DistroSeed[] = [
     name: 'Fedora Linux',
     version: '44',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2026-04-28',
     eolDate: '2027-06-02',
-    repos: [
+    repos: (arch) => [
       {
         name: 'Fedora Linux 44 Everything',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/releases/44/Everything/x86_64/os/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/44/Everything/${arch}/os/`,
         syncIntervalDays: 7,
       },
       {
         name: 'Fedora Linux 44 Updates',
         type: 'rpm',
-        baseUrl:
-          'https://download.fedoraproject.org/pub/fedora/linux/updates/44/Everything/x86_64/',
+        baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/44/Everything/${arch}/`,
         syncIntervalDays: 7,
       },
     ],
@@ -165,7 +182,7 @@ const distros: DistroSeed[] = [
     name: 'Linux Mint',
     version: '22',
     pkgType: 'deb',
-    arch: ['x86_64'],
+    arches: ['x86_64'],
     releaseDate: '2024-07-25',
     eolDate: '2029-04-01',
     repos: [
@@ -182,7 +199,7 @@ const distros: DistroSeed[] = [
     name: 'Red Hat Enterprise Linux',
     version: '9',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2022-05-18',
     eolDate: '2032-05-31',
   },
@@ -190,14 +207,14 @@ const distros: DistroSeed[] = [
     name: 'Rocky Linux',
     version: '9',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2022-07-14',
     eolDate: '2032-05-31',
-    repos: [
+    repos: (arch) => [
       {
         name: 'Rocky Linux 9 BaseOS',
         type: 'rpm',
-        baseUrl: 'https://dl.rockylinux.org/pub/rocky/9/BaseOS/x86_64/os/',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/9/BaseOS/${arch}/os/`,
         syncIntervalDays: 7,
       },
     ],
@@ -206,14 +223,14 @@ const distros: DistroSeed[] = [
     name: 'AlmaLinux',
     version: '9',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2022-05-26',
     eolDate: '2032-05-31',
-    repos: [
+    repos: (arch) => [
       {
         name: 'AlmaLinux 9 BaseOS',
         type: 'rpm',
-        baseUrl: 'https://repo.almalinux.org/almalinux/9/BaseOS/x86_64/os/',
+        baseUrl: `https://repo.almalinux.org/almalinux/9/BaseOS/${arch}/os/`,
         syncIntervalDays: 7,
       },
     ],
@@ -222,7 +239,7 @@ const distros: DistroSeed[] = [
     name: 'Arch Linux',
     version: null,
     pkgType: null,
-    arch: ['x86_64'],
+    arches: ['x86_64'],
     releaseDate: null,
     eolDate: null,
   },
@@ -230,7 +247,7 @@ const distros: DistroSeed[] = [
     name: 'openSUSE Leap',
     version: '16.0',
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2025-10-01',
     eolDate: '2027-10-31',
     repos: [
@@ -252,7 +269,7 @@ const distros: DistroSeed[] = [
     name: 'openSUSE Tumbleweed',
     version: null,
     pkgType: 'rpm',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
     repos: [
@@ -274,7 +291,7 @@ const distros: DistroSeed[] = [
     name: 'Manjaro Linux',
     version: null,
     pkgType: null,
-    arch: arches,
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
   },
@@ -282,7 +299,8 @@ const distros: DistroSeed[] = [
     name: 'Pop!_OS',
     version: '24.04',
     pkgType: 'deb',
-    arch: arches,
+    // Pop!_OS is published for x86_64 only
+    arches: ['x86_64'],
     releaseDate: '2025-12-11',
     eolDate: '2029-05-31',
     repos: [
@@ -299,7 +317,7 @@ const distros: DistroSeed[] = [
     name: 'SteamOS',
     version: '3',
     pkgType: 'deb',
-    arch: ['x86_64'],
+    arches: ['x86_64'],
     releaseDate: '2022-03-01',
     eolDate: null,
   },
@@ -307,7 +325,7 @@ const distros: DistroSeed[] = [
     name: 'NixOS',
     version: '25.05',
     pkgType: null,
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2025-05-23',
     eolDate: '2025-12-31',
   },
@@ -315,7 +333,7 @@ const distros: DistroSeed[] = [
     name: 'MX Linux',
     version: '23',
     pkgType: 'deb',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: '2023-07-31',
     eolDate: '2028-06-10',
     repos: [
@@ -332,7 +350,8 @@ const distros: DistroSeed[] = [
     name: 'elementary OS',
     version: '8',
     pkgType: 'deb',
-    arch: arches,
+    // elementary OS is published for x86_64 only
+    arches: ['x86_64'],
     releaseDate: '2024-11-26',
     eolDate: '2029-05-31',
     repos: [
@@ -349,7 +368,7 @@ const distros: DistroSeed[] = [
     name: 'Zorin OS',
     version: '17',
     pkgType: 'deb',
-    arch: ['x86_64'],
+    arches: ['x86_64'],
     releaseDate: '2023-12-20',
     eolDate: '2027-06-01',
     repos: [
@@ -366,7 +385,7 @@ const distros: DistroSeed[] = [
     name: 'Kali Linux',
     version: null,
     pkgType: 'deb',
-    arch: arches,
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
     repos: [
@@ -384,7 +403,7 @@ const distros: DistroSeed[] = [
     name: 'Gentoo Linux',
     version: null,
     pkgType: null,
-    arch: arches,
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
   },
@@ -392,18 +411,33 @@ const distros: DistroSeed[] = [
 
 export default class DistroSeeder extends BaseSeeder {
   async run() {
-    for (const { repos, ...distro } of distros) {
-      const record = await Distro.updateOrCreate(
-        { name: distro.name, version: distro.version },
-        distro as any,
-      )
+    // Distributions each repository is linked to, collected while the entries are written
+    const links = new Map<string, number[]>()
 
-      for (const repo of repos ?? []) {
-        await Repo.updateOrCreate(
-          { name: repo.name },
-          { ...repo, source: 'distro', distroId: record.id },
+    for (const { arches, repos, ...distro } of distros) {
+      for (const arch of arches) {
+        // The seed data carries ISO dates, while the Lucid types expect `DateTime` instances
+        const distroRecord = await Distro.updateOrCreate(
+          { name: distro.name, version: distro.version, arch },
+          { ...distro, arch } as any,
         )
+
+        for (const definition of repositories(repos, arch)) {
+          const repoRecord = await Repo.updateOrCreate(
+            { name: definition.name },
+            { ...definition, source: 'distro' },
+          )
+          const distroIds = links.get(repoRecord.name) ?? []
+          if (!distroIds.includes(distroRecord.id)) distroIds.push(distroRecord.id)
+          links.set(repoRecord.name, distroIds)
+        }
       }
+    }
+
+    // The repository of a release published for several architectures is linked to all of them
+    for (const [name, distroIds] of links) {
+      const repo = await Repo.findByOrFail('name', name)
+      await repo.related('distros').sync(distroIds)
     }
   }
 }

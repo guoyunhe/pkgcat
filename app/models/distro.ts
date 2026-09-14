@@ -1,6 +1,9 @@
+import { manyToMany } from '@adonisjs/lucid/orm'
+import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
+import Repo from '#models/repo'
 
 type OsReleaseValues = Record<string, string>
 
@@ -27,6 +30,17 @@ function parseDate(value: string | undefined) {
 }
 
 export default class Distro extends DistroSchema {
+  /**
+   * Repositories of the distribution. A distribution is one release for one architecture, and the
+   * repositories that serve it hold the packages of that architecture.
+   */
+  @manyToMany(() => Repo, {
+    pivotTable: 'distro_repos',
+    pivotForeignKey: 'distro_id',
+    pivotRelatedForeignKey: 'repo_id',
+  })
+  declare repos: ManyToMany<typeof Repo>
+
   static fromOsRelease(contents: string) {
     const values = parseOsRelease(contents)
 

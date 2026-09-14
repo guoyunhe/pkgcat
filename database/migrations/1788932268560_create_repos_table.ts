@@ -7,14 +7,6 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table
-        .integer('distro_id')
-        .unsigned()
-        .nullable()
-        .references('id')
-        .inTable('distros')
-        .onDelete('SET NULL')
-
       table.string('name').notNullable().index()
       table.string('type').notNullable().index()
       table.string('source').notNullable().index()

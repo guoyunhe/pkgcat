@@ -93,7 +93,7 @@ export default function ReposPage() {
             <Table.Tr>
               <Table.Th>{t('repos.columns.type')}</Table.Th>
               <Table.Th>{t('repos.columns.name')}</Table.Th>
-              <Table.Th>{t('repos.columns.distro')}</Table.Th>
+              <Table.Th>{t('repos.columns.distros')}</Table.Th>
               <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
               <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
               {isAdmin && <Table.Th />}
@@ -121,20 +121,25 @@ export default function ReposPage() {
                   <div className={styles.baseUrl}>{repo.baseUrl}</div>
                 </Table.Td>
                 <Table.Td>
-                  {repo.distro ? (
-                    <span className={styles.distroCell}>
-                      <img
-                        alt=''
-                        className={styles.distroIcon}
-                        src={`/distros/${encodeURIComponent(repo.distro.name)}.svg`}
-                      />
-                      <span>{repo.distro.name}</span>
-                      {repo.distro.version && (
-                        <span className={styles.distroVersion}>{repo.distro.version}</span>
-                      )}
-                    </span>
-                  ) : (
+                  {repo.distros.length === 0 ? (
                     '—'
+                  ) : (
+                    <div className={styles.distrosCell}>
+                      {repo.distros.map((distro) => (
+                        <span className={styles.distroCell} key={distro.id}>
+                          <img
+                            alt=''
+                            className={styles.distroIcon}
+                            src={`/distros/${encodeURIComponent(distro.name)}.svg`}
+                          />
+                          <span>{distro.name}</span>
+                          {distro.version && (
+                            <span className={styles.distroVersion}>{distro.version}</span>
+                          )}
+                          <span className={styles.distroArch}>{distro.arch}</span>
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </Table.Td>
                 <Table.Td>

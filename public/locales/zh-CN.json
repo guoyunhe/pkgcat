@@ -255,7 +255,7 @@
     "columns": {
       "type": "类型",
       "name": "仓库",
-      "distro": "发行版",
+      "distros": "发行版",
       "syncInterval": "同步周期",
       "lastSynced": "上次同步"
     },
@@ -264,7 +264,8 @@
       "name": "名称",
       "baseUrl": "基础 URL",
       "source": "来源",
-      "distro": "发行版",
+      "distros": "发行版",
+      "distrosHint": "发行版的每个架构都是独立的条目，仓库会按其服务的发行版的每个架构分别同步。",
       "configUrl": "源列表 URL",
       "configContent": "源列表内容",
       "installScript": "安装脚本",
@@ -278,7 +279,7 @@
   "distros": {
     "eyebrow": "系统管理",
     "title": "发行版",
-    "subtitle": "各 Linux 发行版的包格式、架构与生命周期。",
+    "subtitle": "各 Linux 发行版版本的包格式、架构与生命周期。",
     "addDistro": "添加发行版",
     "editDistro": "编辑发行版",
     "newEntry": "新建发行版",
@@ -306,7 +307,7 @@
       "pkgType": "包格式",
       "pkgTypeHint": "不提供原生软件包的发行版可留空。",
       "arch": "架构",
-      "archHint": "使用 uname -m 输出的架构名，按回车添加。",
+      "archHint": "使用 uname -m 输出的架构名，同一版本的不同架构是各自独立的条目。",
       "releaseDate": "发布日期",
       "eolDate": "停止支持日期"
     }

@@ -28,10 +28,5 @@ export default {
         description: jsonColumn('Record<string, string>'),
       },
     },
-    distros: {
-      columns: {
-        arch: jsonColumn('string[]'),
-      },
-    },
   },
 } satisfies SchemaRules

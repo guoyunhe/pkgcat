@@ -12,7 +12,7 @@ function toDateTime(value: string | null) {
 
 export default class DistrosController {
   async index({ serialize }: HttpContext) {
-    const distros = await Distro.query().orderBy('name').orderBy('version')
+    const distros = await Distro.query().orderBy('name').orderBy('version').orderBy('arch')
     return serialize(DistroTransformer.transform(distros))
   }
 
@@ -26,7 +26,6 @@ export default class DistrosController {
 
     const distro = await Distro.create({
       ...payload,
-      arch: payload.arch ?? [],
       releaseDate: toDateTime(payload.releaseDate),
       eolDate: toDateTime(payload.eolDate),
     })
@@ -45,7 +44,6 @@ export default class DistrosController {
     await distro
       .merge({
         ...payload,
-        arch: payload.arch ?? distro.arch,
         releaseDate: toDateTime(payload.releaseDate),
         eolDate: toDateTime(payload.eolDate),
       })

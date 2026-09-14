@@ -255,7 +255,7 @@
     "columns": {
       "type": "類型",
       "name": "倉庫",
-      "distro": "發行版",
+      "distros": "發行版",
       "syncInterval": "同步週期",
       "lastSynced": "上次同步"
     },
@@ -264,7 +264,8 @@
       "name": "名稱",
       "baseUrl": "基礎 URL",
       "source": "來源",
-      "distro": "發行版",
+      "distros": "發行版",
+      "distrosHint": "發行版的每個架構都是獨立的條目，倉庫會依其服務的發行版每個架構分別同步。",
       "configUrl": "來源清單 URL",
       "configContent": "來源清單內容",
       "installScript": "安裝指令碼",
@@ -278,7 +279,7 @@
   "distros": {
     "eyebrow": "系統管理",
     "title": "發行版",
-    "subtitle": "各 Linux 發行版的套件格式、架構與生命週期。",
+    "subtitle": "各 Linux 發行版版本的套件格式、架構與生命週期。",
     "addDistro": "新增發行版",
     "editDistro": "編輯發行版",
     "newEntry": "新增發行版",
@@ -306,7 +307,7 @@
       "pkgType": "套件格式",
       "pkgTypeHint": "不提供原生套件的發行版可留空。",
       "arch": "架構",
-      "archHint": "使用 uname -m 輸出的架構名稱，按 Enter 新增。",
+      "archHint": "使用 uname -m 輸出的架構名稱，同一版本的不同架構是各自獨立的條目。",
       "releaseDate": "發行日期",
       "eolDate": "停止支援日期"
     }

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { PkgFilters as PkgFiltersValue } from '../services/apps'
-import { getDistros } from '../services/distros'
+import { distroLabel, getDistros } from '../services/distros'
 import { packageTypes } from '../utils/pkgTypes'
 
 import styles from './PkgFilters.module.css'
@@ -21,10 +21,6 @@ type DistroOption = {
 
 function distroIcon(name: string) {
   return `/distros/${encodeURIComponent(name)}.svg`
-}
-
-function distroLabel(name: string, version: string | null) {
-  return version ? `${name} ${version}` : name
 }
 
 /**
@@ -58,9 +54,9 @@ type PkgFiltersProps = {
 }
 
 /**
- * Distribution, package format and architecture filters for the package listings. A distribution
- * maps to the package format it uses, which is what packages are matched against, and lists the
- * architectures it supports.
+ * Distribution, package format and architecture filters for the package listings. A distribution is
+ * one release for one architecture, and packages are matched against the package format and the
+ * architecture of that entry.
  */
 export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
   const { t } = useTranslation()
@@ -78,16 +74,17 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
           .sort(
             (a, b) =>
               a.name.localeCompare(b.name) ||
-              (a.version ?? '').localeCompare(b.version ?? '', undefined, { numeric: true }),
+              (a.version ?? '').localeCompare(b.version ?? '', undefined, { numeric: true }) ||
+              a.arch.localeCompare(b.arch),
           )
         setDistros(
           filterable.map((distro) => ({
             value: String(distro.id),
-            label: distroLabel(distro.name, distro.version),
+            label: distroLabel(distro),
             icon: distroIcon(distro.name),
           })),
         )
-        setArchs([...new Set(result.flatMap((distro) => distro.arch))].sort())
+        setArchs([...new Set(result.map((distro) => distro.arch))].sort())
       })
       .catch(() => {
         // Without options the filters stay empty, which is the same as having no filter

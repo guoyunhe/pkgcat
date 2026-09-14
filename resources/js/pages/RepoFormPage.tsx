@@ -4,6 +4,7 @@ import {
   Button,
   Group,
   Loader,
+  MultiSelect,
   NumberInput,
   Select,
   Stack,
@@ -20,8 +21,8 @@ import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
-import { getDistros } from '../services/distros'
-import { createRepo, getRepo, updateRepo } from '../services/repos'
+import { distroLabel, getDistros } from '../services/distros'
+import { createRepo, getRepo, updateRepo, type RepoPayload } from '../services/repos'
 
 import styles from './AppFormPage.module.css'
 
@@ -37,8 +38,18 @@ export default function RepoFormPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const form = useForm<Partial<Data.Repo>>({
-    initialValues: { source: 'community', distroId: null },
+  const form = useForm<RepoPayload>({
+    initialValues: {
+      type: 'deb',
+      source: 'community',
+      name: '',
+      baseUrl: '',
+      configUrl: '',
+      configContent: '',
+      installScript: '',
+      syncIntervalDays: null,
+      distroIds: [],
+    },
   })
 
   useEffect(() => {
@@ -50,7 +61,19 @@ export default function RepoFormPage() {
   useEffect(() => {
     if (!repoId) return
     getRepo(repoId)
-      .then((repo) => form.initialize(repo))
+      .then((repo) => {
+        form.setValues({
+          type: repo.type,
+          source: repo.source,
+          name: repo.name,
+          baseUrl: repo.baseUrl,
+          configUrl: repo.configUrl ?? '',
+          configContent: repo.configContent ?? '',
+          installScript: repo.installScript ?? '',
+          syncIntervalDays: repo.syncIntervalDays,
+          distroIds: repo.distros.map((distro) => distro.id),
+        })
+      })
       .catch((reason) => setError(reason instanceof Error ? reason.message : t('repos.loadError')))
       .finally(() => setLoading(false))
   }, [repoId])
@@ -70,7 +93,7 @@ export default function RepoFormPage() {
       </div>
     )
 
-  async function handleSubmit(values: Partial<Data.Repo>) {
+  async function handleSubmit(values: RepoPayload) {
     try {
       setSaving(true)
       setError(null)
@@ -143,17 +166,18 @@ export default function RepoFormPage() {
             {...form.getInputProps('source')}
           />
 
-          <Select
-            label={t('repos.fields.distro')}
+          <MultiSelect
             clearable
-            searchable
             data={distros.map((distro) => ({
               value: String(distro.id),
-              label: distro.name,
+              label: distroLabel(distro),
             }))}
-            value={form.values.distroId === null ? null : String(form.values.distroId)}
-            onChange={(value) => form.setFieldValue('distroId', value ? Number(value) : null)}
-            error={form.errors.distroId}
+            description={t('repos.fields.distrosHint')}
+            label={t('repos.fields.distros')}
+            searchable
+            value={(form.values.distroIds ?? []).map(String)}
+            onChange={(values) => form.setFieldValue('distroIds', values.map(Number))}
+            error={form.errors.distroIds}
           />
 
           <Textarea

@@ -26,6 +26,7 @@ import RepoAppstreamExtractor, {
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ExtractedPackage } from '#services/repo_package_extractor'
 
+import { belongsToArch } from '../app/utils/arch.js'
 import { compareVersions } from '../app/utils/version.js'
 
 type PackageIdentity = Pick<ExtractedPackage, 'name' | 'version' | 'release' | 'arch'>
@@ -44,7 +45,11 @@ export default class RepoSync extends BaseCommand {
   })
   declare repoName?: string
 
-  @flags.string({ description: 'Target architecture, e.g. x86_64 (deb repositories only)' })
+  @flags.string({
+    description:
+      'Target architecture, e.g. x86_64. Deb repositories default to every architecture of the ' +
+      'distributions they serve',
+  })
   declare arch: string
 
   @flags.number({ description: 'Number of sample packages to print per repository', default: 5 })
@@ -57,8 +62,8 @@ export default class RepoSync extends BaseCommand {
 
   async run() {
     const repos = this.repoName
-      ? [await Repo.findByOrFail('name', this.repoName)]
-      : await Repo.query().whereIn('type', ['deb', 'rpm'])
+      ? [await Repo.query().where('name', this.repoName).preload('distros').firstOrFail()]
+      : await Repo.query().whereIn('type', ['deb', 'rpm']).preload('distros')
 
     if (repos.length === 0) {
       this.logger.warning('No deb/rpm repositories found')
@@ -79,53 +84,60 @@ export default class RepoSync extends BaseCommand {
       synced += 1
       this.logger.info(`Extracting packages from ${chalk.cyan(repo.name)} (${repo.type})`)
       try {
-        const packages = await extractor.extract(repo, { arch: this.arch || undefined })
-        const { created, updated, deleted } = await this.savePackages(repo, packages)
-        const entries = await appstream.extract(repo, { arch: this.arch || undefined })
-        const apps = await this.saveApps(repo, appstream, entries, packages)
+        // A deb repository holds the packages of several architectures under the same URLs, so a
+        // repository that is shared by distributions of different architectures is read once per
+        // architecture; the flag limits the run to a single one
+        for (const arch of this.syncArches(repo)) {
+          const label = arch ? `${repo.name} (${arch})` : repo.name
+          const packages = await extractor.extract(repo, { arch })
+          const { created, updated, deleted } = await this.savePackages(repo, packages, arch)
+          const entries = await appstream.extract(repo, { arch })
+          const apps = await this.saveApps(repo, appstream, entries, packages)
+          this.logger.info(
+            `${label}: ${chalk.green(String(packages.length))} packages` +
+              ` (${chalk.green(String(created))} created, ${chalk.yellow(String(updated))} updated,` +
+              ` ${chalk.red(String(deleted))} removed)`,
+          )
+          if (entries.length > 0) {
+            this.logger.info(
+              `${label}: ${chalk.green(String(entries.length))} appstream components` +
+                ` (${chalk.green(String(apps.created))} apps created,` +
+                ` ${chalk.yellow(String(apps.updated))} apps updated,` +
+                ` ${chalk.dim(String(apps.skipped))} skipped,` +
+                ` ${chalk.green(String(apps.icons))} icons,` +
+                ` ${chalk.green(String(apps.linked))} packages linked,` +
+                ` ${chalk.green(String(apps.categories))} categories linked)`,
+            )
+          }
+          if (
+            apps.inferred > 0 ||
+            apps.inferredLinked > 0 ||
+            apps.inferredExtracted > 0 ||
+            apps.inferredIcons > 0
+          ) {
+            this.logger.info(
+              `${label}: ${chalk.green(String(apps.inferred))} app(s) inferred from package` +
+                ` file lists (${chalk.green(String(apps.inferredLinked))} packages linked,` +
+                ` ${chalk.green(String(apps.inferredExtracted))} metadata files,` +
+                ` ${chalk.green(String(apps.inferredIcons))} icons extracted)`,
+            )
+          }
+          if (apps.mapped > 0) {
+            this.logger.info(
+              `${label}: ${chalk.green(String(apps.mapped))} package(s) linked by package name`,
+            )
+          }
+          for (const pkg of packages.slice(0, this.limit)) {
+            const details = [pkg.version, pkg.release, pkg.arch].filter(Boolean).join(' ')
+            this.logger.info(`  ${pkg.name}${details ? ` ${chalk.dim(details)}` : ''}`)
+          }
+          if (packages.length > this.limit) {
+            this.logger.info(chalk.dim(`  ... and ${packages.length - this.limit} more`))
+          }
+        }
+
         repo.lastSyncedAt = DateTime.now()
         await repo.save()
-        this.logger.info(
-          `${repo.name}: ${chalk.green(String(packages.length))} packages` +
-            ` (${chalk.green(String(created))} created, ${chalk.yellow(String(updated))} updated,` +
-            ` ${chalk.red(String(deleted))} removed)`,
-        )
-        if (entries.length > 0) {
-          this.logger.info(
-            `${repo.name}: ${chalk.green(String(entries.length))} appstream components` +
-              ` (${chalk.green(String(apps.created))} apps created,` +
-              ` ${chalk.yellow(String(apps.updated))} apps updated,` +
-              ` ${chalk.dim(String(apps.skipped))} skipped,` +
-              ` ${chalk.green(String(apps.icons))} icons,` +
-              ` ${chalk.green(String(apps.linked))} packages linked,` +
-              ` ${chalk.green(String(apps.categories))} categories linked)`,
-          )
-        }
-        if (
-          apps.inferred > 0 ||
-          apps.inferredLinked > 0 ||
-          apps.inferredExtracted > 0 ||
-          apps.inferredIcons > 0
-        ) {
-          this.logger.info(
-            `${repo.name}: ${chalk.green(String(apps.inferred))} app(s) inferred from package` +
-              ` file lists (${chalk.green(String(apps.inferredLinked))} packages linked,` +
-              ` ${chalk.green(String(apps.inferredExtracted))} metadata files,` +
-              ` ${chalk.green(String(apps.inferredIcons))} icons extracted)`,
-          )
-        }
-        if (apps.mapped > 0) {
-          this.logger.info(
-            `${repo.name}: ${chalk.green(String(apps.mapped))} package(s) linked by package name`,
-          )
-        }
-        for (const pkg of packages.slice(0, this.limit)) {
-          const details = [pkg.version, pkg.release, pkg.arch].filter(Boolean).join(' ')
-          this.logger.info(`  ${pkg.name}${details ? ` ${chalk.dim(details)}` : ''}`)
-        }
-        if (packages.length > this.limit) {
-          this.logger.info(chalk.dim(`  ... and ${packages.length - this.limit} more`))
-        }
       } catch (error) {
         this.logger.error(`${repo.name}: ${error instanceof Error ? error.message : String(error)}`)
       }
@@ -134,6 +146,20 @@ export default class RepoSync extends BaseCommand {
     if (synced === 0) {
       this.logger.warning('No repositories were synchronized, use --force to sync anyway')
     }
+  }
+
+  /**
+   * Architectures a repository is synchronized for. Deb repositories serve every architecture from
+   * the same URLs, so the ones of the distributions the repository belongs to are synchronized in
+   * turn; RPM repositories keep each architecture in its own directory, which the URL names. A
+   * repository without a distribution is synchronized without a target architecture.
+   */
+  private syncArches(repo: Repo) {
+    if (this.arch) return [this.arch]
+    if (repo.type !== 'deb') return [undefined]
+
+    const arches = [...new Set(repo.distros.map((distro) => distro.arch))].sort()
+    return arches.length > 0 ? arches : [undefined]
   }
 
   /**
@@ -154,14 +180,16 @@ export default class RepoSync extends BaseCommand {
   /**
    * Write the extracted packages to the database. Packages are keyed by repository, name, version,
    * release and architecture, so synchronizing the same repository again updates the existing rows
-   * instead of inserting duplicates. Packages that are no longer in the repository are removed,
-   * unless the repository returned nothing at all, which is more likely a metadata problem than an
-   * emptied repository. Repository packages are not tied to a catalog application.
+   * instead of inserting duplicates. Only the packages of the synchronized architecture are
+   * replaced, so that the other architectures of the same repository keep their packages. Packages
+   * that are no longer in the repository are removed, unless the repository returned nothing at
+   * all, which is more likely a metadata problem than an emptied repository. Repository packages
+   * are not tied to a catalog application.
    */
-  private async savePackages(repo: Repo, packages: ExtractedPackage[]) {
+  private async savePackages(repo: Repo, packages: ExtractedPackage[], arch?: string) {
     const existing = await Pkg.query().where('repoId', repo.id)
     const known = new Map(existing.map((pkg) => [this.packageKey(pkg), pkg]))
-    const stale = new Map(known)
+    const stale = new Map([...known].filter(([, pkg]) => belongsToArch(pkg.arch, arch)))
     let created = 0
     let updated = 0
     let deleted = 0

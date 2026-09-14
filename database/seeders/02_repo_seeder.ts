@@ -3,7 +3,11 @@ import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Distro from '#models/distro'
 import Repo from '#models/repo'
 
-/** Repositories of the catalog that are not shipped by the distribution itself. */
+/**
+ * Repositories of the catalog that are not shipped by the distribution itself. The distribution
+ * they belong to is named with its version and architecture, since every architecture is its own
+ * entry.
+ */
 const repos = [
   {
     name: 'VLC for openSUSE Tumbleweed',
@@ -12,6 +16,7 @@ const repos = [
     baseUrl: 'https://download.videolan.org/SuSE/Tumbleweed/',
     distroName: 'openSUSE Tumbleweed',
     distroVersion: null,
+    distroArch: 'x86_64',
     configContent: `[SuSE]
 name=VideoLAN repo (Tumbleweed)
 type=rpm-md
@@ -31,6 +36,7 @@ enabled=1
     installScript: `pkexec dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-${ver}.noarch.rpm`,
     distroName: 'Fedora Linux',
     distroVersion: ver,
+    distroArch: 'x86_64',
     baseUrl: `http://download1.rpmfusion.org/free/fedora/releases/${ver}/Everything/x86_64/os/`,
     configContent: `[rpmfusion-free]
 name=RPM Fusion for Fedora $releasever - Free
@@ -71,11 +77,12 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
 export default class RepoSeeder extends BaseSeeder {
   async run() {
     for (const repo of repos) {
-      const { distroName, distroVersion, ...attributes } = repo
-      let distroId = null
+      const { distroName, distroVersion, distroArch, ...attributes } = repo
+      const record = await Repo.updateOrCreate({ name: repo.name }, attributes)
+      let distroIds: number[] = []
 
       if (distroName) {
-        const distroQuery = Distro.query().where('name', distroName)
+        const distroQuery = Distro.query().where('name', distroName).where('arch', distroArch)
 
         if (distroVersion === null) {
           distroQuery.whereNull('version')
@@ -84,16 +91,10 @@ export default class RepoSeeder extends BaseSeeder {
         }
 
         const distro = await distroQuery.firstOrFail()
-        distroId = distro.id
+        distroIds = [distro.id]
       }
 
-      await Repo.updateOrCreate(
-        { name: repo.name },
-        {
-          ...attributes,
-          distroId,
-        },
-      )
+      await record.related('distros').sync(distroIds)
     }
   }
 }

@@ -177,8 +177,8 @@ export class CategoryTranslationSchema extends BaseModel {
 export class DistroSchema extends BaseModel {
   static $columns = ['arch', 'createdAt', 'eolDate', 'id', 'name', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
   $columns = DistroSchema.$columns
-  @column({ prepare: (value)=>value ? JSON.stringify(value) : value, consume: (value)=>typeof value === 'string' ? JSON.parse(value) : value })
-  declare arch: string[]
+  @column()
+  declare arch: string
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column.date()
@@ -195,6 +195,21 @@ export class DistroSchema extends BaseModel {
   declare updatedAt: DateTime | null
   @column()
   declare version: string | null
+}
+
+export class DistroRepoSchema extends BaseModel {
+  static $columns = ['createdAt', 'distroId', 'id', 'repoId', 'updatedAt'] as const
+  $columns = DistroRepoSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare distroId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare repoId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
 }
 
 export class FavoriteSchema extends BaseModel {
@@ -279,7 +294,7 @@ export class PkgSchema extends BaseModel {
 }
 
 export class RepoSchema extends BaseModel {
-  static $columns = ['baseUrl', 'configContent', 'configUrl', 'createdAt', 'distroId', 'id', 'installScript', 'lastSyncedAt', 'name', 'source', 'syncIntervalDays', 'type', 'updatedAt'] as const
+  static $columns = ['baseUrl', 'configContent', 'configUrl', 'createdAt', 'id', 'installScript', 'lastSyncedAt', 'name', 'source', 'syncIntervalDays', 'type', 'updatedAt'] as const
   $columns = RepoSchema.$columns
   @column()
   declare baseUrl: string
@@ -289,8 +304,6 @@ export class RepoSchema extends BaseModel {
   declare configUrl: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
-  @column()
-  declare distroId: number | null
   @column({ isPrimary: true })
   declare id: number
   @column()
