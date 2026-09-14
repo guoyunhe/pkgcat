@@ -13,6 +13,13 @@ function ubuntuArchive(arch: string) {
     : 'http://archive.ubuntu.com/ubuntu/'
 }
 
+/** OpenSUSE keeps its x86 packages on the main tree and the other architectures on the ports tree. */
+function opensuseArchive(path: string, arch: string) {
+  return arch === 'x86_64'
+    ? `https://download.opensuse.org/${path}/`
+    : `https://download.opensuse.org/ports/${arch}/${path}/`
+}
+
 /**
  * Official repository of a distribution; the seeder links it to the entries it serves. Every
  * definition states its synchronization interval, so that a repository cannot end up with one by
@@ -60,9 +67,9 @@ const updateSyncIntervalDays = 7
  * becomes its own entry, and the repositories of the distribution are linked to the entries they
  * serve: a plain array holds the repositories that serve every architecture of the release (one row
  * linked to each of them), while a function of the architecture holds those whose URLs name it
- * (Ubuntu keeps the ARM packages on a separate archive, Fedora and the Enterprise Linux rebuilds
- * put the architecture in the path), which are stored once per architecture, with the name telling
- * them apart.
+ * (Ubuntu and openSUSE keep the ARM packages on a separate archive, Fedora and the Enterprise Linux
+ * rebuilds put the architecture in the path), which are stored once per architecture, with the name
+ * telling them apart.
  */
 type DistroSeed = {
   name: string
@@ -284,12 +291,8 @@ const distros: DistroSeed[] = [
         name: 'openSUSE Leap 16.0 OSS',
         type: 'rpm',
         baseUrl: 'https://download.opensuse.org/distribution/leap/16.0/repo/oss/',
-        syncIntervalDays: null,
-      },
-      {
-        name: 'openSUSE Leap 16.0 Updates',
-        type: 'rpm',
-        baseUrl: 'https://download.opensuse.org/update/leap/16.0/oss/',
+        // Leap 16.0 has no update tree of its own: the release publishes its updates into this
+        // tree, which also carries every architecture, so it keeps changing and is read every week
         syncIntervalDays: updateSyncIntervalDays,
       },
     ],
@@ -301,18 +304,18 @@ const distros: DistroSeed[] = [
     arches: desktopArches,
     releaseDate: null,
     eolDate: null,
-    repos: [
+    repos: (arch) => [
       {
         name: 'openSUSE Tumbleweed OSS',
         type: 'rpm',
-        baseUrl: 'https://download.opensuse.org/tumbleweed/repo/oss/',
+        baseUrl: opensuseArchive('tumbleweed/repo/oss', arch),
         // A rolling release has no frozen tree, so its repositories are read again every week
         syncIntervalDays: updateSyncIntervalDays,
       },
       {
         name: 'openSUSE Tumbleweed Non-OSS',
         type: 'rpm',
-        baseUrl: 'https://download.opensuse.org/tumbleweed/repo/non-oss/',
+        baseUrl: opensuseArchive('tumbleweed/repo/non-oss', arch),
         syncIntervalDays: updateSyncIntervalDays,
       },
     ],
