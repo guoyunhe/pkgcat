@@ -12,13 +12,6 @@ const desktopArches = ['x86_64', 'aarch64']
  */
 const serverArches = [...desktopArches, 'ppc64le', 's390x']
 
-/** Ubuntu keeps its x86 packages on the main archive and the ARM ones on the ports archive. */
-function ubuntuArchive(arch: string) {
-  return arch === 'aarch64'
-    ? 'http://ports.ubuntu.com/ubuntu-ports/'
-    : 'http://archive.ubuntu.com/ubuntu/'
-}
-
 /** OpenSUSE keeps its x86 packages on the main tree and the other architectures on the ports tree. */
 function opensuseArchive(path: string, arch: string) {
   return arch === 'x86_64'
@@ -32,6 +25,12 @@ function opensuseArchive(path: string, arch: string) {
  * accident: the repositories of a release stream are frozen once the distribution is published, so
  * they keep `null` and are read again only when the synchronization is forced, while the ones that
  * keep changing after the release state the `updateSyncIntervalDays` interval.
+ *
+ * `arches` names the architectures the repository serves when one definition covers several of them
+ * — the Ubuntu ports archive publishes for every architecture that is not x86 under a single line,
+ * and a repository is stored once per name, so it is linked to all of them. It is left out when the
+ * repository is read by every architecture of the release, either because its URL names the
+ * architecture or because it does not matter.
  */
 type DistroRepo = {
   name: string
@@ -41,6 +40,7 @@ type DistroRepo = {
   configUrl?: string
   installScript?: string
   syncIntervalDays: number | null
+  arches?: string[]
 }
 
 /**
@@ -50,14 +50,23 @@ type DistroRepo = {
  * the archive alone would give two entries the same base URL, while the source line is unique. That
  * line is also all a deb repository is defined by, so it becomes the content of its configuration
  * file as well.
+ *
+ * `arches` is passed through for the sources that serve several architectures on one line, which
+ * are stored once and linked to all of them.
  */
-function debRepo(name: string, source: string, syncIntervalDays: number | null): DistroRepo {
+function debRepo(
+  name: string,
+  source: string,
+  syncIntervalDays: number | null,
+  arches?: string[],
+): DistroRepo {
   return {
     name,
     type: 'deb',
     baseUrl: source,
     configContent: source,
     syncIntervalDays,
+    arches,
   }
 }
 
@@ -87,11 +96,11 @@ function almalinux(version: string) {
 /**
  * One distribution of the catalog with the architectures it is published for. Every architecture
  * becomes its own entry, and the repositories of the distribution are linked to the entries they
- * serve: a plain array holds the repositories that serve every architecture of the release (one row
- * linked to each of them), while a function of the architecture holds those whose URLs name it
- * (Ubuntu and openSUSE keep the ARM packages on a separate archive, Fedora and the Enterprise Linux
- * rebuilds put the architecture in the path), which are stored once per architecture, with the name
- * telling them apart.
+ * serve: a plain array holds the repositories that are read by every architecture of the release
+ * (one row linked to each of them), or by the architectures they name (`arches`), while a function
+ * of the architecture holds those whose URLs name it (openSUSE keeps the ARM packages on a separate
+ * archive, Fedora and the Enterprise Linux rebuilds put the architecture in the path), which are
+ * stored once per architecture, with the name telling them apart.
  */
 type DistroSeed = {
   name: string
@@ -103,12 +112,23 @@ type DistroSeed = {
   repos?: DistroRepo[] | ((arch: string) => DistroRepo[])
 }
 
-/** Repositories of one architecture of a distribution, named so that entries can be told apart. */
+/**
+ * Repositories of one architecture of a distribution: the ones that serve it, with the architecture
+ * appended to the name of the repositories whose URLs name it, so that entries can be told apart. A
+ * repository that names the architectures it serves is read by all of them, so it keeps its name
+ * and is stored once.
+ */
 function repositories(repos: DistroSeed['repos'], arch: string) {
-  if (typeof repos === 'function') {
-    return repos(arch).map((repo) => ({ ...repo, name: `${repo.name} (${arch})` }))
-  }
-  return repos ?? []
+  const perArchitecture = typeof repos === 'function'
+  const definitions = perArchitecture ? repos(arch) : (repos ?? [])
+
+  return definitions
+    .filter(({ arches }) => !arches || arches.includes(arch))
+    .map(({ arches, ...repository }) =>
+      perArchitecture && !arches
+        ? { ...repository, name: `${repository.name} (${arch})` }
+        : repository,
+    )
 }
 
 /**
@@ -468,14 +488,43 @@ const distros: DistroSeed[] = [
     name: 'Ubuntu',
     version: '24.04',
     pkgType: 'deb',
-    arches: desktopArches,
+    arches: serverArches,
     releaseDate: '2024-04-25',
     eolDate: '2029-05-31',
-    repos: (arch) => [
+    repos: [
       debRepo(
         'Ubuntu 24.04 Main',
-        `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
+        'deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse',
         null,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 24.04 Ports',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ noble main restricted universe multiverse',
+        null,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+    ],
+  },
+  {
+    name: 'Ubuntu',
+    version: '26.04',
+    pkgType: 'deb',
+    arches: serverArches,
+    releaseDate: '2026-04-23',
+    eolDate: '2031-05-29',
+    repos: [
+      debRepo(
+        'Ubuntu 26.04 Main',
+        'deb http://archive.ubuntu.com/ubuntu/ resolute main restricted universe multiverse',
+        null,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 26.04 Ports',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ resolute main restricted universe multiverse',
+        null,
+        ['aarch64', 'ppc64le', 's390x'],
       ),
     ],
   },
