@@ -1,8 +1,11 @@
-/* One release reads as a single line: the icon of the distribution, its name, and the version */
+/* One release reads as a single line: the icon of the distribution, its name, and the version. The
+   icon makes the line taller than the text of the other cells of a row (which is what a release is
+   compared with), so the whole line is centred in the cell instead of sitting on its baseline */
 .release {
   align-items: center;
   display: inline-flex;
   gap: 8px;
+  vertical-align: middle;
   white-space: nowrap;
 }
 

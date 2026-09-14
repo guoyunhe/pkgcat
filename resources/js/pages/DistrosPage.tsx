@@ -19,15 +19,6 @@ function formatDate(value: string, language: string) {
   return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
 }
 
-/**
- * Releases an entry is binary compatible with: the one it names, and the ones that name it.
- * Compatibility holds both ways, so both directions are the same relation and are read as one.
- */
-function compatibleReleases(distro: Distro) {
-  const releases = [distro.compatibleDistro, ...(distro.compatibleDistros ?? [])]
-  return releases.filter((release): release is Distro => (!release?.id ? false : true))
-}
-
 export default function DistrosPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
@@ -162,13 +153,11 @@ export default function DistrosPage() {
                   <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
                 </Table.Td>
                 <Table.Td>
-                  <span className={styles.compatible}>
-                    {compatibleReleases(distro).length === 0
-                      ? '—'
-                      : compatibleReleases(distro).map((release) => (
-                          <DistroRelease arch={distro.arch} distro={release} key={release.id} />
-                        ))}
-                  </span>
+                  {distro.compatibleDistro ? (
+                    <DistroRelease arch={distro.arch} distro={distro.compatibleDistro} />
+                  ) : (
+                    '—'
+                  )}
                 </Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}

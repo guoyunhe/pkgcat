@@ -20,9 +20,11 @@ export default function HomeDistroCard({ distro }: HomeDistroCardProps) {
         <Text className={styles.distroName} fw={700}>
           {distro.name}
         </Text>
-        <Text className={styles.distroVersion} fw={700}>
-          {distro.version ?? '∞'}
-        </Text>
+        {distro.version && (
+          <Text className={styles.distroVersion} fw={700}>
+            {distro.version}
+          </Text>
+        )}
         <Text className={styles.distroArch}>{distro.arch}</Text>
       </div>
     </Card>

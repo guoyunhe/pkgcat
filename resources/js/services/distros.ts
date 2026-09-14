@@ -24,10 +24,9 @@ function authHeaders() {
 
 /**
  * Fields the distribution form sends. The release a distribution is binary compatible with is sent
- * as its id, while the API answers with the entry itself, in both of the directions that answer
- * with it.
+ * as its id, while the API answers with the entry itself.
  */
-export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro' | 'compatibleDistros'> & {
+export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro'> & {
   compatibleDistroId?: number | null
 }
 

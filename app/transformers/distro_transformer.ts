@@ -14,13 +14,12 @@ export default class DistroTransformer extends BaseTransformer<Distro> {
         'releaseDate',
         'eolDate',
       ]),
-      // The release this one is compatible with, and the ones that name it. Compatibility holds
-      // both ways, so the two directions name the same releases and the client only has to read the
-      // one that is filled in.
+      // The release this one is compatible with. The relation is stored and shown in one direction:
+      // a release names the release it continues, so the entries that are compatible with it do not
+      // have to be listed again on it.
       compatibleDistro: this.resource.compatibleDistro
         ? DistroTransformer.transform(this.resource.compatibleDistro)
         : null,
-      compatibleDistros: DistroTransformer.transform(this.resource.compatibleDistros ?? []),
     }
   }
 }

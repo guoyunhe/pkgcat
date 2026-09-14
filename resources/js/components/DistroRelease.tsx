@@ -17,13 +17,15 @@ type DistroReleaseProps = {
  * One entry of the catalog, named the same way wherever it is shown: the icon of the distribution,
  * its name, and the release it is. The distribution column and the compatibilities of an entry hold
  * the same kind of value, so both read alike.
+ *
+ * A rolling release carries no version, which is why it is named by its distribution alone.
  */
 export default function DistroRelease({ arch, distro }: DistroReleaseProps) {
   return (
     <span className={styles.release}>
       <img alt='' className={styles.icon} src={`/distros/${encodeURIComponent(distro.name)}.svg`} />
       <span className={styles.name}>
-        {distro.name} {distro.version ?? '∞'}
+        {distro.version ? `${distro.name} ${distro.version}` : distro.name}
       </span>
       {arch !== undefined && arch !== distro.arch && (
         <span className={styles.arch}>({distro.arch})</span>

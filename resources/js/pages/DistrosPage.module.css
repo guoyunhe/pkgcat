@@ -50,15 +50,6 @@
   word-break: break-all;
 }
 
-/* The releases an entry is compatible with, which may be several: a release names the one it
-   continues, and the releases that continue it name this one. Each of them is named the same way
-   the entry itself is, so this only lays them out */
-.compatible {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-}
-
 .expired {
   color: var(--mantine-color-red-6);
 }
