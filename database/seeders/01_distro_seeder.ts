@@ -13,7 +13,13 @@ function ubuntuArchive(arch: string) {
     : 'http://archive.ubuntu.com/ubuntu/'
 }
 
-/** Official repository of a distribution; the seeder links it to the entries it serves. */
+/**
+ * Official repository of a distribution; the seeder links it to the entries it serves. Every
+ * definition states its synchronization interval, so that a repository cannot end up with one by
+ * accident: the repositories of a release stream are frozen once the distribution is published, so
+ * they keep `null` and are read again only when the synchronization is forced, while the ones that
+ * keep changing after the release state the `updateSyncIntervalDays` interval.
+ */
 type DistroRepo = {
   name: string
   type: string
@@ -21,8 +27,15 @@ type DistroRepo = {
   configContent?: string
   configUrl?: string
   installScript?: string
-  syncIntervalDays?: number | null
+  syncIntervalDays: number | null
 }
+
+/**
+ * Interval of the repositories whose content keeps changing after the release: the update streams
+ * of the distributions, the rolling releases, and the repositories a distribution keeps publishing
+ * for the life of a release.
+ */
+const updateSyncIntervalDays = 7
 
 /**
  * One distribution of the catalog with the architectures it is published for. Every architecture
@@ -62,6 +75,11 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
  * Distributions whose packages no extractor reads yet (Arch Linux, Manjaro Linux, NixOS, Gentoo
  * Linux, and SteamOS, which ships pacman repositories) and distributions whose content is behind a
  * subscription (Red Hat Enterprise Linux) therefore have no `repos` entry.
+ *
+ * The release tree of a distribution is frozen once the release is published, so its repositories
+ * keep a `null` sync interval and are only read again with `repo:sync --force`; the update streams
+ * of the same release, the rolling releases, and the repositories the distribution keeps publishing
+ * for the life of a release are synchronized again every week.
  */
 const distros: DistroSeed[] = [
   {
@@ -77,7 +95,7 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: ubuntuArchive(arch),
         configContent: `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
-        syncIntervalDays: 7,
+        syncIntervalDays: null,
       },
     ],
   },
@@ -95,6 +113,7 @@ const distros: DistroSeed[] = [
         baseUrl: 'https://deb.debian.org/debian/',
         configContent:
           'deb https://deb.debian.org/debian trixie main contrib non-free non-free-firmware',
+        syncIntervalDays: null,
       },
       {
         name: 'Debian 13 Updates',
@@ -102,6 +121,7 @@ const distros: DistroSeed[] = [
         baseUrl: 'https://deb.debian.org/debian/',
         configContent:
           'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
+        syncIntervalDays: updateSyncIntervalDays,
       },
       {
         name: 'Debian 13 Security',
@@ -109,6 +129,7 @@ const distros: DistroSeed[] = [
         baseUrl: 'https://security.debian.org/debian-security/',
         configContent:
           'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -124,13 +145,13 @@ const distros: DistroSeed[] = [
         name: 'Fedora Linux 42 Everything',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/42/Everything/${arch}/os/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: null,
       },
       {
         name: 'Fedora Linux 42 Updates',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/42/Everything/${arch}/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -146,13 +167,13 @@ const distros: DistroSeed[] = [
         name: 'Fedora Linux 43 Everything',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/43/Everything/${arch}/os/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: null,
       },
       {
         name: 'Fedora Linux 43 Updates',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/43/Everything/${arch}/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -168,13 +189,13 @@ const distros: DistroSeed[] = [
         name: 'Fedora Linux 44 Everything',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/releases/44/Everything/${arch}/os/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: null,
       },
       {
         name: 'Fedora Linux 44 Updates',
         type: 'rpm',
         baseUrl: `https://download.fedoraproject.org/pub/fedora/linux/updates/44/Everything/${arch}/`,
-        syncIntervalDays: 7,
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -191,7 +212,8 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: 'http://packages.linuxmint.com/',
         configContent: 'deb http://packages.linuxmint.com wilma main upstream import backport',
-        syncIntervalDays: 7,
+        // The distribution keeps publishing its own packages for the life of the release
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -215,7 +237,8 @@ const distros: DistroSeed[] = [
         name: 'Rocky Linux 9 BaseOS',
         type: 'rpm',
         baseUrl: `https://dl.rockylinux.org/pub/rocky/9/BaseOS/${arch}/os/`,
-        syncIntervalDays: 7,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -231,7 +254,8 @@ const distros: DistroSeed[] = [
         name: 'AlmaLinux 9 BaseOS',
         type: 'rpm',
         baseUrl: `https://repo.almalinux.org/almalinux/9/BaseOS/${arch}/os/`,
-        syncIntervalDays: 7,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -255,13 +279,13 @@ const distros: DistroSeed[] = [
         name: 'openSUSE Leap 16.0 OSS',
         type: 'rpm',
         baseUrl: 'https://download.opensuse.org/distribution/leap/16.0/repo/oss/',
-        syncIntervalDays: 7,
+        syncIntervalDays: null,
       },
       {
         name: 'openSUSE Leap 16.0 Updates',
         type: 'rpm',
         baseUrl: 'https://download.opensuse.org/update/leap/16.0/oss/',
-        syncIntervalDays: 7,
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -277,13 +301,14 @@ const distros: DistroSeed[] = [
         name: 'openSUSE Tumbleweed OSS',
         type: 'rpm',
         baseUrl: 'https://download.opensuse.org/tumbleweed/repo/oss/',
-        syncIntervalDays: 7,
+        // A rolling release has no frozen tree, so its repositories are read again every week
+        syncIntervalDays: updateSyncIntervalDays,
       },
       {
         name: 'openSUSE Tumbleweed Non-OSS',
         type: 'rpm',
         baseUrl: 'https://download.opensuse.org/tumbleweed/repo/non-oss/',
-        syncIntervalDays: 7,
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -309,7 +334,8 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: 'http://apt.pop-os.org/ubuntu/',
         configContent: 'deb http://apt.pop-os.org/ubuntu noble main',
-        syncIntervalDays: 7,
+        // The distribution keeps publishing its own packages for the life of the release
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -342,7 +368,8 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: 'http://mxrepo.com/mx/repo/',
         configContent: 'deb http://mxrepo.com/mx/repo/ bookworm main non-free',
-        syncIntervalDays: 7,
+        // The distribution keeps publishing its own packages for the life of the release
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -360,7 +387,8 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: 'http://ppa.launchpad.net/elementary-os/stable/ubuntu/',
         configContent: 'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
-        syncIntervalDays: 7,
+        // The distribution keeps publishing its own packages for the life of the release
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -377,7 +405,8 @@ const distros: DistroSeed[] = [
         type: 'deb',
         baseUrl: 'http://ppa.launchpad.net/zorinos/stable/ubuntu/',
         configContent: 'deb http://ppa.launchpad.net/zorinos/stable/ubuntu jammy main',
-        syncIntervalDays: 7,
+        // The distribution keeps publishing its own packages for the life of the release
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
@@ -395,7 +424,8 @@ const distros: DistroSeed[] = [
         baseUrl: 'http://http.kali.org/kali/',
         configContent:
           'deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware',
-        syncIntervalDays: 7,
+        // A rolling release has no frozen tree, so its repositories are read again every week
+        syncIntervalDays: updateSyncIntervalDays,
       },
     ],
   },
