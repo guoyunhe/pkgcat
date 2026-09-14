@@ -84,6 +84,16 @@ export default function AppHeader() {
           </Button>
           <Button
             component={Link}
+            href='/pkgs'
+            className={styles.navButton}
+            color='gray'
+            leftSection={<PackageIcon size={18} />}
+            variant='subtle'
+          >
+            {t('header.packages')}
+          </Button>
+          <Button
+            component={Link}
             href='/repos'
             className={styles.navButton}
             color='gray'
@@ -101,16 +111,6 @@ export default function AppHeader() {
             variant='subtle'
           >
             {t('header.distributions')}
-          </Button>
-          <Button
-            component={Link}
-            href='/pkgs'
-            className={styles.navButton}
-            color='gray'
-            leftSection={<PackageIcon size={18} />}
-            variant='subtle'
-          >
-            {t('header.packages')}
           </Button>
           <form
             className={styles.searchForm}
