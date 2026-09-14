@@ -108,19 +108,29 @@ function repositories(repos: DistroSeed['repos'], arch: string) {
  */
 const distros: DistroSeed[] = [
   {
-    name: 'Ubuntu',
-    version: '24.04',
-    pkgType: 'deb',
+    name: 'AlmaLinux',
+    version: '9',
+    pkgType: 'rpm',
     arches: desktopArches,
-    releaseDate: '2024-04-25',
-    eolDate: '2029-05-31',
+    releaseDate: '2022-05-26',
+    eolDate: '2032-05-31',
     repos: (arch) => [
-      debRepo(
-        'Ubuntu 24.04 Main',
-        `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
-        null,
-      ),
+      {
+        name: 'AlmaLinux 9 BaseOS',
+        type: 'rpm',
+        baseUrl: `https://repo.almalinux.org/almalinux/9/BaseOS/${arch}/os/`,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
+      },
     ],
+  },
+  {
+    name: 'Arch Linux',
+    version: null,
+    pkgType: null,
+    arches: ['x86_64'],
+    releaseDate: null,
+    eolDate: null,
   },
   {
     name: 'Debian',
@@ -143,6 +153,23 @@ const distros: DistroSeed[] = [
       debRepo(
         'Debian 13 Security',
         'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
+        updateSyncIntervalDays,
+      ),
+    ],
+  },
+  {
+    name: 'elementary OS',
+    version: '8',
+    pkgType: 'deb',
+    // elementary OS is published for x86_64 only
+    arches: ['x86_64'],
+    releaseDate: '2024-11-26',
+    eolDate: '2029-05-31',
+    repos: [
+      debRepo(
+        'elementary OS 8 Stable',
+        'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
+        // The distribution keeps publishing its own packages for the life of the release
         updateSyncIntervalDays,
       ),
     ],
@@ -214,6 +241,30 @@ const distros: DistroSeed[] = [
     ],
   },
   {
+    name: 'Gentoo Linux',
+    version: null,
+    pkgType: null,
+    arches: desktopArches,
+    releaseDate: null,
+    eolDate: null,
+  },
+  {
+    name: 'Kali Linux',
+    version: null,
+    pkgType: 'deb',
+    arches: desktopArches,
+    releaseDate: null,
+    eolDate: null,
+    repos: [
+      debRepo(
+        'Kali Linux Rolling',
+        'deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware',
+        // A rolling release has no frozen tree, so its repositories are read again every week
+        updateSyncIntervalDays,
+      ),
+    ],
+  },
+  {
     name: 'Linux Mint',
     version: '22',
     pkgType: 'deb',
@@ -230,54 +281,36 @@ const distros: DistroSeed[] = [
     ],
   },
   {
-    name: 'Red Hat Enterprise Linux',
-    version: '9',
-    pkgType: 'rpm',
-    arches: desktopArches,
-    releaseDate: '2022-05-18',
-    eolDate: '2032-05-31',
-  },
-  {
-    name: 'Rocky Linux',
-    version: '9',
-    pkgType: 'rpm',
-    arches: desktopArches,
-    releaseDate: '2022-07-14',
-    eolDate: '2032-05-31',
-    repos: (arch) => [
-      {
-        name: 'Rocky Linux 9 BaseOS',
-        type: 'rpm',
-        baseUrl: `https://dl.rockylinux.org/pub/rocky/9/BaseOS/${arch}/os/`,
-        // Errata are published into the release tree itself, so it keeps changing
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-    ],
-  },
-  {
-    name: 'AlmaLinux',
-    version: '9',
-    pkgType: 'rpm',
-    arches: desktopArches,
-    releaseDate: '2022-05-26',
-    eolDate: '2032-05-31',
-    repos: (arch) => [
-      {
-        name: 'AlmaLinux 9 BaseOS',
-        type: 'rpm',
-        baseUrl: `https://repo.almalinux.org/almalinux/9/BaseOS/${arch}/os/`,
-        // Errata are published into the release tree itself, so it keeps changing
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-    ],
-  },
-  {
-    name: 'Arch Linux',
+    name: 'Manjaro Linux',
     version: null,
     pkgType: null,
-    arches: ['x86_64'],
+    arches: desktopArches,
     releaseDate: null,
     eolDate: null,
+  },
+  {
+    name: 'MX Linux',
+    version: '23',
+    pkgType: 'deb',
+    arches: desktopArches,
+    releaseDate: '2023-07-31',
+    eolDate: '2028-06-10',
+    repos: [
+      debRepo(
+        'MX Linux 23 Main',
+        'deb http://mxrepo.com/mx/repo/ bookworm main non-free',
+        // The distribution keeps publishing its own packages for the life of the release
+        updateSyncIntervalDays,
+      ),
+    ],
+  },
+  {
+    name: 'NixOS',
+    version: '25.05',
+    pkgType: null,
+    arches: desktopArches,
+    releaseDate: '2025-05-23',
+    eolDate: '2025-12-31',
   },
   {
     name: 'openSUSE Leap',
@@ -321,14 +354,6 @@ const distros: DistroSeed[] = [
     ],
   },
   {
-    name: 'Manjaro Linux',
-    version: null,
-    pkgType: null,
-    arches: desktopArches,
-    releaseDate: null,
-    eolDate: null,
-  },
-  {
     name: 'Pop!_OS',
     version: '24.04',
     pkgType: 'deb',
@@ -346,6 +371,31 @@ const distros: DistroSeed[] = [
     ],
   },
   {
+    name: 'Red Hat Enterprise Linux',
+    version: '9',
+    pkgType: 'rpm',
+    arches: desktopArches,
+    releaseDate: '2022-05-18',
+    eolDate: '2032-05-31',
+  },
+  {
+    name: 'Rocky Linux',
+    version: '9',
+    pkgType: 'rpm',
+    arches: desktopArches,
+    releaseDate: '2022-07-14',
+    eolDate: '2032-05-31',
+    repos: (arch) => [
+      {
+        name: 'Rocky Linux 9 BaseOS',
+        type: 'rpm',
+        baseUrl: `https://dl.rockylinux.org/pub/rocky/9/BaseOS/${arch}/os/`,
+        // Errata are published into the release tree itself, so it keeps changing
+        syncIntervalDays: updateSyncIntervalDays,
+      },
+    ],
+  },
+  {
     name: 'SteamOS',
     version: '3',
     pkgType: 'deb',
@@ -354,43 +404,17 @@ const distros: DistroSeed[] = [
     eolDate: null,
   },
   {
-    name: 'NixOS',
-    version: '25.05',
-    pkgType: null,
-    arches: desktopArches,
-    releaseDate: '2025-05-23',
-    eolDate: '2025-12-31',
-  },
-  {
-    name: 'MX Linux',
-    version: '23',
+    name: 'Ubuntu',
+    version: '24.04',
     pkgType: 'deb',
     arches: desktopArches,
-    releaseDate: '2023-07-31',
-    eolDate: '2028-06-10',
-    repos: [
-      debRepo(
-        'MX Linux 23 Main',
-        'deb http://mxrepo.com/mx/repo/ bookworm main non-free',
-        // The distribution keeps publishing its own packages for the life of the release
-        updateSyncIntervalDays,
-      ),
-    ],
-  },
-  {
-    name: 'elementary OS',
-    version: '8',
-    pkgType: 'deb',
-    // elementary OS is published for x86_64 only
-    arches: ['x86_64'],
-    releaseDate: '2024-11-26',
+    releaseDate: '2024-04-25',
     eolDate: '2029-05-31',
-    repos: [
+    repos: (arch) => [
       debRepo(
-        'elementary OS 8 Stable',
-        'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
-        // The distribution keeps publishing its own packages for the life of the release
-        updateSyncIntervalDays,
+        'Ubuntu 24.04 Main',
+        `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
+        null,
       ),
     ],
   },
@@ -409,30 +433,6 @@ const distros: DistroSeed[] = [
         updateSyncIntervalDays,
       ),
     ],
-  },
-  {
-    name: 'Kali Linux',
-    version: null,
-    pkgType: 'deb',
-    arches: desktopArches,
-    releaseDate: null,
-    eolDate: null,
-    repos: [
-      debRepo(
-        'Kali Linux Rolling',
-        'deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware',
-        // A rolling release has no frozen tree, so its repositories are read again every week
-        updateSyncIntervalDays,
-      ),
-    ],
-  },
-  {
-    name: 'Gentoo Linux',
-    version: null,
-    pkgType: null,
-    arches: desktopArches,
-    releaseDate: null,
-    eolDate: null,
   },
 ]
 
