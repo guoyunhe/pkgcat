@@ -7,11 +7,13 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.string('name').notNullable().index()
+      // Both the name and the URL a repository is read from are unique: they are what tells two
+      // repositories apart
+      table.string('name').notNullable().unique()
       table.string('type').notNullable().index()
       table.string('source').notNullable().index()
 
-      table.string('base_url').notNullable()
+      table.string('base_url').notNullable().unique()
       table.text('config_content').nullable()
       table.string('config_url').nullable()
       table.text('install_script').nullable()

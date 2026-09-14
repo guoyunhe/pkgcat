@@ -31,6 +31,24 @@ type DistroRepo = {
 }
 
 /**
+ * A deb repository of a distribution, built from the single source line it reads: the line names
+ * the archive together with the suite and the components, which is what tells the repositories of a
+ * distribution apart. The same archive serves several suites (`trixie` and `trixie-updates`), so
+ * the archive alone would give two entries the same base URL, while the source line is unique. That
+ * line is also all a deb repository is defined by, so it becomes the content of its configuration
+ * file as well.
+ */
+function debRepo(name: string, source: string, syncIntervalDays: number | null): DistroRepo {
+  return {
+    name,
+    type: 'deb',
+    baseUrl: source,
+    configContent: source,
+    syncIntervalDays,
+  }
+}
+
+/**
  * Interval of the repositories whose content keeps changing after the release: the update streams
  * of the distributions, the rolling releases, and the repositories a distribution keeps publishing
  * for the life of a release.
@@ -90,13 +108,11 @@ const distros: DistroSeed[] = [
     releaseDate: '2024-04-25',
     eolDate: '2029-05-31',
     repos: (arch) => [
-      {
-        name: 'Ubuntu 24.04 Main',
-        type: 'deb',
-        baseUrl: ubuntuArchive(arch),
-        configContent: `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
-        syncIntervalDays: null,
-      },
+      debRepo(
+        'Ubuntu 24.04 Main',
+        `deb ${ubuntuArchive(arch)} noble main restricted universe multiverse`,
+        null,
+      ),
     ],
   },
   {
@@ -107,30 +123,21 @@ const distros: DistroSeed[] = [
     releaseDate: '2025-08-09',
     eolDate: '2030-06-30',
     repos: [
-      {
-        name: 'Debian 13 Main',
-        type: 'deb',
-        baseUrl: 'https://deb.debian.org/debian/',
-        configContent:
-          'deb https://deb.debian.org/debian trixie main contrib non-free non-free-firmware',
-        syncIntervalDays: null,
-      },
-      {
-        name: 'Debian 13 Updates',
-        type: 'deb',
-        baseUrl: 'https://deb.debian.org/debian/',
-        configContent:
-          'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
-        syncIntervalDays: updateSyncIntervalDays,
-      },
-      {
-        name: 'Debian 13 Security',
-        type: 'deb',
-        baseUrl: 'https://security.debian.org/debian-security/',
-        configContent:
-          'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+      debRepo(
+        'Debian 13 Main',
+        'deb https://deb.debian.org/debian trixie main contrib non-free non-free-firmware',
+        null,
+      ),
+      debRepo(
+        'Debian 13 Updates',
+        'deb https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware',
+        updateSyncIntervalDays,
+      ),
+      debRepo(
+        'Debian 13 Security',
+        'deb https://security.debian.org/debian-security trixie-security main contrib non-free non-free-firmware',
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -207,14 +214,12 @@ const distros: DistroSeed[] = [
     releaseDate: '2024-07-25',
     eolDate: '2029-04-01',
     repos: [
-      {
-        name: 'Linux Mint 22 Main',
-        type: 'deb',
-        baseUrl: 'http://packages.linuxmint.com/',
-        configContent: 'deb http://packages.linuxmint.com wilma main upstream import backport',
+      debRepo(
+        'Linux Mint 22 Main',
+        'deb http://packages.linuxmint.com wilma main upstream import backport',
         // The distribution keeps publishing its own packages for the life of the release
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -329,14 +334,12 @@ const distros: DistroSeed[] = [
     releaseDate: '2025-12-11',
     eolDate: '2029-05-31',
     repos: [
-      {
-        name: 'Pop!_OS 24.04 Main',
-        type: 'deb',
-        baseUrl: 'http://apt.pop-os.org/ubuntu/',
-        configContent: 'deb http://apt.pop-os.org/ubuntu noble main',
+      debRepo(
+        'Pop!_OS 24.04 Main',
+        'deb http://apt.pop-os.org/ubuntu noble main',
         // The distribution keeps publishing its own packages for the life of the release
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -363,14 +366,12 @@ const distros: DistroSeed[] = [
     releaseDate: '2023-07-31',
     eolDate: '2028-06-10',
     repos: [
-      {
-        name: 'MX Linux 23 Main',
-        type: 'deb',
-        baseUrl: 'http://mxrepo.com/mx/repo/',
-        configContent: 'deb http://mxrepo.com/mx/repo/ bookworm main non-free',
+      debRepo(
+        'MX Linux 23 Main',
+        'deb http://mxrepo.com/mx/repo/ bookworm main non-free',
         // The distribution keeps publishing its own packages for the life of the release
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -382,14 +383,12 @@ const distros: DistroSeed[] = [
     releaseDate: '2024-11-26',
     eolDate: '2029-05-31',
     repos: [
-      {
-        name: 'elementary OS 8 Stable',
-        type: 'deb',
-        baseUrl: 'http://ppa.launchpad.net/elementary-os/stable/ubuntu/',
-        configContent: 'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
+      debRepo(
+        'elementary OS 8 Stable',
+        'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
         // The distribution keeps publishing its own packages for the life of the release
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -400,14 +399,12 @@ const distros: DistroSeed[] = [
     releaseDate: '2023-12-20',
     eolDate: '2027-06-01',
     repos: [
-      {
-        name: 'Zorin OS 17 Stable',
-        type: 'deb',
-        baseUrl: 'http://ppa.launchpad.net/zorinos/stable/ubuntu/',
-        configContent: 'deb http://ppa.launchpad.net/zorinos/stable/ubuntu jammy main',
+      debRepo(
+        'Zorin OS 17 Stable',
+        'deb http://ppa.launchpad.net/zorinos/stable/ubuntu jammy main',
         // The distribution keeps publishing its own packages for the life of the release
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
@@ -418,15 +415,12 @@ const distros: DistroSeed[] = [
     releaseDate: null,
     eolDate: null,
     repos: [
-      {
-        name: 'Kali Linux Rolling',
-        type: 'deb',
-        baseUrl: 'http://http.kali.org/kali/',
-        configContent:
-          'deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware',
+      debRepo(
+        'Kali Linux Rolling',
+        'deb http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware',
         // A rolling release has no frozen tree, so its repositories are read again every week
-        syncIntervalDays: updateSyncIntervalDays,
-      },
+        updateSyncIntervalDays,
+      ),
     ],
   },
   {
