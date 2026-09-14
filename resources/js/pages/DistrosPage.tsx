@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Loader, Select, Table, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Table, Text, Title } from '@mantine/core'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
+import ArchSelect from '../components/ArchSelect'
 import DistroRelease from '../components/DistroRelease'
 import { deleteDistro, distroLabel, getDistros, type Distro } from '../services/distros'
 
@@ -63,11 +64,6 @@ export default function DistrosPage() {
     return !Number.isNaN(date.getTime()) && date.getTime() < Date.now()
   }
 
-  const archOptions = useMemo(
-    () => [...new Set(distros.map((distro) => distro.arch))].sort(),
-    [distros],
-  )
-
   // The list arrives complete and small, so the filter only narrows what is already loaded, and the
   // order the API returns — a distribution's releases together, newest first — is left untouched
   const visibleDistros = useMemo(
@@ -104,14 +100,11 @@ export default function DistrosPage() {
       )}
       {!loading && distros.length > 0 && (
         <Group mb='lg'>
-          <Select
-            clearable
-            data={archOptions}
+          <ArchSelect
             label={t('distros.filterArch')}
             onChange={setArchFilter}
             placeholder={t('distros.filterAny')}
             value={archFilter}
-            w={240}
           />
         </Group>
       )}

@@ -18,14 +18,8 @@ import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
-import {
-  createDistro,
-  distroLabel,
-  getDistro,
-  getDistros,
-  updateDistro,
-  type Distro,
-} from '../services/distros'
+import DistroSelect from '../components/DistroSelect'
+import { createDistro, getDistro, updateDistro } from '../services/distros'
 import { packageTypes } from '../utils/pkgTypes'
 
 import styles from './AppFormPage.module.css'
@@ -59,9 +53,6 @@ export default function DistroFormPage() {
   const [loading, setLoading] = useState(Boolean(distroId))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  // Every entry of the catalog may be the release this one is compatible with, so the form offers
-  // them all and leaves out the entry being edited
-  const [distros, setDistros] = useState<Distro[]>([])
 
   const form = useForm<DistroFormValues>({
     initialValues: {
@@ -95,20 +86,6 @@ export default function DistroFormPage() {
       .finally(() => setLoading(false))
   }, [distroId])
 
-  useEffect(() => {
-    let active = true
-    getDistros()
-      .then((result) => {
-        if (active) setDistros(result)
-      })
-      .catch(() => {
-        // Without the options the compatibility stays empty, which is the same as naming nothing
-      })
-    return () => {
-      active = false
-    }
-  }, [])
-
   if (!ready)
     return (
       <div className={styles.loading}>
@@ -123,10 +100,6 @@ export default function DistroFormPage() {
         <Loader color='orange' />
       </div>
     )
-
-  const compatibleOptions = distros
-    .filter((distro) => distro.id !== distroId)
-    .map((distro) => ({ value: String(distro.id), label: distroLabel(distro) }))
 
   async function handleSubmit(values: DistroFormValues) {
     try {
@@ -208,13 +181,15 @@ export default function DistroFormPage() {
             {...form.getInputProps('arch')}
           />
 
-          <Select
-            clearable
-            data={compatibleOptions}
+          <DistroSelect
             description={t('distros.fields.compatibleDistroHint')}
+            excludeIds={distroId ? [distroId] : undefined}
             label={t('distros.fields.compatibleDistro')}
+            onChange={(compatibleDistroId) =>
+              form.setFieldValue('compatibleDistroId', compatibleDistroId)
+            }
             searchable
-            {...form.getInputProps('compatibleDistroId')}
+            value={form.values.compatibleDistroId}
           />
 
           <TextInput

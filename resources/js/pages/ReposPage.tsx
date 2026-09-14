@@ -1,13 +1,14 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Loader, Table, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Table, Text, Title } from '@mantine/core'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
+import DistroSelect from '../components/DistroSelect'
 import { deleteRepo, getRepos } from '../services/repos'
 
 import styles from './ReposPage.module.css'
@@ -23,6 +24,9 @@ export default function ReposPage() {
   const [repos, setRepos] = useState<Data.Repo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // A repository serves the releases of the distributions it publishes, which is how the entries the
+  // loaded repositories name become the options that narrow the list down
+  const [distroFilter, setDistroFilter] = useState<string | null>(null)
 
   async function loadRepos() {
     try {
@@ -57,6 +61,22 @@ export default function ReposPage() {
     }).format(new Date(value))
   }
 
+  // The releases the loaded repositories name are the entries the filter offers
+  const distroEntries = useMemo(() => repos.flatMap((repo) => repo.distros), [repos])
+
+  // The list arrives complete and small, so the filter only narrows what is already loaded, and the
+  // order the API returns — the repositories by name — is left untouched
+  const visibleRepos = useMemo(
+    () =>
+      distroFilter === null
+        ? repos
+        : repos.filter((repo) => repo.distros.some((distro) => String(distro.id) === distroFilter)),
+    [distroFilter, repos],
+  )
+
+  // An empty list is a different thing from a filter that matches nothing
+  const emptyMessage = repos.length === 0 ? t('repos.notFound') : t('repos.filterEmpty')
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -81,12 +101,24 @@ export default function ReposPage() {
           {error}
         </Alert>
       )}
+      {!loading && repos.length > 0 && (
+        <Group mb='lg'>
+          <DistroSelect
+            distros={distroEntries}
+            label={t('repos.filterDistro')}
+            onChange={setDistroFilter}
+            placeholder={t('repos.filterAny')}
+            searchable
+            value={distroFilter}
+          />
+        </Group>
+      )}
       {loading ? (
         <div className={styles.loading}>
           <Loader color='orange' />
         </div>
-      ) : repos.length === 0 ? (
-        <Text c='dimmed'>{t('repos.notFound')}</Text>
+      ) : visibleRepos.length === 0 ? (
+        <Text c='dimmed'>{emptyMessage}</Text>
       ) : (
         <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
           <Table.Thead>
@@ -100,7 +132,7 @@ export default function ReposPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {repos.map((repo) => (
+            {visibleRepos.map((repo) => (
               <Table.Tr
                 className={isAdmin ? styles.clickableRow : styles.row}
                 key={repo.id}

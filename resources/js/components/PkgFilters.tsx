@@ -1,27 +1,18 @@
 import { useLocalStorage } from '@guoyunhe/react-storage'
-import { Button, Group, Select } from '@mantine/core'
+import { Button, Group } from '@mantine/core'
 import { XIcon } from '@phosphor-icons/react/X'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { PkgFilters as PkgFiltersValue } from '../services/apps'
-import { distroLabel, getDistros } from '../services/distros'
+import { getDistros, type Distro } from '../services/distros'
 import { packageTypes } from '../utils/pkgTypes'
-
-import styles from './PkgFilters.module.css'
+import ArchSelect from './ArchSelect'
+import DistroSelect from './DistroSelect'
+import ListFilter from './ListFilter'
 
 const storageKey = 'pkg-filters'
 const emptyFilters: PkgFiltersValue = { distroId: null, type: null, arch: null }
-
-type DistroOption = {
-  value: string
-  label: string
-  icon: string
-}
-
-function distroIcon(name: string) {
-  return `/distros/${encodeURIComponent(name)}.svg`
-}
 
 /**
  * Filters are remembered across visits, but older shapes (distributions by name, or lists from when
@@ -60,8 +51,7 @@ type PkgFiltersProps = {
  */
 export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
   const { t } = useTranslation()
-  const [distros, setDistros] = useState<DistroOption[]>([])
-  const [archs, setArchs] = useState<string[]>([])
+  const [distros, setDistros] = useState<Distro[]>([])
 
   useEffect(() => {
     let active = true
@@ -69,22 +59,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
       .then((result) => {
         if (!active) return
         // Only distributions with a native package format can match packages
-        const filterable = result
-          .filter((distro) => distro.pkgType)
-          .sort(
-            (a, b) =>
-              a.name.localeCompare(b.name) ||
-              (a.version ?? '').localeCompare(b.version ?? '', undefined, { numeric: true }) ||
-              a.arch.localeCompare(b.arch),
-          )
-        setDistros(
-          filterable.map((distro) => ({
-            value: String(distro.id),
-            label: distroLabel(distro),
-            icon: distroIcon(distro.name),
-          })),
-        )
-        setArchs([...new Set(result.map((distro) => distro.arch))].sort())
+        setDistros(result.filter((distro) => distro.pkgType))
       })
       .catch(() => {
         // Without options the filters stay empty, which is the same as having no filter
@@ -94,48 +69,32 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
     }
   }, [])
 
-  const selectedDistro = distros.find((distro) => distro.value === value.distroId)
   const hasFilters = value.distroId !== null || value.type !== null || value.arch !== null
 
   return (
     <Group align='flex-end' gap='sm' mb='lg'>
-      <Select
-        clearable
-        data={distros}
+      <DistroSelect
+        distros={distros}
         label={t('packages.filterDistro')}
-        leftSection={
-          selectedDistro ? <img alt='' className={styles.icon} src={selectedDistro.icon} /> : null
-        }
         onChange={(distroId) => onChange({ ...value, distroId })}
         placeholder={t('packages.filterAny')}
-        renderOption={({ option }) => (
-          <Group gap='xs' wrap='nowrap'>
-            <img alt='' className={styles.icon} src={(option as DistroOption).icon} />
-            <span>{option.label}</span>
-          </Group>
-        )}
         searchable
         value={value.distroId}
-        w={240}
       />
-      <Select
-        clearable
-        data={archs}
+      <ArchSelect
         label={t('packages.filterArch')}
         onChange={(arch) => onChange({ ...value, arch })}
         placeholder={t('packages.filterAny')}
         searchable
         value={value.arch}
-        w={240}
       />
-      <Select
-        clearable
-        data={packageTypes}
+      <ListFilter
+        data={packageTypes.map((type) => ({ label: type, value: type }))}
         label={t('packages.filterType')}
         onChange={(type) => onChange({ ...value, type })}
         placeholder={t('packages.filterAny')}
         value={value.type}
-        w={160}
+        width={160}
       />
       {hasFilters && (
         <Button
