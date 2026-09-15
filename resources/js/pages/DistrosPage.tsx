@@ -141,9 +141,7 @@ export default function DistrosPage() {
                 <Table.Td>
                   <DistroRelease distro={distro} />
                 </Table.Td>
-                <Table.Td>
-                  <span className={styles.arch}>{distro.arch}</span>
-                </Table.Td>
+                <Table.Td>{distro.arch}</Table.Td>
                 <Table.Td>
                   <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
                 </Table.Td>

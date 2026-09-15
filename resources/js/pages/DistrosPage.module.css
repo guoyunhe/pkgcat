@@ -40,12 +40,6 @@
   text-transform: uppercase;
 }
 
-.arch {
-  color: var(--ph-muted);
-  font-size: 12px;
-  word-break: break-all;
-}
-
 .expired {
   color: var(--mantine-color-red-6);
 }
