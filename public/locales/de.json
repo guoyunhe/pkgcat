@@ -20,7 +20,7 @@
   "loginFailed": "Anmeldung nicht möglich. Prüfen Sie E-Mail-Adresse und Passwort.",
   "registerFailed": "Das Konto konnte nicht erstellt werden.",
   "header": {
-    "searchApplications": "Apps suchen",
+    "searchCatalog": "Katalog durchsuchen",
     "theme": "Design",
     "themeAuto": "System",
     "themeLight": "Hell",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Anwendungssuche",
+    "eyebrow": "Katalogsuche",
     "title": "Suchergebnisse",
     "resultsFor": "Ergebnisse für „{{query}}“.",
     "loadError": "Anwendungen konnten nicht gesucht werden",
-    "loadPackagesError": "Pakete konnten nicht gesucht werden"
+    "loadPackagesError": "Pakete konnten nicht gesucht werden",
+    "loadReposError": "Repositories konnten nicht durchsucht werden",
+    "loadDistrosError": "Distributionen konnten nicht durchsucht werden"
   },
   "detail": {
     "invalidId": "Ungültige Anwendungs-ID",
@@ -264,6 +266,7 @@
     "notFound": "Noch keine Distributionen eingerichtet.",
     "filterAny": "Alle Architekturen",
     "filterEmpty": "Keine Distributionen für diese Architektur.",
+    "searchEmpty": "Keine Distributionen passen zur Suche.",
     "loadError": "Distributionen konnten nicht geladen werden",
     "saveError": "Die Distribution konnte nicht gespeichert werden",
     "deleteError": "Die Distribution konnte nicht gelöscht werden",

@@ -20,7 +20,7 @@
   "loginFailed": "無法登入，請檢查電子郵件與密碼。",
   "registerFailed": "無法建立帳號。",
   "header": {
-    "searchApplications": "搜尋應用程式",
+    "searchCatalog": "搜尋目錄",
     "theme": "佈景主題",
     "themeAuto": "跟隨系統",
     "themeLight": "淺色模式",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "應用程式搜尋",
+    "eyebrow": "目錄搜尋",
     "title": "搜尋結果",
     "resultsFor": "「{{query}}」的搜尋結果。",
     "loadError": "無法搜尋應用程式",
-    "loadPackagesError": "無法搜尋軟體套件"
+    "loadPackagesError": "無法搜尋軟體套件",
+    "loadReposError": "無法搜尋軟體倉庫",
+    "loadDistrosError": "無法搜尋發行版"
   },
   "detail": {
     "invalidId": "無效的應用程式 ID",
@@ -264,6 +266,7 @@
     "notFound": "尚未新增任何發行版。",
     "filterAny": "全部架構",
     "filterEmpty": "沒有該架構的發行版。",
+    "searchEmpty": "沒有符合的發行版。",
     "loadError": "無法載入發行版",
     "saveError": "無法儲存發行版",
     "deleteError": "無法刪除發行版",

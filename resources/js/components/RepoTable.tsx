@@ -33,6 +33,8 @@ type RepoTableProps = {
    * A table whose filters match nothing says so itself.
    */
   emptyMessage: string
+  /** Message of a listing that could not be read. */
+  errorMessage?: string
   /** Controls the page keeps next to the table, such as the order it keeps in its URL. */
   extraFilters?: ReactNode
   /** Number of repositories the table lists, told whenever a page of it is read. */
@@ -63,6 +65,7 @@ type RepoTableProps = {
 export default function RepoTable({
   load,
   emptyMessage,
+  errorMessage,
   extraFilters,
   onCountChange,
   refreshKey,
@@ -125,7 +128,9 @@ export default function RepoTable({
       })
       .catch((reason) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : t('repos.loadError'))
+          setError(
+            reason instanceof Error ? reason.message : (errorMessage ?? t('repos.loadError')),
+          )
         }
       })
       .finally(() => {
@@ -135,7 +140,7 @@ export default function RepoTable({
     return () => {
       active = false
     }
-  }, [listing, refreshKey, t])
+  }, [errorMessage, listing, refreshKey, t])
 
   function formatDate(value: string | null) {
     if (!value) return t('repos.neverSynced')

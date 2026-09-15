@@ -20,7 +20,7 @@
   "loginFailed": "Unable to log in. Check your email and password.",
   "registerFailed": "Unable to create the account.",
   "header": {
-    "searchApplications": "Search applications",
+    "searchCatalog": "Search the catalog",
     "theme": "Theme",
     "themeAuto": "System",
     "themeLight": "Light",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Application search",
+    "eyebrow": "Catalog search",
     "title": "Search results",
     "resultsFor": "Results for “{{query}}”.",
     "loadError": "Unable to search applications",
-    "loadPackagesError": "Unable to search packages"
+    "loadPackagesError": "Unable to search packages",
+    "loadReposError": "Unable to search repositories",
+    "loadDistrosError": "Unable to search distributions"
   },
   "detail": {
     "invalidId": "Invalid application ID",
@@ -264,6 +266,7 @@
     "notFound": "No distributions configured yet.",
     "filterAny": "All architectures",
     "filterEmpty": "No distributions for this architecture.",
+    "searchEmpty": "No distributions match your search.",
     "loadError": "Unable to load distributions",
     "saveError": "Unable to save distribution",
     "deleteError": "Unable to delete distribution",

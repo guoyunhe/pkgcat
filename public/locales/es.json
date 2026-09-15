@@ -20,7 +20,7 @@
   "loginFailed": "No se pudo iniciar sesión. Comprueba tu correo y tu contraseña.",
   "registerFailed": "No se pudo crear la cuenta.",
   "header": {
-    "searchApplications": "Buscar aplicaciones",
+    "searchCatalog": "Buscar en el catálogo",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Claro",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Búsqueda de aplicaciones",
+    "eyebrow": "Búsqueda en el catálogo",
     "title": "Resultados de búsqueda",
     "resultsFor": "Resultados para “{{query}}”.",
     "loadError": "No se pudieron buscar aplicaciones",
-    "loadPackagesError": "No se pudieron buscar paquetes"
+    "loadPackagesError": "No se pudieron buscar paquetes",
+    "loadReposError": "No se pudieron buscar los repositorios",
+    "loadDistrosError": "No se pudieron buscar las distribuciones"
   },
   "detail": {
     "invalidId": "ID de aplicación no válido",
@@ -264,6 +266,7 @@
     "notFound": "Todavía no hay distribuciones configuradas.",
     "filterAny": "Todas las arquitecturas",
     "filterEmpty": "No hay distribuciones para esta arquitectura.",
+    "searchEmpty": "Ninguna distribución coincide con la búsqueda.",
     "loadError": "No se pudieron cargar las distribuciones",
     "saveError": "No se pudo guardar la distribución",
     "deleteError": "No se pudo eliminar la distribución",

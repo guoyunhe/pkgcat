@@ -41,14 +41,20 @@ export function distroSort(value: string | null | undefined): DistroSort {
   return distroSorts.find((sort) => sort === value) ?? 'name'
 }
 
-/** What the distribution listing is narrowed by, which the toolbar of its page holds. */
+/**
+ * What the distribution listing is narrowed by, which the toolbar of its page holds and the API
+ * reads back: the entries it shows, and therefore the count it reports, are the ones the filters
+ * kept.
+ */
 export type DistroFilters = {
   /** Architecture the entries are published for; a release is one entry per architecture. */
   arch: string | null
+  /** Search terms, which a release is found by its name, version, architecture and format. */
+  q: string
 }
 
 /** Listing with nothing set, which a page without the filter reads its entries with. */
-export const emptyDistroFilters: DistroFilters = { arch: null }
+export const emptyDistroFilters: DistroFilters = { arch: null, q: '' }
 
 /**
  * One page of the distribution listing, which the API pages ten entries at a time. The order is
@@ -61,7 +67,7 @@ export async function getDistros(
   page = 1,
 ) {
   const { data } = await api.get<SerializedPaginated<Distro>>('/distros', {
-    params: { page, sort, arch: filters.arch },
+    params: { page, sort, q: filters.q || undefined, arch: filters.arch },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Distro>
 }

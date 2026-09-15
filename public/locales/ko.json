@@ -20,7 +20,7 @@
   "loginFailed": "로그인할 수 없습니다. 이메일 주소와 비밀번호를 확인하세요.",
   "registerFailed": "계정을 만들 수 없습니다.",
   "header": {
-    "searchApplications": "앱 검색",
+    "searchCatalog": "카탈로그 검색",
     "theme": "테마",
     "themeAuto": "시스템",
     "themeLight": "라이트",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "앱 검색",
+    "eyebrow": "카탈로그 검색",
     "title": "검색 결과",
     "resultsFor": "“{{query}}” 검색 결과입니다.",
     "loadError": "앱을 검색할 수 없습니다",
-    "loadPackagesError": "패키지를 검색할 수 없습니다"
+    "loadPackagesError": "패키지를 검색할 수 없습니다",
+    "loadReposError": "저장소를 검색할 수 없습니다",
+    "loadDistrosError": "배포판을 검색할 수 없습니다"
   },
   "detail": {
     "invalidId": "애플리케이션 ID가 올바르지 않습니다",
@@ -264,6 +266,7 @@
     "notFound": "아직 등록된 배포판이 없습니다.",
     "filterAny": "모든 아키텍처",
     "filterEmpty": "이 아키텍처의 배포판이 없습니다.",
+    "searchEmpty": "검색과 일치하는 배포판이 없습니다.",
     "loadError": "배포판을 불러올 수 없습니다",
     "saveError": "배포판을 저장할 수 없습니다",
     "deleteError": "배포판을 삭제할 수 없습니다",

@@ -33,8 +33,8 @@ import LanguageMenu from './LanguageMenu'
 import styles from './AppHeader.module.css'
 
 /**
- * Header of the application shell: the navigation to the listings, the application search and the
- * account controls. The search box mirrors the `q` query of the current location, so that a
+ * Header of the application shell: the navigation to the listings, the search across the catalog
+ * and the account controls. The search box mirrors the `q` query of the current location, so that a
  * searched term stays visible and editing it navigates to a new search.
  */
 export default function AppHeader() {
@@ -113,10 +113,10 @@ export default function AppHeader() {
             }}
           >
             <TextInput
-              aria-label={t('header.searchApplications')}
+              aria-label={t('header.searchCatalog')}
               className={styles.search}
               leftSection={<MagnifyingGlassIcon size={18} />}
-              placeholder={t('header.searchApplications')}
+              placeholder={t('header.searchCatalog')}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.currentTarget.value)}
             />

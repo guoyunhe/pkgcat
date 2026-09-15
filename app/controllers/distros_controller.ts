@@ -14,7 +14,7 @@ function toDateTime(value: string | null) {
 
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
-    const { page, perPage, sort, arch } = await request.validateUsing(distroListValidator)
+    const { page, perPage, sort, q, arch } = await request.validateUsing(distroListValidator)
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
@@ -27,6 +27,19 @@ export default class DistrosController {
       .orderBy('releaseDate', 'desc')
       .orderBy('version')
       .orderBy('arch')
+    if (q) {
+      // A release is found by what names it — the distribution, the version and the architecture it
+      // is published for, and the format it packages — rather than by the repositories serving it,
+      // which a reader reaches through the repositories themselves
+      const pattern = `%${q.replace(/[\\%_]/g, '\\$&')}%`
+      query.where((subquery) => {
+        subquery
+          .whereILike('name', pattern)
+          .orWhereILike('version', pattern)
+          .orWhereILike('arch', pattern)
+          .orWhereILike('pkgType', pattern)
+      })
+    }
     if (arch) query.where('arch', arch)
 
     // The order by a count is the order of the whole listing — the counts say how the entries

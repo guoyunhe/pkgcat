@@ -20,7 +20,7 @@
   "loginFailed": "Connexion impossible. Vérifiez votre adresse e-mail et votre mot de passe.",
   "registerFailed": "Le compte n’a pas pu être créé.",
   "header": {
-    "searchApplications": "Rechercher des applications",
+    "searchCatalog": "Rechercher dans le catalogue",
     "theme": "Thème",
     "themeAuto": "Système",
     "themeLight": "Clair",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Recherche d’applications",
+    "eyebrow": "Recherche dans le catalogue",
     "title": "Résultats de recherche",
     "resultsFor": "Résultats pour « {{query}} ».",
     "loadError": "Impossible de rechercher les applications",
-    "loadPackagesError": "Impossible de rechercher les paquets"
+    "loadPackagesError": "Impossible de rechercher les paquets",
+    "loadReposError": "Impossible de rechercher les dépôts",
+    "loadDistrosError": "Impossible de rechercher les distributions"
   },
   "detail": {
     "invalidId": "Identifiant d’application invalide",
@@ -264,6 +266,7 @@
     "notFound": "Aucune distribution configurée pour le moment.",
     "filterAny": "Toutes les architectures",
     "filterEmpty": "Aucune distribution pour cette architecture.",
+    "searchEmpty": "Aucune distribution ne correspond à votre recherche.",
     "loadError": "Impossible de charger les distributions",
     "saveError": "Impossible d’enregistrer la distribution",
     "deleteError": "Impossible de supprimer la distribution",

@@ -20,7 +20,7 @@
   "loginFailed": "ログインできません。メールアドレスとパスワードを確認してください。",
   "registerFailed": "アカウントを作成できませんでした。",
   "header": {
-    "searchApplications": "アプリを検索",
+    "searchCatalog": "カタログを検索",
     "theme": "テーマ",
     "themeAuto": "システム",
     "themeLight": "ライト",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "アプリの検索",
+    "eyebrow": "カタログ検索",
     "title": "検索結果",
     "resultsFor": "“{{query}}” の検索結果。",
     "loadError": "アプリを検索できません",
-    "loadPackagesError": "パッケージを検索できません"
+    "loadPackagesError": "パッケージを検索できません",
+    "loadReposError": "リポジトリを検索できません",
+    "loadDistrosError": "ディストリビューションを検索できません"
   },
   "detail": {
     "invalidId": "アプリケーション ID が正しくありません",
@@ -264,6 +266,7 @@
     "notFound": "まだディストリビューションが登録されていません。",
     "filterAny": "すべてのアーキテクチャ",
     "filterEmpty": "このアーキテクチャのディストリビューションはありません。",
+    "searchEmpty": "該当するディストリビューションがありません。",
     "loadError": "ディストリビューションを読み込めません",
     "saveError": "ディストリビューションを保存できません",
     "deleteError": "ディストリビューションを削除できません",

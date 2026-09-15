@@ -57,11 +57,17 @@ export const distroValidator = vine.create({
  */
 export const distroSorts = ['name', 'packages', 'apps'] as const
 
-/** Query parameters of the distribution listing, which its page pages ten entries at a time. */
+/**
+ * Query parameters of the distribution listing, which its page pages ten entries at a time. The
+ * search terms narrow the listing the way the architecture does, and a value the request got wrong
+ * — a page that is not a number, an order that is not one — narrows nothing instead of failing.
+ */
 export const distroListValidator = vine.create({
   page: vine.number().parse((value) => pageNumber(value, 1)),
   perPage: vine.number().parse((value) => pageSize(value, 10, 50)),
   sort: vine.enum(distroSorts).parse(knownValue(distroSorts, 'name')),
+  /** Search terms, which a release is found by its name, version, architecture and format. */
+  q: vine.string().parse(firstValue).toLowerCase().optional(),
   /** Architecture the listing is narrowed to; a request without one reads every entry. */
   arch: vine.string().parse(firstValue).optional(),
 })

@@ -1,0 +1,36 @@
+.table {
+  border-top: 1px solid var(--ph-border);
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.pagination {
+  margin-top: 28px;
+}
+
+/* A release row opens the detail page of the release it names */
+.row {
+  cursor: default;
+}
+
+.clickableRow {
+  cursor: pointer;
+}
+
+.pkgType {
+  text-transform: uppercase;
+}
+
+.expired {
+  color: var(--mantine-color-red-6);
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}

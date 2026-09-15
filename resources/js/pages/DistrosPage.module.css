@@ -21,33 +21,6 @@
   letter-spacing: 0;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: 72px 0;
-}
-
-.pagination {
-  margin-top: 28px;
-}
-
-.table {
-  border-top: 1px solid var(--ph-border);
-}
-
-/* A distribution row opens the detail page of the release it names */
-.row {
-  cursor: pointer;
-}
-
-.pkgType {
-  text-transform: uppercase;
-}
-
-.expired {
-  color: var(--mantine-color-red-6);
-}
-
 @media (max-width: 600px) {
   .page {
     padding: 44px 18px;

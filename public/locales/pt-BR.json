@@ -20,7 +20,7 @@
   "loginFailed": "Não foi possível entrar. Verifique o e-mail e a senha.",
   "registerFailed": "Não foi possível criar a conta.",
   "header": {
-    "searchApplications": "Buscar aplicativos",
+    "searchCatalog": "Buscar no catálogo",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Claro",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Busca de aplicativos",
+    "eyebrow": "Busca no catálogo",
     "title": "Resultados da busca",
     "resultsFor": "Resultados para “{{query}}”.",
     "loadError": "Não foi possível buscar aplicativos",
-    "loadPackagesError": "Não foi possível buscar pacotes"
+    "loadPackagesError": "Não foi possível buscar pacotes",
+    "loadReposError": "Não foi possível buscar os repositórios",
+    "loadDistrosError": "Não foi possível buscar as distribuições"
   },
   "detail": {
     "invalidId": "ID de aplicativo inválido",
@@ -264,6 +266,7 @@
     "notFound": "Ainda não há distribuições configuradas.",
     "filterAny": "Todas as arquiteturas",
     "filterEmpty": "Nenhuma distribuição para esta arquitetura.",
+    "searchEmpty": "Nenhuma distribuição corresponde à busca.",
     "loadError": "Não foi possível carregar as distribuições",
     "saveError": "Não foi possível salvar a distribuição",
     "deleteError": "Não foi possível excluir a distribuição",

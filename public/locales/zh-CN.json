@@ -20,7 +20,7 @@
   "loginFailed": "无法登录，请检查邮箱和密码。",
   "registerFailed": "无法创建账号。",
   "header": {
-    "searchApplications": "搜索应用",
+    "searchCatalog": "搜索目录",
     "theme": "主题",
     "themeAuto": "跟随系统",
     "themeLight": "浅色模式",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "应用搜索",
+    "eyebrow": "目录搜索",
     "title": "搜索结果",
     "resultsFor": "“{{query}}”的搜索结果。",
     "loadError": "无法搜索应用",
-    "loadPackagesError": "无法搜索软件包"
+    "loadPackagesError": "无法搜索软件包",
+    "loadReposError": "无法搜索软件源",
+    "loadDistrosError": "无法搜索发行版"
   },
   "detail": {
     "invalidId": "无效的应用 ID",
@@ -264,6 +266,7 @@
     "notFound": "尚未添加任何发行版。",
     "filterAny": "全部架构",
     "filterEmpty": "没有该架构的发行版。",
+    "searchEmpty": "没有匹配的发行版。",
     "loadError": "无法加载发行版",
     "saveError": "无法保存发行版",
     "deleteError": "无法删除发行版",

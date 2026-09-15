@@ -20,7 +20,7 @@
   "loginFailed": "Accesso non riuscito. Controlla indirizzo email e password.",
   "registerFailed": "Impossibile creare l’account.",
   "header": {
-    "searchApplications": "Cerca applicazioni",
+    "searchCatalog": "Cerca nel catalogo",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Chiaro",
@@ -154,11 +154,13 @@
     }
   },
   "search": {
-    "eyebrow": "Ricerca applicazioni",
+    "eyebrow": "Ricerca nel catalogo",
     "title": "Risultati della ricerca",
     "resultsFor": "Risultati per “{{query}}”.",
     "loadError": "Impossibile cercare le applicazioni",
-    "loadPackagesError": "Impossibile cercare i pacchetti"
+    "loadPackagesError": "Impossibile cercare i pacchetti",
+    "loadReposError": "Impossibile cercare i repository",
+    "loadDistrosError": "Impossibile cercare le distribuzioni"
   },
   "detail": {
     "invalidId": "ID applicazione non valido",
@@ -264,6 +266,7 @@
     "notFound": "Nessuna distribuzione configurata.",
     "filterAny": "Tutte le architetture",
     "filterEmpty": "Nessuna distribuzione per questa architettura.",
+    "searchEmpty": "Nessuna distribuzione corrisponde alla ricerca.",
     "loadError": "Impossibile caricare le distribuzioni",
     "saveError": "Impossibile salvare la distribuzione",
     "deleteError": "Impossibile eliminare la distribuzione",
