@@ -6,7 +6,11 @@ import App from '#models/app'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
 import { replaceTranslations } from '#services/app_translations'
-import { appstreamHomepage, appstreamVersion } from '#services/repo_appstream_extractor'
+import {
+  appstreamHomepage,
+  appstreamVersion,
+  canonicalAppType,
+} from '#services/repo_appstream_extractor'
 
 const applications = [
   {
@@ -59,6 +63,7 @@ function parseMetaInfo(xml: string) {
 
   return {
     appstreamId: component.id,
+    type: canonicalAppType(component.type),
     name,
     summary,
     version: appstreamVersion(component),
@@ -79,6 +84,7 @@ export default class AppSeeder extends BaseSeeder {
         { appstreamId: application.appstreamId },
         {
           appstreamId: application.appstreamId,
+          type: application.type,
           version: application.version,
           license: application.license,
           homepage: application.homepage,

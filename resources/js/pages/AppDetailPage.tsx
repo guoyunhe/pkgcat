@@ -239,6 +239,12 @@ export default function AppDetailPage() {
           </Text>
           <Text>{app.appstreamId ?? t('common.notSpecified')}</Text>
         </div>
+        <div>
+          <Text size='sm' c='dimmed'>
+            {t('detail.type')}
+          </Text>
+          <Text>{app.type}</Text>
+        </div>
         {app.appstreamIdAliases.length > 0 && (
           <div>
             <Text size='sm' c='dimmed'>

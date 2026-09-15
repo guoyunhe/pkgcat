@@ -1,3 +1,4 @@
+import type { ComponentType } from '@guoyunhe/appstream'
 import vine from '@vinejs/vine'
 
 import { canonicalLocale } from '#services/app_locales'
@@ -6,6 +7,31 @@ import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 
 type LocalizedText = Record<string, string>
+
+/**
+ * Component types of the AppStream specification, the values an application is stored as. The
+ * specification distinguishes them, and repositories announce the type of everything they ship, so
+ * an editor only ever corrects one. `desktop` is not one of them: it is the name AppStream used
+ * before the type was split into `desktop-application` and its siblings (see `canonicalAppType`).
+ */
+export const appTypes = [
+  'generic',
+  'desktop-application',
+  'console-application',
+  'web-application',
+  'addon',
+  'font',
+  'codec',
+  'inputmethod',
+  'firmware',
+  'driver',
+  'localization',
+  'service',
+  'repository',
+  'operating-system',
+  'icon-theme',
+  'runtime',
+] as const satisfies readonly ComponentType[]
 
 /**
  * HTML forms send empty strings for unset values and JSON clients may omit the key entirely. Both
@@ -153,6 +179,7 @@ const pkgNamesAreFree = vine.createRule(async (value, _options, field) => {
 export const appValidator = vine.create({
   name: localizedText(),
   summary: localizedText(),
+  type: vine.enum(appTypes),
   version: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   license: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
   homepage: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),

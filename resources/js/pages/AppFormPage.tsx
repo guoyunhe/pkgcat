@@ -21,6 +21,7 @@ import { Redirect, useLocation, useRoute } from 'wouter'
 import { useAuth } from '../auth'
 import IconUpload from '../components/IconUpload'
 import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
+import { appTypes } from '../utils/appTypes'
 import { defaultLanguage, languageOptions } from '../utils/languages'
 import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
 
@@ -30,6 +31,7 @@ function emptyForm(language: string): AppPayload {
   return {
     name: { [language]: '' },
     summary: { [language]: '' },
+    type: 'desktop-application',
     version: '',
     license: '',
     homepage: '',
@@ -48,6 +50,7 @@ function formFromApp(app: Data.App): AppPayload {
   return {
     name: app.name,
     summary: app.summary,
+    type: app.type,
     version: app.version ?? '',
     license: app.license ?? '',
     homepage: app.homepage ?? '',
@@ -185,6 +188,13 @@ export default function AppFormPage() {
         {(nameMissing || summaryMissing) && (
           <Alert color='yellow'>{t('form.localizedRequired')}</Alert>
         )}
+        <Select
+          allowDeselect={false}
+          data={appTypes}
+          label={t('form.type')}
+          value={form.type}
+          onChange={(value) => setForm({ ...form, type: value ?? form.type })}
+        />
         <TextInput
           label={t('form.version')}
           value={form.version ?? ''}

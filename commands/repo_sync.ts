@@ -17,6 +17,7 @@ import RepoAppstreamExtractor, {
   appstreamHomepage,
   appstreamIdVariants,
   appstreamVersion,
+  canonicalAppType,
   desktopAppTypes,
   iconKey,
   type AppstreamIcon,
@@ -321,6 +322,7 @@ export default class RepoSync extends BaseCommand {
         result.skipped += 1
       } else {
         app.merge({
+          type: canonicalAppType(entry.component.type),
           version: appstreamVersion(entry.component),
           license: entry.component.projectLicense ?? null,
           homepage: appstreamHomepage(entry.component),
@@ -506,6 +508,7 @@ export default class RepoSync extends BaseCommand {
           const name = Object.keys(extracted.component.name).length > 0
           const summary = Object.keys(extracted.component.summary).length > 0
           await app.merge({
+            type: canonicalAppType(extracted.component.type),
             version: appstreamVersion(extracted.component) ?? app.version,
             license: extracted.component.projectLicense ?? app.license,
             homepage: appstreamHomepage(extracted.component) ?? app.homepage,

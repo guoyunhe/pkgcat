@@ -8,6 +8,11 @@ import { getAuthToken } from './auth'
 export type AppPayload = {
   name: Record<string, string>
   summary: Record<string, string>
+  /**
+   * AppStream component type of the application; `desktop-application` when no metadata describes
+   * it.
+   */
+  type: string
   version?: string
   license?: string
   homepage?: string

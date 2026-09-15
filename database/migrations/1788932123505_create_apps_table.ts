@@ -10,6 +10,7 @@ export default class extends BaseSchema {
       table.json('name').notNullable().defaultTo('{}')
       table.json('summary').notNullable().defaultTo('{}')
 
+      table.string('type').notNullable().defaultTo('desktop-application')
       table.string('version').nullable()
       table.string('license').nullable()
       table.string('homepage').nullable()

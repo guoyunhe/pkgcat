@@ -12,6 +12,7 @@ export default class AppTransformer extends BaseTransformer<App> {
     return {
       ...this.pick(this.resource, [
         'id',
+        'type',
         'version',
         'license',
         'homepage',

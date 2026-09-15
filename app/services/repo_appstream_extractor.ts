@@ -61,6 +61,15 @@ export type InferredComponent = {
 /** AppStream component types that describe an application users can install. */
 export const desktopAppTypes: ComponentType[] = ['desktop', 'desktop-application']
 
+/**
+ * Component type an application is stored under. `desktop` is the name AppStream used before the
+ * type was split into `desktop-application` and its siblings, and it is not a type of the
+ * specification any more, so catalogs that still announce it are stored under the modern name.
+ */
+export function canonicalAppType(type: ComponentType): ComponentType {
+  return type === 'desktop' ? 'desktop-application' : type
+}
+
 /** Identity of an icon inside the icon archive, e.g. `128x128/app.png`. */
 export function iconKey(icon: AppstreamIcon) {
   return `${icon.width ?? 0}x${icon.height ?? 0}/${icon.name}`
