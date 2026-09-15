@@ -256,7 +256,8 @@
       "loadError": "无法加载发行版",
       "back": "返回发行版列表",
       "eyebrow": "Linux 发行版",
-      "noRepos": "该发行版暂无软件源。"
+      "noRepos": "该发行版暂无软件源。",
+      "noPackages": "该发行版暂无软件包。"
     },
     "columns": {
       "compatible": "二进制兼容",

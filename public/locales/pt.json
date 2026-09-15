@@ -256,7 +256,8 @@
       "loadError": "Não foi possível carregar a distribuição",
       "back": "Voltar às distribuições",
       "eyebrow": "Distribuição Linux",
-      "noRepos": "Esta distribuição ainda não tem repositórios."
+      "noRepos": "Esta distribuição ainda não tem repositórios.",
+      "noPackages": "Esta distribuição ainda não tem pacotes."
     },
     "columns": {
       "compatible": "Compatível (binário)",

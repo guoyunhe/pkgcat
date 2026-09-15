@@ -256,7 +256,8 @@
       "loadError": "배포판을 불러올 수 없습니다",
       "back": "배포판 목록으로 돌아가기",
       "eyebrow": "Linux 배포판",
-      "noRepos": "이 배포판에는 아직 저장소가 없습니다."
+      "noRepos": "이 배포판에는 아직 저장소가 없습니다.",
+      "noPackages": "이 배포판에는 아직 패키지가 없습니다."
     },
     "columns": {
       "compatible": "바이너리 호환",

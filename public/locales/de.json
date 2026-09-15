@@ -256,7 +256,8 @@
       "loadError": "Distribution konnte nicht geladen werden",
       "back": "Zurück zu den Distributionen",
       "eyebrow": "Linux-Distribution",
-      "noRepos": "Für diese Distribution sind noch keine Repositories hinterlegt."
+      "noRepos": "Für diese Distribution sind noch keine Repositories hinterlegt.",
+      "noPackages": "Für diese Distribution sind noch keine Pakete hinterlegt."
     },
     "columns": {
       "compatible": "Binärkompatibel",

@@ -59,7 +59,7 @@ export const pkgListValidator = vine.create({
   perPage: vine.number().parse((value) => pageNumber(value, 10, 50)),
   /** Search terms of the catalog search; the packages of an application are not searched. */
   q: vine.string().parse(firstValue).toLowerCase().optional(),
-  /** Release the listing is narrowed to; packages match it through format and architecture. */
+  /** Release the listing is narrowed to, which serves the packages of its repositories. */
   distroId: vine
     .number()
     .parse((value) => positiveInteger(firstValue(value)))

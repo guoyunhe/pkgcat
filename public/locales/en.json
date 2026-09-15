@@ -256,7 +256,8 @@
       "loadError": "Unable to load distribution",
       "back": "Back to distributions",
       "eyebrow": "Linux distribution",
-      "noRepos": "This distribution has no repositories yet."
+      "noRepos": "This distribution has no repositories yet.",
+      "noPackages": "This distribution has no packages yet."
     },
     "columns": {
       "compatible": "Binary compatible",

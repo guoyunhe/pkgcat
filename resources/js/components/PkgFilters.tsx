@@ -46,8 +46,8 @@ type PkgFiltersProps = {
 
 /**
  * Distribution, package format and architecture filters for the package listings. A distribution is
- * one release for one architecture, and packages are matched against the package format and the
- * architecture of that entry.
+ * one release for one architecture, and the packages it serves are the ones its repositories hold
+ * for that architecture.
  */
 export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
   const { t } = useTranslation()
@@ -58,7 +58,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
     getDistros()
       .then((result) => {
         if (!active) return
-        // Only distributions with a native package format can match packages
+        // A release that ships no native package is served by no repository of packages
         setDistros(result.filter((distro) => distro.pkgType))
       })
       .catch(() => {

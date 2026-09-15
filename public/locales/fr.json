@@ -256,7 +256,8 @@
       "loadError": "Impossible de charger la distribution",
       "back": "Retour aux distributions",
       "eyebrow": "Distribution Linux",
-      "noRepos": "Cette distribution n'a pas encore de dépôt."
+      "noRepos": "Cette distribution n'a pas encore de dépôt.",
+      "noPackages": "Cette distribution n'a pas encore de paquet."
     },
     "columns": {
       "compatible": "Compatible (binaire)",

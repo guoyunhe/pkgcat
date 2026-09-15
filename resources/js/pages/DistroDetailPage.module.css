@@ -51,12 +51,12 @@
   color: var(--mantine-color-red-6);
 }
 
-.repos {
+.listings {
   margin-top: 44px;
 }
 
-.repos h2 {
-  margin-bottom: 16px;
+.pagination {
+  margin-top: 28px;
 }
 
 .loading {

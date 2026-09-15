@@ -10,6 +10,7 @@ import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import drive from '@adonisjs/drive/services/main'
+import db from '@adonisjs/lucid/services/db'
 
 import App from '#models/app'
 import Distro from '#models/distro'
@@ -46,16 +47,24 @@ export default class PkgsController {
 
     // The filters apply both to the package list and to the packages of a single application
     if (distroId) {
-      // A distribution is one release for one architecture, which packages match through the
-      // package format they are built in and their architecture, while a distribution without a
-      // native package format cannot match any package
+      // A distribution is served by its repositories, which hold the packages of its own
+      // architecture, along with the packages that carry no machine code and belong to every
+      // architecture of it. The repositories are read as a subquery, which the database resolves
+      // once: written as a nested `whereHas` it re-reads the link of every package instead, and
+      // written as a list of ids it stops using the subquery and scans the packages one by one.
       const distro = await Distro.find(distroId)
-      if (distro?.pkgType) {
-        pkgsQuery.where('type', distro.pkgType)
+      if (distro) {
+        const repoIds = db.from('distro_repos').select('repo_id').where('distro_id', distro.id)
+        pkgsQuery.whereIn('repo_id', repoIds)
         pkgsQuery.where((query) => {
-          query.where('arch', distro.arch).orWhereIn('arch', archIndependentPackageArches)
+          query
+            .where('arch', distro.arch)
+            .orWhereIn('arch', archIndependentPackageArches)
+            .orWhereNull('arch')
         })
       } else {
+        // A release that does not exist, or that no repository serves, holds no package, which its
+        // counts say as well
         pkgsQuery.whereRaw('0 = 1')
       }
     }

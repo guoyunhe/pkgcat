@@ -256,7 +256,8 @@
       "loadError": "無法載入發行版",
       "back": "返回發行版清單",
       "eyebrow": "Linux 發行版",
-      "noRepos": "此發行版尚無軟體倉庫。"
+      "noRepos": "此發行版尚無軟體倉庫。",
+      "noPackages": "此發行版尚無軟體套件。"
     },
     "columns": {
       "compatible": "二進位相容",

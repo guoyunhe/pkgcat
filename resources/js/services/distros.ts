@@ -1,6 +1,7 @@
 import type { Data } from '@generated/data'
 import xior from 'xior'
 
+import type { Paginated, SerializedPaginated } from '../types/pagination'
 import { getAuthToken } from './auth'
 
 /** A distribution as returned by the API; it is the serialized form of the `distros` table. */
@@ -48,6 +49,17 @@ export async function getDistros(sort: DistroSort = 'name') {
 export async function getDistro(id: number) {
   const { data } = await api.get<{ data: Distro }>(`/distros/${id}`)
   return data.data
+}
+
+/**
+ * Packages the distribution serves. They are the ones its repositories hold for its architecture,
+ * which the API pages ten at a time, and the same ones its package count adds up.
+ */
+export async function getDistroPackages(id: number, page = 1, locale?: string) {
+  const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
+    params: { page, distroId: id, locale },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
 }
 
 export async function createDistro(payload: DistroPayload) {
