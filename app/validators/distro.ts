@@ -1,5 +1,6 @@
 import vine from '@vinejs/vine'
 
+import { knownValue } from '#utils/query_params'
 import { pkgTypes } from '#validators/pkg'
 
 /**
@@ -48,4 +49,15 @@ export const distroValidator = vine.create({
     .nullable(),
   releaseDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
   eolDate: vine.string().parse(emptyToNull).trim().maxLength(10).nullable(),
+})
+
+/**
+ * Sorts a distribution listing can be read in; the name order is the default one, which reads the
+ * releases of one distribution from the newest to the oldest.
+ */
+export const distroSorts = ['name', 'packages', 'apps'] as const
+
+/** Query parameters of the distribution listing. */
+export const distroListValidator = vine.create({
+  sort: vine.enum(distroSorts).parse(knownValue(distroSorts, 'name')),
 })

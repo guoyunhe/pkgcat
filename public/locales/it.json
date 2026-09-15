@@ -264,6 +264,12 @@
     "filterSearch": "Cerca repository",
     "filterSource": "Sorgente",
     "filterAnySource": "Tutte le sorgenti",
+    "sort": {
+      "label": "Ordina per",
+      "name": "Nome",
+      "packages": "Pacchetti",
+      "apps": "Applicazioni"
+    },
     "filterEmpty": "Nessun repository serve questa release.",
     "sourceEmpty": "Nessun repository da questa sorgente.",
     "searchEmpty": "Nessun repository corrisponde alla ricerca.",
@@ -291,6 +297,8 @@
       "source": "Sorgente",
       "name": "Repository",
       "distros": "Distribuzioni",
+      "packages": "Pacchetti",
+      "apps": "Applicazioni",
       "syncInterval": "Intervallo di sincronizzazione",
       "lastSynced": "Ultima sincronizzazione"
     }
@@ -311,6 +319,12 @@
     "filterArch": "Architettura",
     "filterAny": "Tutte le architetture",
     "filterEmpty": "Nessuna distribuzione per questa architettura.",
+    "sort": {
+      "label": "Ordina per",
+      "name": "Nome",
+      "packages": "Pacchetti",
+      "apps": "Applicazioni"
+    },
     "loadError": "Impossibile caricare le distribuzioni",
     "saveError": "Impossibile salvare la distribuzione",
     "deleteError": "Impossibile eliminare la distribuzione",
@@ -319,6 +333,8 @@
       "version": "Versione",
       "pkgType": "Formato dei pacchetti",
       "compatible": "Compatibile (binario)",
+      "packages": "Pacchetti",
+      "apps": "Applicazioni",
       "arch": "Architettura",
       "releaseDate": "Pubblicata",
       "eolDate": "Fine del supporto"

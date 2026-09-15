@@ -264,6 +264,12 @@
     "filterSearch": "搜尋軟體來源",
     "filterSource": "來源",
     "filterAnySource": "全部來源",
+    "sort": {
+      "label": "排序",
+      "name": "名稱",
+      "packages": "軟體套件",
+      "apps": "應用程式"
+    },
     "filterEmpty": "沒有服務該版本的倉庫。",
     "sourceEmpty": "沒有來自該來源的軟體來源。",
     "searchEmpty": "沒有符合的軟體來源。",
@@ -291,6 +297,8 @@
       "source": "來源",
       "name": "倉庫",
       "distros": "發行版",
+      "packages": "軟體套件",
+      "apps": "應用程式",
       "syncInterval": "同步週期",
       "lastSynced": "上次同步"
     }
@@ -311,6 +319,12 @@
     "filterArch": "架構",
     "filterAny": "全部架構",
     "filterEmpty": "沒有該架構的發行版。",
+    "sort": {
+      "label": "排序",
+      "name": "名稱",
+      "packages": "軟體套件",
+      "apps": "應用程式"
+    },
     "loadError": "無法載入發行版",
     "saveError": "無法儲存發行版",
     "deleteError": "無法刪除發行版",
@@ -319,6 +333,8 @@
       "version": "版本",
       "pkgType": "套件格式",
       "compatible": "二進位相容",
+      "packages": "軟體套件",
+      "apps": "應用程式",
       "arch": "架構",
       "releaseDate": "發行日期",
       "eolDate": "停止支援"

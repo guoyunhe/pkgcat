@@ -1,15 +1,23 @@
-import { Alert, Button, Group, Loader, Table, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Select, Table, Text, Title } from '@mantine/core'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'wouter'
+import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import ArchSelect from '../components/ArchSelect'
 import DistroRelease from '../components/DistroRelease'
-import { deleteDistro, distroLabel, getDistros, type Distro } from '../services/distros'
+import {
+  deleteDistro,
+  distroLabel,
+  distroSort,
+  distroSorts,
+  getDistros,
+  type Distro,
+  type DistroSort,
+} from '../services/distros'
 
 import styles from './DistrosPage.module.css'
 
@@ -20,11 +28,19 @@ function formatDate(value: string, language: string) {
   return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
 }
 
+/** Counts run into the tens of thousands, so they are grouped the way the locale does it. */
+function formatCount(value: number, language: string) {
+  return new Intl.NumberFormat(language).format(value)
+}
+
 export default function DistrosPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
+  const [searchParams] = useSearchParams()
   const isAdmin = ready && user?.role === 'admin'
+  // The sort order is read by the API, so it is kept in the URL and the listing is re-read for it
+  const sort = distroSort(searchParams.get('sort'))
 
   const [distros, setDistros] = useState<Distro[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,7 +52,7 @@ export default function DistrosPage() {
   async function loadDistros() {
     try {
       setLoading(true)
-      setDistros(await getDistros())
+      setDistros(await getDistros(sort))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('distros.loadError'))
     } finally {
@@ -46,7 +62,11 @@ export default function DistrosPage() {
 
   useEffect(() => {
     void loadDistros()
-  }, [])
+  }, [sort])
+
+  function distrosUrl(nextSort: DistroSort) {
+    return nextSort === 'name' ? '/distros' : `/distros?sort=${nextSort}`
+  }
 
   async function remove(distro: Distro) {
     if (!window.confirm(t('distros.confirmDelete', { name: distroLabel(distro) }))) return
@@ -99,12 +119,20 @@ export default function DistrosPage() {
         </Alert>
       )}
       {!loading && distros.length > 0 && (
-        <Group mb='lg'>
+        <Group align='flex-end' mb='lg'>
           <ArchSelect
             label={t('distros.filterArch')}
             onChange={setArchFilter}
             placeholder={t('distros.filterAny')}
             value={archFilter}
+          />
+          <Select
+            allowDeselect={false}
+            data={distroSorts.map((value) => ({ value, label: t(`distros.sort.${value}`) }))}
+            label={t('distros.sort.label')}
+            onChange={(nextSort) => navigate(distrosUrl(distroSort(nextSort)))}
+            value={sort}
+            w={180}
           />
         </Group>
       )}
@@ -122,6 +150,8 @@ export default function DistrosPage() {
               <Table.Th>{t('distros.columns.arch')}</Table.Th>
               <Table.Th>{t('distros.columns.pkgType')}</Table.Th>
               <Table.Th>{t('distros.columns.compatible')}</Table.Th>
+              <Table.Th>{t('distros.columns.packages')}</Table.Th>
+              <Table.Th>{t('distros.columns.apps')}</Table.Th>
               <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
               <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
               {isAdmin && <Table.Th />}
@@ -151,6 +181,12 @@ export default function DistrosPage() {
                   ) : (
                     '—'
                   )}
+                </Table.Td>
+                <Table.Td>
+                  <Text size='sm'>{formatCount(distro.pkgCount, i18n.language)}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size='sm'>{formatCount(distro.appCount, i18n.language)}</Text>
                 </Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}

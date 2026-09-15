@@ -410,9 +410,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/repo').repoListValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/repos_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/repos_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/repos_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'repos.store': {
@@ -470,9 +470,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/distro').distroListValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/distros_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/distros_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/distros_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'distros.store': {

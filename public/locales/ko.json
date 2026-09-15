@@ -264,6 +264,12 @@
     "filterSearch": "저장소 검색",
     "filterSource": "소스",
     "filterAnySource": "모든 소스",
+    "sort": {
+      "label": "정렬",
+      "name": "이름순",
+      "packages": "패키지",
+      "apps": "애플리케이션"
+    },
     "filterEmpty": "이 릴리스를 제공하는 저장소가 없습니다.",
     "sourceEmpty": "이 소스의 저장소가 없습니다.",
     "searchEmpty": "검색과 일치하는 저장소가 없습니다.",
@@ -291,6 +297,8 @@
       "source": "소스",
       "name": "저장소",
       "distros": "배포판",
+      "packages": "패키지",
+      "apps": "애플리케이션",
       "syncInterval": "동기화 주기",
       "lastSynced": "마지막 동기화"
     }
@@ -311,6 +319,12 @@
     "filterArch": "아키텍처",
     "filterAny": "모든 아키텍처",
     "filterEmpty": "이 아키텍처의 배포판이 없습니다.",
+    "sort": {
+      "label": "정렬",
+      "name": "이름순",
+      "packages": "패키지",
+      "apps": "애플리케이션"
+    },
     "loadError": "배포판을 불러올 수 없습니다",
     "saveError": "배포판을 저장할 수 없습니다",
     "deleteError": "배포판을 삭제할 수 없습니다",
@@ -319,6 +333,8 @@
       "version": "버전",
       "pkgType": "패키지 형식",
       "compatible": "바이너리 호환",
+      "packages": "패키지",
+      "apps": "애플리케이션",
       "arch": "아키텍처",
       "releaseDate": "출시일",
       "eolDate": "지원 종료일"

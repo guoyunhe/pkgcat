@@ -264,6 +264,12 @@
     "filterSearch": "Repositories durchsuchen",
     "filterSource": "Quelle",
     "filterAnySource": "Alle Quellen",
+    "sort": {
+      "label": "Sortieren nach",
+      "name": "Name",
+      "packages": "Pakete",
+      "apps": "Anwendungen"
+    },
     "filterEmpty": "Kein Repository bedient dieses Release.",
     "sourceEmpty": "Keine Repositories aus dieser Quelle.",
     "searchEmpty": "Keine Repositories passen zur Suche.",
@@ -291,6 +297,8 @@
       "source": "Quelle",
       "name": "Repository",
       "distros": "Distributionen",
+      "packages": "Pakete",
+      "apps": "Anwendungen",
       "syncInterval": "Sync-Intervall",
       "lastSynced": "Zuletzt synchronisiert"
     }
@@ -311,6 +319,12 @@
     "filterArch": "Architektur",
     "filterAny": "Alle Architekturen",
     "filterEmpty": "Keine Distributionen für diese Architektur.",
+    "sort": {
+      "label": "Sortieren nach",
+      "name": "Name",
+      "packages": "Pakete",
+      "apps": "Anwendungen"
+    },
     "loadError": "Distributionen konnten nicht geladen werden",
     "saveError": "Die Distribution konnte nicht gespeichert werden",
     "deleteError": "Die Distribution konnte nicht gelöscht werden",
@@ -319,6 +333,8 @@
       "version": "Version",
       "pkgType": "Paketformat",
       "compatible": "Binärkompatibel",
+      "packages": "Pakete",
+      "apps": "Anwendungen",
       "arch": "Architektur",
       "releaseDate": "Veröffentlicht",
       "eolDate": "Unterstützungsende"

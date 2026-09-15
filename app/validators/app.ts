@@ -5,7 +5,7 @@ import { canonicalLocale } from '#services/app_locales'
 import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
-import { localeField, pageNumber } from '#utils/query_params'
+import { knownValue, localeField, pageNumber } from '#utils/query_params'
 
 type LocalizedText = Record<string, string>
 
@@ -226,19 +226,6 @@ export const mergeAppValidator = vine.create({
 
 /** Sort orders the application listing accepts; `newest` is the default. */
 export const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
-
-/**
- * Rule value of a query parameter the request spelled with a value the listing does not know. A
- * listing is reached through links and bookmarks that outlive the values it offers — a sort order
- * that was renamed, a component type that is not a type of the AppStream specification any more —
- * so such a parameter falls back to the value it behaves as instead of failing the request.
- */
-function knownValue<T extends string>(values: readonly T[], fallback?: T) {
-  return (value: unknown) =>
-    typeof value === 'string' && (values as readonly string[]).includes(value)
-      ? (value as T)
-      : fallback
-}
 
 /**
  * Category codes of a listing filter; the query string may repeat them or separate them with

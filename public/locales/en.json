@@ -264,6 +264,12 @@
     "filterSearch": "Search repositories",
     "filterSource": "Source",
     "filterAnySource": "All sources",
+    "sort": {
+      "label": "Sort by",
+      "name": "Name",
+      "packages": "Packages",
+      "apps": "Applications"
+    },
     "filterEmpty": "No repositories serve this release.",
     "sourceEmpty": "No repositories from this source.",
     "searchEmpty": "No repositories match your search.",
@@ -291,6 +297,8 @@
       "source": "Source",
       "name": "Repository",
       "distros": "Distributions",
+      "packages": "Packages",
+      "apps": "Applications",
       "syncInterval": "Sync interval",
       "lastSynced": "Last synced"
     }
@@ -311,6 +319,12 @@
     "filterArch": "Architecture",
     "filterAny": "All architectures",
     "filterEmpty": "No distributions for this architecture.",
+    "sort": {
+      "label": "Sort by",
+      "name": "Name",
+      "packages": "Packages",
+      "apps": "Applications"
+    },
     "loadError": "Unable to load distributions",
     "saveError": "Unable to save distribution",
     "deleteError": "Unable to delete distribution",
@@ -319,6 +333,8 @@
       "version": "Version",
       "pkgType": "Package format",
       "compatible": "Binary compatible",
+      "packages": "Packages",
+      "apps": "Applications",
       "arch": "Architecture",
       "releaseDate": "Released",
       "eolDate": "End of life"

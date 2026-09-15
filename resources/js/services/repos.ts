@@ -16,8 +16,18 @@ function authHeaders() {
  */
 export type RepoPayload = Omit<Partial<Data.Repo>, 'distros'> & { distroIds?: number[] }
 
-export async function getRepos() {
-  const { data } = await api.get<{ data: Data.Repo[] }>('/repos')
+/** Sort orders the repository listing accepts; `name` is the default. */
+export const repoSorts = ['name', 'packages', 'apps'] as const
+
+export type RepoSort = (typeof repoSorts)[number]
+
+/** Sort order named by a listing query, falling back to the name order. */
+export function repoSort(value: string | null | undefined): RepoSort {
+  return repoSorts.find((sort) => sort === value) ?? 'name'
+}
+
+export async function getRepos(sort: RepoSort = 'name') {
+  const { data } = await api.get<{ data: Data.Repo[] }>('/repos', { params: { sort } })
   return data.data
 }
 

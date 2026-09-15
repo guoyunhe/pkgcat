@@ -20,3 +20,16 @@ export function pageNumber(
 
 /** Locale a response is localized to; a request without one receives every translation. */
 export const localeField = () => vine.string().parse(emptyToNull).trim().nullable()
+
+/**
+ * Rule value of a query parameter the request spelled with a value the listing does not know. A
+ * listing is reached through links and bookmarks that outlive the values it offers — a sort order
+ * that was renamed, a component type that is not a type of the AppStream specification any more —
+ * so such a parameter falls back to the value it behaves as instead of failing the request.
+ */
+export function knownValue<T extends string>(values: readonly T[], fallback?: T) {
+  return (value: unknown) =>
+    typeof value === 'string' && (values as readonly string[]).includes(value)
+      ? (value as T)
+      : fallback
+}

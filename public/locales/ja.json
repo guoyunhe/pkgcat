@@ -264,6 +264,12 @@
     "filterSearch": "リポジトリを検索",
     "filterSource": "ソース",
     "filterAnySource": "すべてのソース",
+    "sort": {
+      "label": "並び順",
+      "name": "名前順",
+      "packages": "パッケージ",
+      "apps": "アプリケーション"
+    },
     "filterEmpty": "このリリースに対応するリポジトリはありません。",
     "sourceEmpty": "このソースのリポジトリはありません。",
     "searchEmpty": "該当するリポジトリがありません。",
@@ -291,6 +297,8 @@
       "source": "ソース",
       "name": "リポジトリ",
       "distros": "ディストリビューション",
+      "packages": "パッケージ",
+      "apps": "アプリケーション",
       "syncInterval": "同期間隔",
       "lastSynced": "最終同期"
     }
@@ -311,6 +319,12 @@
     "filterArch": "アーキテクチャ",
     "filterAny": "すべてのアーキテクチャ",
     "filterEmpty": "このアーキテクチャのディストリビューションはありません。",
+    "sort": {
+      "label": "並び順",
+      "name": "名前順",
+      "packages": "パッケージ",
+      "apps": "アプリケーション"
+    },
     "loadError": "ディストリビューションを読み込めません",
     "saveError": "ディストリビューションを保存できません",
     "deleteError": "ディストリビューションを削除できません",
@@ -319,6 +333,8 @@
       "version": "バージョン",
       "pkgType": "パッケージ形式",
       "compatible": "バイナリ互換",
+      "packages": "パッケージ",
+      "apps": "アプリケーション",
       "arch": "アーキテクチャ",
       "releaseDate": "リリース日",
       "eolDate": "サポート終了日"

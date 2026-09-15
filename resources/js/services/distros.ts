@@ -30,8 +30,18 @@ export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro'> & {
   compatibleDistroId?: number | null
 }
 
-export async function getDistros() {
-  const { data } = await api.get<{ data: Distro[] }>('/distros')
+/** Sort orders the distribution listing accepts; `name` is the default. */
+export const distroSorts = ['name', 'packages', 'apps'] as const
+
+export type DistroSort = (typeof distroSorts)[number]
+
+/** Sort order named by a listing query, falling back to the name order. */
+export function distroSort(value: string | null | undefined): DistroSort {
+  return distroSorts.find((sort) => sort === value) ?? 'name'
+}
+
+export async function getDistros(sort: DistroSort = 'name') {
+  const { data } = await api.get<{ data: Distro[] }>('/distros', { params: { sort } })
   return data.data
 }
 

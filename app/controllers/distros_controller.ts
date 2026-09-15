@@ -2,8 +2,9 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 
 import Distro from '#models/distro'
+import { attachCounts, distroCounts } from '#services/catalog_counts'
 import DistroTransformer from '#transformers/distro_transformer'
-import { distroValidator } from '#validators/distro'
+import { distroListValidator, distroValidator } from '#validators/distro'
 
 /** Lucid date columns expect a `DateTime` instance, while the validator hands over ISO strings. */
 function toDateTime(value: string | null) {
@@ -11,7 +12,8 @@ function toDateTime(value: string | null) {
 }
 
 export default class DistrosController {
-  async index({ serialize }: HttpContext) {
+  async index({ request, serialize }: HttpContext) {
+    const { sort } = await request.validateUsing(distroListValidator)
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
@@ -24,6 +26,7 @@ export default class DistrosController {
       .orderBy('releaseDate', 'desc')
       .orderBy('version')
       .orderBy('arch')
+    attachCounts(distros, await distroCounts(), sort)
     return serialize(DistroTransformer.transform(distros))
   }
 
@@ -32,6 +35,7 @@ export default class DistrosController {
       .where('id', params.id)
       .preload('compatibleDistro')
       .firstOrFail()
+    attachCounts([distro], await distroCounts(), 'name')
     return serialize(DistroTransformer.transform(distro))
   }
 

@@ -76,7 +76,7 @@
   },
   "home": {
     "eyebrow": "Linux 软件目录",
-    "applications": "应用程序",
+    "applications": "应用",
     "viewAll": "查看全部",
     "operatingSystems": "操作系统",
     "distributions": "发行版",
@@ -84,7 +84,7 @@
   },
   "apps": {
     "eyebrow": "Linux 软件目录",
-    "title": "应用程序",
+    "title": "应用",
     "subtitle": "发现软件元数据、启动器和上游来源。",
     "notFound": "未找到应用。",
     "filterType": "类型",
@@ -157,7 +157,7 @@
     "loadError": "无法搜索应用",
     "loadPackagesError": "无法搜索软件包",
     "tabs": {
-      "apps": "应用程序",
+      "apps": "应用",
       "packages": "软件包"
     }
   },
@@ -264,6 +264,12 @@
     "filterSearch": "搜索仓库",
     "filterSource": "来源",
     "filterAnySource": "全部来源",
+    "sort": {
+      "label": "排序",
+      "name": "名称",
+      "packages": "软件包",
+      "apps": "应用"
+    },
     "filterEmpty": "没有服务该版本的仓库。",
     "sourceEmpty": "没有来自该来源的仓库。",
     "searchEmpty": "没有匹配的仓库。",
@@ -291,6 +297,8 @@
       "source": "来源",
       "name": "仓库",
       "distros": "发行版",
+      "packages": "软件包",
+      "apps": "应用",
       "syncInterval": "同步周期",
       "lastSynced": "上次同步"
     }
@@ -311,6 +319,12 @@
     "filterArch": "架构",
     "filterAny": "全部架构",
     "filterEmpty": "没有该架构的发行版。",
+    "sort": {
+      "label": "排序",
+      "name": "名称",
+      "packages": "软件包",
+      "apps": "应用"
+    },
     "loadError": "无法加载发行版",
     "saveError": "无法保存发行版",
     "deleteError": "无法删除发行版",
@@ -319,6 +333,8 @@
       "version": "版本",
       "pkgType": "包格式",
       "compatible": "二进制兼容",
+      "packages": "软件包",
+      "apps": "应用",
       "arch": "架构",
       "releaseDate": "发布日期",
       "eolDate": "停止支持"

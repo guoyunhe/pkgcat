@@ -1,17 +1,21 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
 import Repo from '#models/repo'
+import { attachCounts, repoCounts } from '#services/catalog_counts'
 import RepoTransformer from '#transformers/repo_transformer'
-import { repoValidator } from '#validators/repo'
+import { repoListValidator, repoValidator } from '#validators/repo'
 
 export default class ReposController {
-  async index({ serialize }: HttpContext) {
+  async index({ request, serialize }: HttpContext) {
+    const { sort } = await request.validateUsing(repoListValidator)
     const repos = await Repo.query().preload('distros').orderBy('name')
+    attachCounts(repos, await repoCounts(), sort)
     return serialize(RepoTransformer.transform(repos))
   }
 
   async show({ params, serialize }: HttpContext) {
     const repo = await Repo.query().where('id', params.id).preload('distros').firstOrFail()
+    attachCounts([repo], await repoCounts(), 'name')
     return serialize(RepoTransformer.transform(repo))
   }
 

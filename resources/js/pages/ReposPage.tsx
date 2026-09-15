@@ -1,27 +1,35 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Table, Text, TextInput, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Select, Table, Text, TextInput, Title } from '@mantine/core'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation } from 'wouter'
+import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroSelect from '../components/DistroSelect'
 import ListFilter from '../components/ListFilter'
-import { deleteRepo, getRepos } from '../services/repos'
+import { deleteRepo, getRepos, repoSort, repoSorts, type RepoSort } from '../services/repos'
 
 import styles from './ReposPage.module.css'
 
 const packageTypesWithIcons = new Set(['deb', 'rpm'])
 
+/** Counts run into the hundreds of thousands, so they are grouped the way the locale does it. */
+function formatCount(value: number, language: string) {
+  return new Intl.NumberFormat(language).format(value)
+}
+
 export default function ReposPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
+  const [searchParams] = useSearchParams()
   const isAdmin = ready && user?.role === 'admin'
+  // The sort order is read by the API, so it is kept in the URL and the listing is re-read for it
+  const sort = repoSort(searchParams.get('sort'))
 
   const [repos, setRepos] = useState<Data.Repo[]>([])
   const [loading, setLoading] = useState(true)
@@ -35,7 +43,7 @@ export default function ReposPage() {
   async function loadRepos() {
     try {
       setLoading(true)
-      setRepos(await getRepos())
+      setRepos(await getRepos(sort))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('repos.loadError'))
     } finally {
@@ -45,7 +53,11 @@ export default function ReposPage() {
 
   useEffect(() => {
     void loadRepos()
-  }, [])
+  }, [sort])
+
+  function reposUrl(nextSort: RepoSort) {
+    return nextSort === 'name' ? '/repos' : `/repos?sort=${nextSort}`
+  }
 
   async function remove(repo: Data.Repo) {
     if (!window.confirm(t('repos.confirmDelete', { name: repo.name }))) return
@@ -170,6 +182,14 @@ export default function ReposPage() {
               placeholder={t('repos.filterAnySource')}
               value={sourceFilter}
             />
+            <Select
+              allowDeselect={false}
+              data={repoSorts.map((value) => ({ value, label: t(`repos.sort.${value}`) }))}
+              label={t('repos.sort.label')}
+              onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
+              value={sort}
+              w={180}
+            />
           </Group>
         )}
       {loading ? (
@@ -186,6 +206,8 @@ export default function ReposPage() {
               <Table.Th>{t('repos.columns.source')}</Table.Th>
               <Table.Th>{t('repos.columns.name')}</Table.Th>
               <Table.Th>{t('repos.columns.distros')}</Table.Th>
+              <Table.Th>{t('repos.columns.packages')}</Table.Th>
+              <Table.Th>{t('repos.columns.apps')}</Table.Th>
               <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
               <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
               {isAdmin && <Table.Th />}
@@ -238,6 +260,12 @@ export default function ReposPage() {
                       ))}
                     </div>
                   )}
+                </Table.Td>
+                <Table.Td>
+                  <Text size='sm'>{formatCount(repo.pkgCount, i18n.language)}</Text>
+                </Table.Td>
+                <Table.Td>
+                  <Text size='sm'>{formatCount(repo.appCount, i18n.language)}</Text>
                 </Table.Td>
                 <Table.Td>
                   {repo.syncIntervalDays
