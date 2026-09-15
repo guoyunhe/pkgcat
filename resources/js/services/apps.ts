@@ -53,7 +53,7 @@ function authHeaders() {
 /** Query parameters of the package filters; unset filters are omitted from the query. */
 function filterParams(filters: PkgFilters) {
   return {
-    distro: filters.distroId ?? undefined,
+    distroId: filters.distroId ?? undefined,
     type: filters.type ?? undefined,
     arch: filters.arch ?? undefined,
   }

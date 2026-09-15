@@ -6,6 +6,8 @@ import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 
+import { localeField, pageNumber } from '../utils/query_params.js'
+
 type LocalizedText = Record<string, string>
 
 /**
@@ -239,13 +241,6 @@ function knownValue<T extends string>(values: readonly T[], fallback?: T) {
       : fallback
 }
 
-/** Page of a listing: a positive integer, whatever the request spelled it as. */
-function pageNumber(value: unknown, fallback: number, maximum: number = Number.MAX_SAFE_INTEGER) {
-  const parsed = Number(value)
-  if (!Number.isInteger(parsed) || parsed < 1) return fallback
-  return Math.min(parsed, maximum)
-}
-
 /**
  * Category codes of a listing filter; the query string may repeat them or separate them with
  * commas.
@@ -258,9 +253,6 @@ function categoryCodes(value: unknown) {
     .filter((code) => code !== '')
   return [...new Set(codes)]
 }
-
-/** Locale a response is localized to; a request without one receives every translation. */
-const localeField = () => vine.string().parse(emptyToNull).trim().nullable()
 
 /**
  * Query parameters of the application listing. Every value the listing narrows, sorts or pages by

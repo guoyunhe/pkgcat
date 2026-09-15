@@ -17,7 +17,7 @@ import Pkg from '#models/pkg'
 import { attachTranslations } from '#services/app_translations'
 import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
-import { pkgValidator } from '#validators/pkg'
+import { pkgListValidator, pkgLocaleValidator, pkgValidator } from '#validators/pkg'
 
 import { archIndependentPackageArches } from '../utils/arch.js'
 
@@ -27,31 +27,26 @@ const maxPackageSize = 2 * 1024 * 1024 * 1024
 
 export default class PkgsController {
   async index({ params, request, serialize }: HttpContext) {
-    const page = this.positiveInteger(request.input('page'), 1)
-    const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
+    const { page, perPage, q, distroId, arch, type, locale } =
+      await request.validateUsing(pkgListValidator)
     const pkgsQuery = Pkg.query().preload('apps').orderBy('id', 'desc')
 
     if (params.app_id) {
       await App.findOrFail(params.app_id)
       pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
-    } else {
-      const rawQuery = request.input('q')
-      const keyword = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
-      if (keyword) {
-        const pattern = `%${keyword.replace(/[\\%_]/g, '\\$&')}%`
-        pkgsQuery.where((subquery) => {
-          subquery
-            .whereILike('name', pattern)
-            .orWhereILike('type', pattern)
-            .orWhereILike('arch', pattern)
-            .orWhereILike('version', pattern)
-        })
-      }
+    } else if (q) {
+      const pattern = `%${q.replace(/[\\%_]/g, '\\$&')}%`
+      pkgsQuery.where((subquery) => {
+        subquery
+          .whereILike('name', pattern)
+          .orWhereILike('type', pattern)
+          .orWhereILike('arch', pattern)
+          .orWhereILike('version', pattern)
+      })
     }
 
     // The filters apply both to the package list and to the packages of a single application
-    const distroId = Number(this.queryValue(request.input('distro')))
-    if (Number.isInteger(distroId) && distroId > 0) {
+    if (distroId) {
       // A distribution is one release for one architecture, which packages match through the
       // package format they are built in and their architecture, while a distribution without a
       // native package format cannot match any package
@@ -66,34 +61,26 @@ export default class PkgsController {
       }
     }
 
-    const arch = this.queryValue(request.input('arch'))
     if (arch) pkgsQuery.where('arch', arch)
-
-    const type = this.queryValue(request.input('type'))
     if (type) pkgsQuery.where('type', type)
 
     const paginator = await pkgsQuery.paginate(page, perPage)
-    await this.loadAppNames(paginator.all(), request.input('locale'))
+    await this.loadAppNames(paginator.all(), locale)
     return serialize(PkgTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
   async show({ params, request, serialize }: HttpContext) {
+    const { locale } = await request.validateUsing(pkgLocaleValidator)
     const pkg = await Pkg.query().where('id', params.id).preload('apps').firstOrFail()
-    await this.loadAppNames([pkg], request.input('locale'))
+    await this.loadAppNames([pkg], locale)
     return serialize(PkgTransformer.transform(pkg))
   }
 
-  /** Locale localized names of the linked applications are read for. */
-  private locale(value: unknown) {
-    const locale = typeof value === 'string' ? value.trim() : ''
-    return locale === '' ? null : locale
-  }
-
   /** Read the localized names the packages carry for their applications. */
-  private async loadAppNames(pkgs: Pkg[], value: unknown) {
+  private async loadAppNames(pkgs: Pkg[], locale: string | null) {
     await attachTranslations(
       pkgs.flatMap((pkg) => pkg.apps ?? []),
-      this.locale(value),
+      locale,
     )
   }
 
@@ -107,11 +94,12 @@ export default class PkgsController {
 
     const { request, response, serialize } = context
     const { appIds, ...attributes } = await request.validateUsing(pkgValidator)
+    const { locale } = await request.validateUsing(pkgLocaleValidator)
 
     const pkg = await Pkg.create(attributes)
     if (appIds && appIds.length > 0) await pkg.related('apps').attach(appIds)
     await pkg.load('apps')
-    await this.loadAppNames([pkg], request.input('locale'))
+    await this.loadAppNames([pkg], locale)
     response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
@@ -122,6 +110,7 @@ export default class PkgsController {
    */
   private async storeFromUpload({ auth, params, request, response, serialize }: HttpContext) {
     const application = await App.findOrFail(params.app_id)
+    const { locale } = await request.validateUsing(pkgLocaleValidator)
     const file = await this.receivePackageFile(request)
 
     if (!file.isValid) {
@@ -155,7 +144,7 @@ export default class PkgsController {
 
     await pkg.related('apps').attach([application.id])
     await pkg.load('apps')
-    await this.loadAppNames([pkg], request.input('locale'))
+    await this.loadAppNames([pkg], locale)
     response.status(201)
     return serialize(PkgTransformer.transform(pkg))
   }
@@ -163,12 +152,13 @@ export default class PkgsController {
   async update({ params, request, serialize }: HttpContext) {
     const pkg = await Pkg.findOrFail(params.id)
     const { appIds, ...attributes } = await request.validateUsing(pkgValidator)
+    const { locale } = await request.validateUsing(pkgLocaleValidator)
 
     await pkg.merge(attributes).save()
     // The form lists every application of the package, so the stored links follow the selection
     if (appIds) await pkg.related('apps').sync(appIds, true)
     await pkg.load('apps')
-    await this.loadAppNames([pkg], request.input('locale'))
+    await this.loadAppNames([pkg], locale)
     return serialize(PkgTransformer.transform(pkg))
   }
 
@@ -180,24 +170,6 @@ export default class PkgsController {
     if (path) await this.deleteStoredFile(path)
 
     return response.noContent()
-  }
-
-  private positiveInteger(value: unknown, fallback: number) {
-    const parsed = Number(value)
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
-  }
-
-  /**
-   * Single value query parameters are accepted either as a string or as an array (repeated
-   * parameters), and empty values are treated as "no filter".
-   */
-  private queryValue(value: unknown) {
-    if (typeof value === 'string') return value.trim() || null
-    if (Array.isArray(value)) {
-      const first = value.find((item) => typeof item === 'string' && item.trim() !== '')
-      return typeof first === 'string' ? first.trim() : null
-    }
-    return null
   }
 
   /**

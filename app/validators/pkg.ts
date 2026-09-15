@@ -1,5 +1,7 @@
 import vine from '@vinejs/vine'
 
+import { localeField, pageNumber } from '../utils/query_params.js'
+
 /**
  * Package formats that can be created or edited by hand. Uploaded files are recognized by their
  * archive magic instead.
@@ -42,3 +44,49 @@ export const pkgValidator = vine.create({
   installCommand: vine.string().parse(emptyToNull).trim().nullable(),
   size: vine.number().parse(emptyToNull).min(0).nullable(),
 })
+
+/**
+ * Single value of a query parameter that narrows a listing. A request may spell such a parameter
+ * once, repeat it, or leave it empty, and an empty value narrows nothing.
+ */
+function firstValue(value: unknown) {
+  if (typeof value === 'string') return value.trim() || undefined
+  if (Array.isArray(value)) {
+    const first = value.find((item) => typeof item === 'string' && item.trim() !== '')
+    return typeof first === 'string' ? first.trim() : undefined
+  }
+  return undefined
+}
+
+/** Positive integer a query parameter names; a value that is not one narrows nothing. */
+function positiveInteger(value: unknown) {
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
+}
+
+/** Query parameter narrowing the listing by a single value, which may be omitted or empty. */
+const singleValue = () => vine.string().parse(firstValue).optional()
+
+/**
+ * Query parameters of the package listing, which the catalog search and the packages of a single
+ * application share. Every package listing pages the same way — ten packages per page — whatever it
+ * is narrowed to, and a value a link got wrong (an empty filter, a distribution that does not
+ * exist, a page beyond the last one) narrows nothing instead of failing the request.
+ */
+export const pkgListValidator = vine.create({
+  page: vine.number().parse((value) => pageNumber(value, 1)),
+  perPage: vine.number().parse((value) => pageNumber(value, 10, 50)),
+  /** Search terms of the catalog search; the packages of an application are not searched. */
+  q: vine.string().parse(firstValue).toLowerCase().optional(),
+  /** Release the listing is narrowed to; packages match it through format and architecture. */
+  distroId: vine
+    .number()
+    .parse((value) => positiveInteger(firstValue(value)))
+    .optional(),
+  arch: singleValue(),
+  type: singleValue(),
+  locale: localeField(),
+})
+
+/** Query parameters of a single package of the catalog. */
+export const pkgLocaleValidator = vine.create({ locale: localeField() })
