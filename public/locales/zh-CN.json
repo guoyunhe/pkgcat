@@ -175,6 +175,7 @@
     "pkgNames": "软件包名称",
     "categories": "分类",
     "homepage": "主页",
+    "screenshots": "截图",
     "previousScreenshot": "上一张截图",
     "nextScreenshot": "下一张截图",
     "goToScreenshot": "第 {{index}} 张截图",
@@ -235,7 +236,7 @@
   },
   "repos": {
     "eyebrow": "系统管理",
-    "title": "软件仓库",
+    "title": "软件源",
     "subtitle": "用于提取软件包的 Debian、RPM 等包仓库。",
     "addRepo": "添加仓库",
     "editRepo": "编辑仓库",

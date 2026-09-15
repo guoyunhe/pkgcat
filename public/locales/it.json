@@ -175,6 +175,7 @@
     "pkgNames": "Nomi dei pacchetti",
     "categories": "Categorie",
     "homepage": "Sito web",
+    "screenshots": "Screenshot",
     "previousScreenshot": "Screenshot precedente",
     "nextScreenshot": "Screenshot successivo",
     "goToScreenshot": "Vai allo screenshot {{index}}",

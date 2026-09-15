@@ -1,7 +1,6 @@
-import { ActionIcon } from '@mantine/core'
+import { Carousel } from '@mantine/carousel'
 import { CaretLeftIcon } from '@phosphor-icons/react/CaretLeft'
 import { CaretRightIcon } from '@phosphor-icons/react/CaretRight'
-import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { localized, type AppStreamScreenshot } from '../utils/appstream'
@@ -14,82 +13,57 @@ type ScreenshotCarouselProps = {
 
 export default function ScreenshotCarousel({ screenshots }: ScreenshotCarouselProps) {
   const { t, i18n } = useTranslation()
-  const [index, setIndex] = useState(0)
-  const total = screenshots.length
 
-  useEffect(() => {
-    setIndex((current) => (current < total ? current : 0))
-  }, [total])
-
-  if (total === 0) {
+  if (screenshots.length === 0) {
     return null
   }
 
-  const active = Math.min(index, total - 1)
-
-  function go(step: number) {
-    setIndex((active + step + total) % total)
-  }
+  // A single screenshot has nothing to navigate to
+  const navigable = screenshots.length > 1
 
   return (
-    <div className={styles.carousel}>
-      <div className={styles.viewport}>
-        <div className={styles.track} style={{ transform: `translateX(-${active * 100}%)` }}>
-          {screenshots.map((screenshot, position) => {
-            const caption = localized(screenshot.caption, i18n.language)
-            return (
-              <figure
-                aria-hidden={position !== active}
-                className={styles.slide}
-                key={`${screenshot.url}-${position}`}
-              >
-                <img
-                  alt={caption ?? ''}
-                  className={styles.image}
-                  loading='lazy'
-                  src={screenshot.url}
-                />
-                {caption && <figcaption className={styles.caption}>{caption}</figcaption>}
-              </figure>
-            )
-          })}
-        </div>
-        {total > 1 && (
-          <>
-            <ActionIcon
-              aria-label={t('detail.previousScreenshot')}
-              className={`${styles.nav} ${styles.previous}`}
-              onClick={() => go(-1)}
-              radius='xl'
-              variant='default'
-            >
-              <CaretLeftIcon size={18} />
-            </ActionIcon>
-            <ActionIcon
-              aria-label={t('detail.nextScreenshot')}
-              className={`${styles.nav} ${styles.next}`}
-              onClick={() => go(1)}
-              radius='xl'
-              variant='default'
-            >
-              <CaretRightIcon size={18} />
-            </ActionIcon>
-          </>
-        )}
-      </div>
-      {total > 1 && (
-        <div className={styles.dots}>
-          {screenshots.map((screenshot, position) => (
-            <button
-              aria-label={t('detail.goToScreenshot', { index: position + 1 })}
-              className={position === active ? `${styles.dot} ${styles.activeDot}` : styles.dot}
-              key={`${screenshot.url}-dot-${position}`}
-              onClick={() => setIndex(position)}
-              type='button'
+    <Carousel
+      aria-label={t('detail.screenshots')}
+      classNames={{
+        control: styles.control,
+        controls: styles.controls,
+        indicator: styles.indicator,
+        indicators: styles.indicators,
+        root: styles.carousel,
+        viewport: styles.viewport,
+      }}
+      controlSize={28}
+      emblaOptions={{ loop: true }}
+      getIndicatorProps={(index) => ({
+        'aria-label': t('detail.goToScreenshot', { index: index + 1 }),
+      })}
+      nextControlIcon={<CaretRightIcon size={18} />}
+      nextControlProps={{ 'aria-label': t('detail.nextScreenshot') }}
+      previousControlIcon={<CaretLeftIcon size={18} />}
+      previousControlProps={{ 'aria-label': t('detail.previousScreenshot') }}
+      withControls={navigable}
+      withIndicators={navigable}
+    >
+      {screenshots.map((screenshot, position) => {
+        const caption = localized(screenshot.caption, i18n.language)
+        return (
+          <Carousel.Slide
+            aria-label={`${position + 1} / ${screenshots.length}`}
+            className={styles.slide}
+            component='figure'
+            key={`${screenshot.url}-${position}`}
+          >
+            <img
+              alt={caption ?? ''}
+              className={styles.image}
+              draggable={false}
+              loading='lazy'
+              src={screenshot.url}
             />
-          ))}
-        </div>
-      )}
-    </div>
+            {caption && <figcaption className={styles.caption}>{caption}</figcaption>}
+          </Carousel.Slide>
+        )
+      })}
+    </Carousel>
   )
 }

@@ -175,6 +175,7 @@
     "pkgNames": "Nomes de pacotes",
     "categories": "Categorias",
     "homepage": "Página inicial",
+    "screenshots": "Capturas de ecrã",
     "previousScreenshot": "Captura de ecrã anterior",
     "nextScreenshot": "Captura de ecrã seguinte",
     "goToScreenshot": "Ir para a captura de ecrã {{index}}",

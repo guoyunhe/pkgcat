@@ -175,6 +175,7 @@
     "pkgNames": "軟體套件名稱",
     "categories": "分類",
     "homepage": "首頁",
+    "screenshots": "截圖",
     "previousScreenshot": "上一張截圖",
     "nextScreenshot": "下一張截圖",
     "goToScreenshot": "第 {{index}} 張截圖",

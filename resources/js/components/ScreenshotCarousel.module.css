@@ -1,31 +1,23 @@
+/* Height of one screenshot, which the controls are centred on and the caption is added below */
 .carousel {
-  width: 100%;
+  --screenshot-height: 420px;
 }
 
 .viewport {
   background: var(--ph-icon-bg);
   border: 1px solid var(--ph-border);
-  overflow: hidden;
-  position: relative;
-}
-
-.track {
-  display: flex;
-  transition: transform 260ms ease;
 }
 
 .slide {
   align-items: center;
   display: flex;
-  flex: 0 0 100%;
   flex-direction: column;
   margin: 0;
-  min-width: 0;
 }
 
 .image {
   display: block;
-  height: 420px;
+  height: var(--screenshot-height);
   object-fit: contain;
   width: 100%;
 }
@@ -34,56 +26,48 @@
   border-top: 1px solid var(--ph-border);
   color: var(--ph-muted);
   font-size: 14px;
+  margin: 0;
   padding: 10px 16px;
   text-align: center;
   width: 100%;
 }
 
-.nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+/* The controls are centred on the screenshot, not on the slide, which the caption makes taller */
+.carousel .controls {
+  top: calc((var(--screenshot-height) - var(--carousel-control-size)) / 2);
 }
 
-.previous {
-  left: 12px;
+/* Mantine paints the controls white in both color schemes; the design uses the surface colour */
+.carousel .control {
+  background-color: var(--mantine-color-default);
+  border-color: var(--mantine-color-default-border);
+  color: var(--mantine-color-default-color);
+  opacity: 1;
 }
 
-.next {
-  right: 12px;
+/* Mantine floats the indicators over the viewport, while the design puts them under it */
+.carousel .indicators {
+  padding-top: 14px;
+  position: static;
 }
 
-.dots {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-  margin-top: 14px;
+/* The indicators are the grey dots of the design, the active one in the primary colour */
+.carousel .indicator {
+  background-color: var(--ph-border);
+  box-shadow: none;
+  opacity: 1;
 }
 
-.dot {
-  background: var(--ph-border);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  height: 8px;
-  padding: 0;
-  width: 8px;
-}
-
-.activeDot {
-  background: var(--ph-primary);
+.carousel .indicator[data-active] {
+  background-color: var(--ph-primary);
 }
 
 @media (max-width: 600px) {
-  .image {
-    height: 240px;
+  .carousel {
+    --screenshot-height: 240px;
   }
 
-  .previous {
-    left: 6px;
-  }
-
-  .next {
-    right: 6px;
+  .carousel .controls {
+    padding-inline: 6px;
   }
 }

@@ -175,6 +175,7 @@
     "pkgNames": "パッケージ名",
     "categories": "カテゴリ",
     "homepage": "ホームページ",
+    "screenshots": "スクリーンショット",
     "previousScreenshot": "前のスクリーンショット",
     "nextScreenshot": "次のスクリーンショット",
     "goToScreenshot": "スクリーンショット {{index}} へ移動",
