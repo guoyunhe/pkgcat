@@ -667,6 +667,53 @@ const distros: DistroSeed[] = [
     eolDate: '2027-11-30',
   },
   {
+    // Still supported, and the release Ubuntu derivatives like Zorin OS 17 are built from
+    name: 'Ubuntu',
+    version: '22.04',
+    pkgType: 'deb',
+    arches: serverArches,
+    releaseDate: '2022-04-21',
+    eolDate: '2027-06-01',
+    repos: [
+      debRepo(
+        'Ubuntu 22.04 Main',
+        'deb http://archive.ubuntu.com/ubuntu/ jammy main restricted universe multiverse',
+        null,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 22.04 Ports',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ jammy main restricted universe multiverse',
+        null,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 22.04 Updates',
+        'deb http://archive.ubuntu.com/ubuntu/ jammy-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 22.04 Ports Updates',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ jammy-updates main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+      debRepo(
+        'Ubuntu 22.04 Security',
+        'deb http://security.ubuntu.com/ubuntu/ jammy-security main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['x86_64'],
+      ),
+      debRepo(
+        'Ubuntu 22.04 Ports Security',
+        'deb http://ports.ubuntu.com/ubuntu-ports/ jammy-security main restricted universe multiverse',
+        updateSyncIntervalDays,
+        ['aarch64', 'ppc64le', 's390x'],
+      ),
+    ],
+  },
+  {
     name: 'Ubuntu',
     version: '24.04',
     pkgType: 'deb',
@@ -765,10 +812,30 @@ const distros: DistroSeed[] = [
     arches: ['x86_64'],
     releaseDate: '2023-12-20',
     eolDate: '2027-06-01',
+    // Built from Ubuntu 22.04 LTS, whose packages it runs
+    compatibleWith: { name: 'Ubuntu', version: '22.04' },
     repos: [
       debRepo(
         'Zorin OS 17 Stable',
         'deb http://ppa.launchpad.net/zorinos/stable/ubuntu jammy main',
+        // The distribution keeps publishing its own packages for the life of the release
+        updateSyncIntervalDays,
+      ),
+    ],
+  },
+  {
+    name: 'Zorin OS',
+    version: '18',
+    pkgType: 'deb',
+    arches: ['x86_64'],
+    releaseDate: '2025-10-14',
+    eolDate: '2029-06-01',
+    // Built from Ubuntu 24.04 LTS, whose packages it runs
+    compatibleWith: { name: 'Ubuntu', version: '24.04' },
+    repos: [
+      debRepo(
+        'Zorin OS 18 Stable',
+        'deb http://ppa.launchpad.net/zorinos/stable/ubuntu noble main',
         // The distribution keeps publishing its own packages for the life of the release
         updateSyncIntervalDays,
       ),
