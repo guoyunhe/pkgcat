@@ -52,7 +52,7 @@ export default function SearchResultsPage() {
     let active = true
     setAppsLoading(true)
     setAppsError(null)
-    getApps(query, appsPage, 12, appsCategory, 'newest', i18n.language)
+    getApps(query, appsPage, 12, appsCategory, null, 'newest', i18n.language)
       .then((result) => {
         if (active) setAppsResult(result)
       })

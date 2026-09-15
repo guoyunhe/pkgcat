@@ -87,6 +87,9 @@
     "title": "Applications",
     "subtitle": "Découvrez les métadonnées des logiciels, les lanceurs et les sources amont.",
     "notFound": "Aucune application trouvée.",
+    "filterType": "Type",
+    "filterAny": "Tous les types",
+    "filterEmpty": "Aucune application de ce type.",
     "loadError": "Impossible de charger les applications",
     "sort": {
       "label": "Trier par",

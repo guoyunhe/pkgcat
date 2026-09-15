@@ -36,7 +36,7 @@ export default function AppMergeModal({ app, onMerged }: AppMergeModalProps) {
     let cancelled = false
     setLoading(true)
     setError(null)
-    getApps(query, 1, 20, null, 'newest', i18n.language)
+    getApps(query, 1, 20, null, null, 'newest', i18n.language)
       .then(({ data }) => {
         if (!cancelled) setCandidates(data.filter((candidate) => candidate.id !== app.id))
       })

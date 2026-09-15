@@ -87,6 +87,9 @@
     "title": "Applications",
     "subtitle": "Discover software metadata, launchers and upstream sources.",
     "notFound": "No applications found.",
+    "filterType": "Type",
+    "filterAny": "All types",
+    "filterEmpty": "No applications of this type.",
     "loadError": "Unable to load applications",
     "sort": {
       "label": "Sort by",

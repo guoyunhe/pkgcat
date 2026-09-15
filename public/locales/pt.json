@@ -87,6 +87,9 @@
     "title": "Aplicações",
     "subtitle": "Descubra metadados de software, lançadores e fontes originais.",
     "notFound": "Nenhuma aplicação encontrada.",
+    "filterType": "Tipo",
+    "filterAny": "Todos os tipos",
+    "filterEmpty": "Não há aplicações deste tipo.",
     "loadError": "Não foi possível carregar as aplicações",
     "sort": {
       "label": "Ordenar por",

@@ -20,7 +20,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([getApps('', 1, 12, null, 'newest', i18n.language), getDistros()])
+    Promise.all([getApps('', 1, 12, null, null, 'newest', i18n.language), getDistros()])
       .then(([appPage, distroList]) => {
         setApps(appPage.data.slice(0, 6))
         setDistros(distroList)

@@ -9,10 +9,15 @@ import { useAuth } from '../auth'
 import AppList from '../components/AppList'
 import CategoryFilter from '../components/CategoryFilter'
 import FavoriteButton from '../components/FavoriteButton'
+import ListFilter from '../components/ListFilter'
 import { appSort, appSorts, getApps, type AppSort } from '../services/apps'
 import type { Paginated } from '../types/pagination'
+import { appTypes } from '../utils/appTypes'
 
 import styles from './AppsPage.module.css'
+
+/** Types the listing can be narrowed to, which are the component types AppStream names. */
+const typeOptions = appTypes.map((type) => ({ value: type, label: type }))
 
 export default function AppsPage() {
   const { t, i18n } = useTranslation()
@@ -25,18 +30,24 @@ export default function AppsPage() {
   const [error, setError] = useState<string | null>(null)
   const query = searchParams.get('q') ?? ''
   const category = searchParams.get('category')
+  const type = searchParams.get('type')
   const sort = appSort(searchParams.get('sort'))
   const page = Number(searchParams.get('page') ?? 1) || 1
+  const filtered = Boolean(query || category || type)
 
   /**
-   * The listing is driven by the URL, so query, category, sort order and page stay shareable and
-   * reloadable.
+   * The listing is driven by the URL, so query, category, type, sort order and page stay shareable
+   * and reloadable.
    */
-  function appsUrl(options: { category?: string | null; page?: number; sort?: AppSort } = {}) {
+  function appsUrl(
+    options: { category?: string | null; page?: number; sort?: AppSort; type?: string | null } = {},
+  ) {
     const params = new URLSearchParams()
     if (query) params.set('q', query)
     const nextCategory = options.category === undefined ? category : options.category
     if (nextCategory) params.set('category', nextCategory)
+    const nextType = options.type === undefined ? type : options.type
+    if (nextType) params.set('type', nextType)
     const nextSort = options.sort ?? sort
     if (nextSort !== 'newest') params.set('sort', nextSort)
     if (options.page && options.page > 1) params.set('page', String(options.page))
@@ -46,7 +57,7 @@ export default function AppsPage() {
   async function loadApps() {
     try {
       setLoading(true)
-      setResult(await getApps(query, page, 12, category, sort, i18n.language))
+      setResult(await getApps(query, page, 12, category, type, sort, i18n.language))
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('apps.loadError'))
     } finally {
@@ -56,7 +67,7 @@ export default function AppsPage() {
 
   useEffect(() => {
     void loadApps()
-  }, [category, i18n.language, page, query, sort])
+  }, [category, i18n.language, page, query, sort, type])
 
   const sortOptions = appSorts.map((value) => ({ value, label: t(`apps.sort.${value}`) }))
 
@@ -89,6 +100,13 @@ export default function AppsPage() {
           onChange={(nextCategory) => navigate(appsUrl({ category: nextCategory }))}
           value={category}
         />
+        <ListFilter
+          data={typeOptions}
+          label={t('apps.filterType')}
+          onChange={(nextType) => navigate(appsUrl({ type: nextType }))}
+          placeholder={t('apps.filterAny')}
+          value={type}
+        />
         <Select
           allowDeselect={false}
           data={sortOptions}
@@ -105,7 +123,7 @@ export default function AppsPage() {
       ) : (
         <>
           {result?.data.length === 0 ? (
-            <Text c='dimmed'>{t('apps.notFound')}</Text>
+            <Text c='dimmed'>{filtered ? t('apps.filterEmpty') : t('apps.notFound')}</Text>
           ) : (
             <>
               <AppList

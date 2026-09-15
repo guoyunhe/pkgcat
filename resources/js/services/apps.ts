@@ -74,6 +74,8 @@ export async function getApps(
   page = 1,
   perPage = 12,
   category: string | null = null,
+  /** AppStream component type the listing is narrowed to, or `null` for every type. */
+  type: string | null = null,
   sort: AppSort = 'newest',
   /** Locale the names and summaries are read in; omitted returns every translation. */
   locale?: string,
@@ -84,6 +86,7 @@ export async function getApps(
       perPage,
       q: query || undefined,
       category: category || undefined,
+      type: type || undefined,
       sort,
       locale,
     },

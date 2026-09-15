@@ -70,7 +70,7 @@ export default function PkgFormPage() {
   const form = useForm<PkgFormValues>({ initialValues: emptyForm() })
 
   useEffect(() => {
-    getApps('', 1, 50, null, 'newest', i18n.language)
+    getApps('', 1, 50, null, null, 'newest', i18n.language)
       .then((res) => setApps(res.data))
       .catch(() => undefined)
   }, [])

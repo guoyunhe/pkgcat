@@ -10,12 +10,12 @@ import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { attachTranslations, replaceTranslations } from '#services/app_translations'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
-import { appValidator, mergeAppValidator } from '#validators/app'
-
-/** Sort orders the application listing accepts; `newest` is the default. */
-const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
-
-type AppSort = (typeof appSorts)[number]
+import {
+  appListValidator,
+  appLocaleValidator,
+  appValidator,
+  mergeAppValidator,
+} from '#validators/app'
 
 /** Conditions Lucid hands to a join callback; knex's join clause, which Lucid types loosely. */
 type JoinConditions = {
@@ -25,12 +25,15 @@ type JoinConditions = {
 
 export default class AppsController {
   async index({ auth, request, serialize }: HttpContext) {
-    const page = this.positiveInteger(request.input('page'), 1)
-    const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
-    const sort = this.sortOption(request.input('sort'))
-    const locale = this.locale(request.input('locale'))
-    const rawQuery = request.input('q')
-    const query = typeof rawQuery === 'string' ? rawQuery.trim().toLocaleLowerCase() : ''
+    const {
+      page,
+      perPage,
+      sort,
+      type,
+      category,
+      q: query,
+      locale,
+    } = await request.validateUsing(appListValidator)
     const appsQuery = App.query()
       .preload('icon')
       .preload('aliases')
@@ -90,14 +93,15 @@ export default class AppsController {
       })
     }
 
-    const categoryCodes = this.categoryCodes(request.input('category'))
-    if (categoryCodes.length > 0) {
-      const categoryIds = await this.categoryIdsWithDescendants(categoryCodes)
+    if (category.length > 0) {
+      const categoryIds = await this.categoryIdsWithDescendants(category)
       if (categoryIds.length === 0) appsQuery.whereRaw('0 = 1')
       else {
         appsQuery.whereHas('categories', (builder) => builder.whereIn('categories.id', categoryIds))
       }
     }
+
+    if (type) appsQuery.where('apps.type', type)
 
     const paginator = await appsQuery.paginate(page, perPage)
     await attachTranslations(paginator.all(), locale)
@@ -105,6 +109,7 @@ export default class AppsController {
   }
 
   async show({ auth, params, request, serialize }: HttpContext) {
+    const { locale } = await request.validateUsing(appLocaleValidator)
     const appQuery = App.query()
       .where('id', params.id)
       .preload('icon')
@@ -117,7 +122,7 @@ export default class AppsController {
       appQuery.preload('favoritedBy', (builder) => builder.where('users.id', auth.user!.id))
     }
     const app = await appQuery.firstOrFail()
-    await attachTranslations([app], this.locale(request.input('locale')))
+    await attachTranslations([app], locale)
     return serialize(AppTransformer.transform(app))
   }
 
@@ -246,32 +251,6 @@ export default class AppsController {
     await app.load('pkgNames')
     await app.load('categories', (categoriesQuery) => categoriesQuery.preload('translations'))
     await attachTranslations([app], null)
-  }
-
-  /** Locale a listing or a page is localized to; a request without one receives every translation. */
-  private locale(value: unknown) {
-    const locale = typeof value === 'string' ? value.trim() : ''
-    return locale === '' ? null : locale
-  }
-
-  private positiveInteger(value: unknown, fallback: number) {
-    const parsed = Number(value)
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
-  }
-
-  /** Sort order requested by the listing; anything the listing does not know sorts by newness. */
-  private sortOption(value: unknown): AppSort {
-    return appSorts.find((sort) => sort === value) ?? 'newest'
-  }
-
-  /** Category codes of the `category` filter; the query string may repeat or comma-separate them. */
-  private categoryCodes(value: unknown) {
-    const values = Array.isArray(value) ? value : [value]
-    const codes = values
-      .flatMap((item) => (typeof item === 'string' ? item.split(',') : []))
-      .map((code) => code.trim())
-      .filter((code) => code !== '')
-    return [...new Set(codes)]
   }
 
   /**

@@ -12,8 +12,10 @@ export type FilterOption = {
 
 type ListFilterProps = {
   /**
-   * Values the filter offers. A listing loads them with the entries it shows, so an option is
-   * always a value the listing itself carries and never narrows it down to nothing.
+   * Values the filter offers. A listing that carries every value loads them with the entries it
+   * shows, so an option is always a value the listing itself carries and never narrows it down to
+   * nothing; a listing that is paged by the server offers the vocabulary its values come from
+   * instead.
    */
   data: FilterOption[]
   label: string
@@ -30,9 +32,9 @@ type ListFilterProps = {
 
 /**
  * Filter of a listing by one of the values it holds, which the listings of the application show the
- * same way: one clearable field that names what it narrows, offering the values the listing
- * carries. Listings load their entries whole, so what the reader picks only narrows what is already
- * there, and clearing the field brings the whole list back.
+ * same way: one clearable field that names what it narrows, offering the values it can narrow to. A
+ * listing that loads its entries whole only narrows what is already there and brings the whole list
+ * back when the field is cleared; a listing the server pages asks it for the narrowed page.
  */
 export default function ListFilter({
   data,

@@ -87,6 +87,9 @@
     "title": "Applicazioni",
     "subtitle": "Scopri metadati del software, launcher e sorgenti upstream.",
     "notFound": "Nessuna applicazione trovata.",
+    "filterType": "Tipo",
+    "filterAny": "Tutti i tipi",
+    "filterEmpty": "Nessuna applicazione di questo tipo.",
     "loadError": "Impossibile caricare le applicazioni",
     "sort": {
       "label": "Ordina per",

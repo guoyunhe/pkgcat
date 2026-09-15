@@ -87,6 +87,9 @@
     "title": "应用程序",
     "subtitle": "发现软件元数据、启动器和上游来源。",
     "notFound": "未找到应用。",
+    "filterType": "类型",
+    "filterAny": "全部类型",
+    "filterEmpty": "没有该类型的应用。",
     "loadError": "无法加载应用",
     "sort": {
       "label": "排序",

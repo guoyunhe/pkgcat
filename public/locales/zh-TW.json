@@ -87,6 +87,9 @@
     "title": "應用程式",
     "subtitle": "探索軟體中繼資料、啟動器與上游來源。",
     "notFound": "找不到應用程式。",
+    "filterType": "類型",
+    "filterAny": "全部類型",
+    "filterEmpty": "沒有該類型的應用。",
     "loadError": "無法載入應用程式",
     "sort": {
       "label": "排序",

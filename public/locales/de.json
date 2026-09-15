@@ -87,6 +87,9 @@
     "title": "Anwendungen",
     "subtitle": "Software-Metadaten, Starter und Quellen der Projekte entdecken.",
     "notFound": "Keine Anwendungen gefunden.",
+    "filterType": "Typ",
+    "filterAny": "Alle Typen",
+    "filterEmpty": "Keine Anwendungen dieses Typs.",
     "loadError": "Anwendungen konnten nicht geladen werden",
     "sort": {
       "label": "Sortieren nach",

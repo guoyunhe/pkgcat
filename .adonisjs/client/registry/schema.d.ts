@@ -134,9 +134,9 @@ export interface Registry {
       body: {}
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/app').appListValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'apps.store': {
@@ -158,9 +158,9 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/app').appLocaleValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['show']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'apps.update': {

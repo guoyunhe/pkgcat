@@ -222,3 +222,62 @@ export const appValidator = vine.create({
 export const mergeAppValidator = vine.create({
   sourceId: vine.number().exists({ table: 'apps', column: 'id' }),
 })
+
+/** Sort orders the application listing accepts; `newest` is the default. */
+export const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
+
+/**
+ * Rule value of a query parameter the request spelled with a value the listing does not know. A
+ * listing is reached through links and bookmarks that outlive the values it offers — a sort order
+ * that was renamed, a component type that is not a type of the AppStream specification any more —
+ * so such a parameter falls back to the value it behaves as instead of failing the request.
+ */
+function knownValue<T extends string>(values: readonly T[], fallback?: T) {
+  return (value: unknown) =>
+    typeof value === 'string' && (values as readonly string[]).includes(value)
+      ? (value as T)
+      : fallback
+}
+
+/** Page of a listing: a positive integer, whatever the request spelled it as. */
+function pageNumber(value: unknown, fallback: number, maximum: number = Number.MAX_SAFE_INTEGER) {
+  const parsed = Number(value)
+  if (!Number.isInteger(parsed) || parsed < 1) return fallback
+  return Math.min(parsed, maximum)
+}
+
+/**
+ * Category codes of a listing filter; the query string may repeat them or separate them with
+ * commas.
+ */
+function categoryCodes(value: unknown) {
+  const values = Array.isArray(value) ? value : [value]
+  const codes = values
+    .flatMap((item) => (typeof item === 'string' ? item.split(',') : []))
+    .map((code) => code.trim())
+    .filter((code) => code !== '')
+  return [...new Set(codes)]
+}
+
+/** Locale a response is localized to; a request without one receives every translation. */
+const localeField = () => vine.string().parse(emptyToNull).trim().nullable()
+
+/**
+ * Query parameters of the application listing. Every value the listing narrows, sorts or pages by
+ * is read here, so that the controller only handles values that are already of the type the listing
+ * uses: a value a link got wrong narrows nothing instead of failing the request, and the page
+ * parameters always carry a usable number.
+ */
+export const appListValidator = vine.create({
+  page: vine.number().parse((value) => pageNumber(value, 1)),
+  perPage: vine.number().parse((value) => pageNumber(value, 12, 50)),
+  sort: vine.enum(appSorts).parse(knownValue(appSorts, 'newest')),
+  /** Component type the listing is narrowed to; an unknown type does not narrow it at all. */
+  type: vine.enum(appTypes).parse(knownValue(appTypes)).optional(),
+  category: vine.array(vine.string()).parse(categoryCodes),
+  q: vine.string().trim().toLowerCase().optional(),
+  locale: localeField(),
+})
+
+/** Query parameters of a single application of the catalog. */
+export const appLocaleValidator = vine.create({ locale: localeField() })

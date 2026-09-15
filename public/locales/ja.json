@@ -87,6 +87,9 @@
     "title": "アプリケーション",
     "subtitle": "ソフトウェアのメタデータ、ランチャー、上流のソースを探せます。",
     "notFound": "アプリが見つかりません。",
+    "filterType": "種類",
+    "filterAny": "すべての種類",
+    "filterEmpty": "この種類のアプリはありません。",
     "loadError": "アプリを読み込めません",
     "sort": {
       "label": "並び順",

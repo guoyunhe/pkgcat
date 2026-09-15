@@ -87,6 +87,9 @@
     "title": "Aplicativos",
     "subtitle": "Descubra metadados de software, inicializadores e fontes originais.",
     "notFound": "Nenhum aplicativo encontrado.",
+    "filterType": "Tipo",
+    "filterAny": "Todos os tipos",
+    "filterEmpty": "Não há aplicativos deste tipo.",
     "loadError": "Não foi possível carregar os aplicativos",
     "sort": {
       "label": "Ordenar por",
