@@ -7,9 +7,6 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.json('name').notNullable().defaultTo('{}')
-      table.json('summary').notNullable().defaultTo('{}')
-
       table.string('type').notNullable().defaultTo('desktop-application')
       table.string('version').nullable()
       table.string('license').nullable()
