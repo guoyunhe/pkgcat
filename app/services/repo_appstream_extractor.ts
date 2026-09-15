@@ -1,5 +1,4 @@
 import { basename } from 'node:path'
-import { gunzipSync } from 'node:zlib'
 
 import {
   DEFAULT_LOCALE,
@@ -20,7 +19,9 @@ import PackageFileExtractor, { normalizePackagePath } from '#services/package_fi
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ExtractedPackage, ResolvedDebSource } from '#services/repo_package_extractor'
 
+import { compressionExtension, decompress, decompressStream } from '../utils/compression.js'
 import { readTarEntries } from '../utils/tar.js'
+import { eachXmlElement } from '../utils/xml.js'
 
 /** Icon of a component, named the way the AppStream icon archive stores it. */
 export type AppstreamIcon = {
@@ -275,7 +276,7 @@ export default class RepoAppstreamExtractor {
       const archive = await this.download(url, { optional: true })
       if (!archive) continue
 
-      const entries = readTarEntries(gunzipSync(archive))
+      const entries = readTarEntries(await decompress(archive, '.gz'))
       for (const [key, icon] of wanted) {
         if (result.has(key)) continue
         const entry = this.findIconEntry(entries, key, icon)
@@ -329,8 +330,16 @@ export default class RepoAppstreamExtractor {
     const filelists = hrefs.get('filelists')
     if (!filelists) return []
 
-    const content = await this.downloadText(joinUrl(repo.baseUrl, filelists), { optional: true })
-    return content ? this.parseFilelists(content) : []
+    // The file list unpacks to hundreds of megabytes — 625 MB for AlmaLinux 8 `BaseOS`, 875 MB for
+    // Fedora 42 — past what a string can hold, so it is read package by package instead
+    const components = new Map<string, Map<string, string>>()
+    const elements = this.eachMetadataElement(joinUrl(repo.baseUrl, filelists), 'package')
+    for await (const element of elements) this.collectFilelistPackage(element, components)
+
+    return [...components].map(([appstreamId, files]) => ({
+      appstreamId,
+      files: [...files].map(([pkgName, path]) => ({ pkgName, path })),
+    }))
   }
 
   /**
@@ -366,31 +375,24 @@ export default class RepoAppstreamExtractor {
   }
 
   /**
-   * The file list is a flat document of every package with the files it owns. It is scanned with
-   * regular expressions instead of being parsed into objects, because it is much larger than the
-   * other metadata documents.
+   * Collect the AppStream metadata files one `<package>` element of a file list names: a flat
+   * document of every package with the files it owns, which is scanned with regular expressions
+   * instead of being parsed into objects, because it is much larger than the other metadata
+   * documents.
    */
-  private parseFilelists(content: string): InferredComponent[] {
-    const components = new Map<string, Map<string, string>>()
+  private collectFilelistPackage(element: string, components: Map<string, Map<string, string>>) {
+    const attributes = /^<package\b([^>]*)>/.exec(element)?.[1]
+    const name = attributes ? /\bname="([^"]*)"/.exec(attributes)?.[1] : undefined
+    if (!name) return
 
-    for (const match of content.matchAll(/<package\b([^>]*)>([\s\S]*?)<\/package>/g)) {
-      const name = /\bname="([^"]*)"/.exec(match[1])?.[1]
-      if (!name) continue
+    for (const file of element.matchAll(/<file\b[^>]*>([^<]*)<\/file>/g)) {
+      const appstreamId = appstreamFileId(file[1])
+      if (!appstreamId) continue
 
-      for (const file of match[2].matchAll(/<file\b[^>]*>([^<]*)<\/file>/g)) {
-        const appstreamId = appstreamFileId(file[1])
-        if (!appstreamId) continue
-
-        const files = components.get(appstreamId) ?? new Map<string, string>()
-        files.set(name, file[1].trim())
-        components.set(appstreamId, files)
-      }
+      const files = components.get(appstreamId) ?? new Map<string, string>()
+      files.set(name, file[1].trim())
+      components.set(appstreamId, files)
     }
-
-    return [...components].map(([appstreamId, files]) => ({
-      appstreamId,
-      files: [...files].map(([pkgName, path]) => ({ pkgName, path })),
-    }))
   }
 
   private async extractDeb(repo: Repo, archOverride: string | null): Promise<ExtractedApp[]> {
@@ -548,8 +550,19 @@ export default class RepoAppstreamExtractor {
   private async downloadText(url: string, options: { optional?: boolean } = {}) {
     const data = await this.download(url, options)
     if (!data) return null
-    if (url.endsWith('.gz')) return gunzipSync(data).toString('utf8')
-    return data.toString('utf8')
+
+    const content = await decompress(data, compressionExtension(url))
+    return content.toString('utf8')
+  }
+
+  /**
+   * Read the elements of a metadata document of a repository one at a time, decompressing it on the
+   * way, so that a document that is too large to be held as a whole can still be read.
+   */
+  private async *eachMetadataElement(url: string, tag: string): AsyncGenerator<string> {
+    const data = await this.download(url, { optional: true })
+    if (!data) return
+    yield* eachXmlElement(decompressStream(data, compressionExtension(url)), tag)
   }
 
   private async download(

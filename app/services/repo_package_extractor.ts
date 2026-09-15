@@ -3,8 +3,9 @@ import xior, { isXiorError } from 'xior'
 
 import type Repo from '#models/repo'
 
-import { decompress } from '../utils/compression.js'
+import { decompress, decompressStream, compressionExtension } from '../utils/compression.js'
 import { splitDebDescription, splitDebVersion } from '../utils/deb.js'
+import { eachXmlElement } from '../utils/xml.js'
 
 export type RepoPackageType = 'rpm' | 'deb'
 
@@ -158,35 +159,43 @@ export default class RepoPackageExtractor {
     const href = primaryEntry?.location?.['@_href']
     if (!href) throw new Error(`Primary package metadata not found in ${repomdUrl}`)
 
-    const primaryUrl = joinUrl(repo.baseUrl, href)
-    const primaryXml = await this.downloadText(primaryUrl)
-    const parsedPrimary = this.xmlParser.parse(primaryXml) as unknown as {
-      metadata?: { package?: XmlRpmPackage[] }
-    }
-    const packages = parsedPrimary.metadata?.package ?? []
+    // The primary metadata of a large repository unpacks to hundreds of megabytes — 429 MB for
+    // AlmaLinux 8 `BaseOS` — so the packages are read one at a time instead of as one document
+    const result: ExtractedPackage[] = []
+    for await (const element of this.eachMetadataElement(joinUrl(repo.baseUrl, href), 'package')) {
+      const parsed = this.xmlParser.parse(element) as unknown as { package?: XmlRpmPackage[] }
+      const entry = parsed.package?.[0]
+      if (!entry) continue
 
-    return packages
-      .filter((entry) => !isSourceOrDebugPackage(entry.name, entry.arch))
-      .map((entry): ExtractedPackage | null => {
-        const location = entry.location?.['@_href']
-        if (!entry.name || !location) return null
-        const checksum = this.readChecksum(entry.checksum)
-        return {
-          type: 'rpm',
-          name: entry.name,
-          version: text(entry.version?.['@_ver']),
-          release: text(entry.version?.['@_rel']),
-          arch: text(entry.arch),
-          license: readXmlText(entry.format?.['rpm:license'] ?? entry.format?.license),
-          summary: readXmlText(entry.summary),
-          description: readXmlText(entry.description),
-          downloadUrl: joinUrl(repo.baseUrl, location),
-          checksum: checksum.checksum,
-          checksumType: checksum.checksumType,
-          size: this.readNumber(entry.size?.['@_package']),
-        }
-      })
-      .filter((pkg): pkg is ExtractedPackage => pkg !== null)
+      const pkg = this.readRpmPackage(repo, entry)
+      if (pkg) result.push(pkg)
+    }
+
+    return result
+  }
+
+  /** One `<package>` element of the primary metadata as a catalog package. */
+  private readRpmPackage(repo: Repo, entry: XmlRpmPackage): ExtractedPackage | null {
+    if (isSourceOrDebugPackage(entry.name, entry.arch)) return null
+
+    const location = entry.location?.['@_href']
+    if (!entry.name || !location) return null
+
+    const checksum = this.readChecksum(entry.checksum)
+    return {
+      type: 'rpm',
+      name: entry.name,
+      version: text(entry.version?.['@_ver']),
+      release: text(entry.version?.['@_rel']),
+      arch: text(entry.arch),
+      license: readXmlText(entry.format?.['rpm:license'] ?? entry.format?.license),
+      summary: readXmlText(entry.summary),
+      description: readXmlText(entry.description),
+      downloadUrl: joinUrl(repo.baseUrl, location),
+      checksum: checksum.checksum,
+      checksumType: checksum.checksumType,
+      size: this.readNumber(entry.size?.['@_package']),
+    }
   }
 
   private async extractDeb(repo: Repo, archOverride: string | null): Promise<ExtractedPackage[]> {
@@ -369,13 +378,40 @@ export default class RepoPackageExtractor {
     url: string,
     options: { optional?: boolean } = {},
   ): Promise<string | null> {
-    let data: Buffer
+    if (/\.(zck|bz2)$/.test(url)) {
+      throw new Error(`Unsupported repository metadata compression: ${url}`)
+    }
+
+    const data = options.optional
+      ? await this.download(url, { optional: true })
+      : await this.download(url)
+    if (!data) return null
+
+    const content = await decompress(data, compressionExtension(url))
+    return content.toString('utf8')
+  }
+
+  /**
+   * Read the elements of a metadata document one at a time, decompressing it on the way. Everything
+   * this extractor reads from such a document is a package of its own.
+   */
+  private async *eachMetadataElement(url: string, tag: string): AsyncGenerator<string> {
+    const data = await this.download(url)
+    yield* eachXmlElement(decompressStream(data, compressionExtension(url)), tag)
+  }
+
+  private async download(url: string): Promise<Buffer>
+  private async download(url: string, options: { optional: true }): Promise<Buffer | null>
+  private async download(
+    url: string,
+    options: { optional?: boolean } = {},
+  ): Promise<Buffer | null> {
     try {
       const response = await xior.get<ArrayBuffer>(url, {
         responseType: 'arraybuffer',
         headers: requestHeaders,
       })
-      data = Buffer.from(response.data)
+      return Buffer.from(response.data)
     } catch (error) {
       const status = isXiorError(error) ? error.response?.status : undefined
       if (options.optional && (status === 404 || status === 410)) return null
@@ -383,11 +419,5 @@ export default class RepoPackageExtractor {
         cause: error,
       })
     }
-
-    if (/\.(zck|bz2)$/.test(url)) {
-      throw new Error(`Unsupported repository metadata compression: ${url}`)
-    }
-    const content = await decompress(data, /\.(gz|zst|xz)$/.exec(url)?.[0] ?? '')
-    return content.toString('utf8')
   }
 }
