@@ -442,7 +442,7 @@ export const distroRepos: RepoSeed[] = [
     configContent: 'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
   },
   {
-    name: 'Fedora Linux 42 Everything (x86_64)',
+    name: 'Fedora Linux 42 Release (x86_64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
@@ -460,7 +460,7 @@ export const distroRepos: RepoSeed[] = [
     distros: [{ name: 'Fedora Linux', version: '42', arch: 'x86_64' }],
   },
   {
-    name: 'Fedora Linux 42 Everything (aarch64)',
+    name: 'Fedora Linux 42 Release (aarch64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
@@ -478,7 +478,7 @@ export const distroRepos: RepoSeed[] = [
     distros: [{ name: 'Fedora Linux', version: '42', arch: 'aarch64' }],
   },
   {
-    name: 'Fedora Linux 43 Everything (x86_64)',
+    name: 'Fedora Linux 43 Release (x86_64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
@@ -495,7 +495,7 @@ export const distroRepos: RepoSeed[] = [
     distros: [{ name: 'Fedora Linux', version: '43', arch: 'x86_64' }],
   },
   {
-    name: 'Fedora Linux 43 Everything (aarch64)',
+    name: 'Fedora Linux 43 Release (aarch64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
@@ -512,7 +512,7 @@ export const distroRepos: RepoSeed[] = [
     distros: [{ name: 'Fedora Linux', version: '43', arch: 'aarch64' }],
   },
   {
-    name: 'Fedora Linux 44 Everything (x86_64)',
+    name: 'Fedora Linux 44 Release (x86_64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
@@ -529,7 +529,7 @@ export const distroRepos: RepoSeed[] = [
     distros: [{ name: 'Fedora Linux', version: '44', arch: 'x86_64' }],
   },
   {
-    name: 'Fedora Linux 44 Everything (aarch64)',
+    name: 'Fedora Linux 44 Release (aarch64)',
     type: 'rpm',
     source: 'distro',
     baseUrl:
