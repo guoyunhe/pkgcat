@@ -187,7 +187,13 @@ export default class RepoSync extends BaseCommand {
    * are not tied to a catalog application.
    */
   private async savePackages(repo: Repo, packages: ExtractedPackage[], arch?: string) {
-    const existing = await Pkg.query().where('repoId', repo.id)
+    // Only the columns that identify a package are read, because a package carries the long
+    // description of its metadata and a repository holds tens of thousands of them, which is what
+    // the synchronization would otherwise hold in memory at once. Saving a package that was read
+    // this way updates the columns that were merged into it and leaves the others alone.
+    const existing = await Pkg.query()
+      .where('repoId', repo.id)
+      .select('id', 'name', 'version', 'release', 'arch')
     const known = new Map(existing.map((pkg) => [this.packageKey(pkg), pkg]))
     const stale = new Map([...known].filter(([, pkg]) => belongsToArch(pkg.arch, arch)))
     let created = 0

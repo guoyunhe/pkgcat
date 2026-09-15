@@ -3,11 +3,10 @@ import { createReadStream } from 'node:fs'
 import { open } from 'node:fs/promises'
 import { basename, extname } from 'node:path'
 import { pipeline } from 'node:stream/promises'
-import { gunzipSync, zstdDecompressSync } from 'node:zlib'
 
 import { Exception } from '@adonisjs/core/exceptions'
 
-import { decompress as decompressMetadata } from '#utils/compression'
+import { decompress as decompressMetadata, decompressStream } from '#utils/compression'
 import { splitDebDescription, splitDebVersion } from '#utils/deb'
 import { readTarEntries, type TarEntry } from '#utils/tar'
 
@@ -83,6 +82,16 @@ const rpmI18nStringType = 9
 
 /** Length of the fixed part of a SVR4 "newc" cpio entry, which is followed by the file name. */
 const cpioHeaderSize = 110
+
+/** Compression of an RPM payload, named the way the package header names it. */
+const rpmPayloadExtensions: Record<string, string> = {
+  gzip: '.gz',
+  gz: '.gz',
+  zstd: '.zst',
+  xz: '.xz',
+  lzma: '.xz',
+  none: '',
+}
 
 /** Paths inside a package carry a leading `./` or `/`; they are compared without it. */
 export function normalizePackagePath(path: string) {
@@ -265,21 +274,12 @@ export default class PackageFileExtractor {
     }
 
     const compressor = this.readRpmString(header, rpmTags.payloadCompressor)
-    const payload = await this.decompressRpmPayload(data, header, compressor)
-    return this.readCpioEntries(payload, match)
-  }
-
-  /**
-   * The payload follows the main header. Some tools pad the header to an 8 byte boundary, so the
-   * offsets are tried until the payload can be decompressed.
-   */
-  private async decompressRpmPayload(data: Buffer, header: RpmHeader, compressor: string | null) {
     const offsets = [header.end, header.end + ((8 - (header.end % 8)) % 8)]
     let lastError: unknown = null
 
     for (const offset of new Set(offsets)) {
       try {
-        return await this.decompressPayload(data.subarray(offset), compressor)
+        return await readCpioEntries(this.payloadStream(data.subarray(offset), compressor), match)
       } catch (error) {
         lastError = error
       }
@@ -293,56 +293,19 @@ export default class PackageFileExtractor {
     )
   }
 
-  private async decompressPayload(payload: Buffer, compressor: string | null) {
-    switch ((compressor ?? 'gzip').toLowerCase()) {
-      case 'gzip':
-      case 'gz':
-        return gunzipSync(payload)
-      case 'zstd':
-        return zstdDecompressSync(payload)
-      case 'xz':
-      case 'lzma':
-        return this.decompress(payload, '.xz')
-      case 'none':
-        return payload
-      default:
-        throw new Exception(`Unsupported RPM payload compression: ${compressor}`)
-    }
-  }
-
   /**
-   * RPM payloads are SVR4 "newc" cpio archives with one entry per file. Entries are walked by their
-   * declared lengths and only the matching files are kept.
+   * Decompress a payload while it is being read. The payload of a package is several times larger
+   * than the package itself — the `thunderbird` rpm of AlmaLinux 10 is 110 MB and unpacks to about
+   * 300 MB — so holding it in memory as a whole is what makes reading a large repository
+   * expensive.
    */
-  private readCpioEntries(data: Buffer, match: (path: string) => boolean) {
-    const entries: TarEntry[] = []
-    let offset = 0
-
-    while (offset + cpioHeaderSize <= data.length) {
-      const magic = data.subarray(offset, offset + 6).toString('latin1')
-      if (magic !== '070701' && magic !== '070702') break
-
-      const readHex = (at: number) =>
-        Number.parseInt(data.subarray(offset + at, offset + at + 8).toString('latin1'), 16)
-      const fileSize = readHex(54)
-      const nameSize = readHex(94)
-      if (!Number.isInteger(fileSize) || !Number.isInteger(nameSize) || nameSize < 1) break
-
-      const name = data
-        .subarray(offset + cpioHeaderSize, offset + cpioHeaderSize + nameSize - 1)
-        .toString('utf8')
-      offset += cpioHeaderSize + nameSize
-      offset += (4 - (offset % 4)) % 4
-
-      const contents = data.subarray(offset, offset + fileSize)
-      offset += fileSize
-      offset += (4 - (offset % 4)) % 4
-
-      if (name === 'TRAILER!!!') break
-      if (match(normalizePackagePath(name))) entries.push({ name, data: contents })
+  private payloadStream(payload: Buffer, compressor: string | null) {
+    const extension = rpmPayloadExtensions[(compressor ?? 'gzip').toLowerCase()]
+    if (extension === undefined) {
+      throw new Exception(`Unsupported RPM payload compression: ${compressor}`)
     }
 
-    return entries
+    return decompressStream(payload, extension)
   }
 
   private detectType(data: Buffer, fileName: string): UploadedPackageType {
@@ -638,5 +601,115 @@ export default class PackageFileExtractor {
       default:
         return arch
     }
+  }
+}
+
+/**
+ * RPM payloads are SVR4 "newc" cpio archives with one entry per file. Entries are walked by their
+ * declared lengths and only the files that are wanted are kept, so that a payload that is much
+ * larger than the package it belongs to is never held in memory.
+ */
+async function readCpioEntries(
+  chunks: AsyncIterable<Buffer>,
+  match: (path: string) => boolean,
+): Promise<TarEntry[]> {
+  const reader = new ChunkReader(chunks[Symbol.asyncIterator]())
+  const entries: TarEntry[] = []
+  // Offset of the entry inside the payload, which the padding of the entries is aligned to
+  let position = 0
+
+  while (true) {
+    const header = await reader.collect(cpioHeaderSize)
+    if (!header) break
+
+    const magic = header.subarray(0, 6).toString('latin1')
+    if (magic !== '070701' && magic !== '070702') break
+
+    const readHex = (at: number) =>
+      Number.parseInt(header.subarray(at, at + 8).toString('latin1'), 16)
+    const fileSize = readHex(54)
+    const nameSize = readHex(94)
+    if (!Number.isInteger(fileSize) || !Number.isInteger(nameSize) || nameSize < 1) break
+
+    // The name is stored with its terminating NUL, which the next entry is aligned after
+    const name = await reader.collect(nameSize)
+    if (!name) break
+    const path = name.subarray(0, nameSize - 1).toString('utf8')
+    position += cpioHeaderSize + nameSize
+
+    const namePadding = (4 - (position % 4)) % 4
+    if (namePadding > 0 && !(await reader.skip(namePadding))) break
+    position += namePadding
+
+    if (path === 'TRAILER!!!') break
+
+    if (match(normalizePackagePath(path))) {
+      const data = await reader.collect(fileSize)
+      if (!data) break
+      entries.push({ name: path, data })
+    } else if (!(await reader.skip(fileSize))) {
+      break
+    }
+
+    position += fileSize
+    const dataPadding = (4 - (position % 4)) % 4
+    if (dataPadding > 0 && !(await reader.skip(dataPadding))) break
+    position += dataPadding
+  }
+
+  return entries
+}
+
+/**
+ * Reads a stream of chunks piece by piece, so that a payload that is larger than memory can be
+ * walked through: an entry that is not wanted is skipped instead of being held.
+ */
+class ChunkReader {
+  private chunk: Buffer = Buffer.alloc(0)
+  private offset = 0
+
+  constructor(private readonly chunks: AsyncIterator<Buffer>) {}
+
+  /** Exactly `size` bytes of the stream, or `null` when it ends before them. */
+  async collect(size: number): Promise<Buffer | null> {
+    const parts: Buffer[] = []
+    let missing = size
+
+    while (missing > 0) {
+      const piece = await this.read(missing)
+      if (!piece) return null
+      parts.push(piece)
+      missing -= piece.length
+    }
+
+    if (parts.length === 0) return Buffer.alloc(0)
+    return parts.length === 1 ? parts[0] : Buffer.concat(parts, size)
+  }
+
+  /** Advance the stream by `size` bytes, or report that it ends before them. */
+  async skip(size: number): Promise<boolean> {
+    let missing = size
+
+    while (missing > 0) {
+      const piece = await this.read(missing)
+      if (!piece) return false
+      missing -= piece.length
+    }
+
+    return true
+  }
+
+  /** At most `size` bytes of the stream, or `null` when it has ended. */
+  private async read(size: number): Promise<Buffer | null> {
+    while (this.offset >= this.chunk.length) {
+      const next = await this.chunks.next()
+      if (next.done) return null
+      this.chunk = next.value
+      this.offset = 0
+    }
+
+    const piece = this.chunk.subarray(this.offset, this.offset + size)
+    this.offset += piece.length
+    return piece
   }
 }

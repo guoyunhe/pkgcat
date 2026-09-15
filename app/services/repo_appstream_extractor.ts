@@ -151,9 +151,6 @@ const debIconArchives = [
 
 const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
-/** Matches one `<component/>` element of a catalog document. */
-const componentElement = /<component\b(?:[^>]*)>[\s\S]*?<\/component>/g
-
 /** Icon of a DEP-11 component, as the YAML documents of deb repositories declare it. */
 type Dep11Icon = {
   name?: string
@@ -321,8 +318,17 @@ export default class RepoAppstreamExtractor {
     const appdata = hrefs.get('appdata')
     if (!appdata) return []
 
-    const xml = await this.downloadText(joinUrl(repo.baseUrl, appdata), { optional: true })
-    return xml ? this.parseCatalog(xml) : []
+    // A catalog holds every component of the repository in one document, which is several times
+    // larger than the components the extractor returns — the one of openSUSE Tumbleweed unpacks to
+    // 31 MB — so the components are read one at a time, keeping the XML each was read from
+    const apps: ExtractedApp[] = []
+    const elements = this.eachMetadataElement(joinUrl(repo.baseUrl, appdata), 'component')
+    for await (const element of elements) {
+      const component = parseAppStreamComponent(element)
+      if (component) apps.push(toExtractedApp(component, element))
+    }
+
+    return apps
   }
 
   /**
@@ -468,22 +474,6 @@ export default class RepoAppstreamExtractor {
       for (const directory of directories) urls.push(`${directory}/${archive}`)
     }
     return urls
-  }
-
-  /**
-   * AppStream catalogs are a single document holding every component. The components are split out
-   * first, so that a large catalog is parsed component by component and the original XML of every
-   * component can be stored.
-   */
-  private parseCatalog(xml: string): ExtractedApp[] {
-    const apps: ExtractedApp[] = []
-
-    for (const match of xml.matchAll(componentElement)) {
-      const component = parseAppStreamComponent(match[0])
-      if (component) apps.push(toExtractedApp(component, match[0]))
-    }
-
-    return apps
   }
 
   /**

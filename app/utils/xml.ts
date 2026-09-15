@@ -9,6 +9,11 @@ const nameEnd = new Set(['>', '/', ' ', '\t', '\r', '\n'])
  * hold — the file list of Fedora 42 is 875 MB, against a limit of 512 MB per string — so a document
  * is consumed as a stream and only the element that is being read is materialized.
  *
+ * Only the text that has just arrived is searched, so that reading a document neither copies nor
+ * scans it again for every element it holds: searching the whole text read so far together with
+ * every chunk makes the reader use as much memory as the document is large. The tail of the text is
+ * carried over to the next chunk, because a tag can be split between two of them.
+ *
  * An element that nests inside another element of the same name ends the outer one early; the
  * metadata a package repository publishes is flat, so the documents this is used for do not.
  */
@@ -18,33 +23,60 @@ export async function* eachXmlElement(
 ): AsyncGenerator<string> {
   const openTag = `<${tag}`
   const closeTag = `</${tag}>`
+  // A tag split between two chunks is found by searching the tail of the text read so far again
+  const overlap = Math.max(openTag.length, closeTag.length)
   const decoder = new StringDecoder('utf8')
-  let content = ''
+
+  // Text of the element that is being read, from its opening tag up to the last character read
+  let parts: string[] = []
+  // Tail of the text read so far, which the next chunk is searched together with
+  let carry = ''
 
   for await (const chunk of chunks) {
-    content += decoder.write(Buffer.from(chunk))
-    // Where the text that has not been read yet starts within `content`
+    const window = carry + decoder.write(chunk)
     let cursor = 0
+    // Index in `window` up to which the element being read is already in `parts`
+    let covered = carry.length
 
     while (true) {
-      const start = findElementStart(content, openTag, cursor)
-      if (start < 0) {
-        // No element begins in the text that was read, so everything but the beginning of one that
-        // the next chunk completes can be dropped
-        content = content.slice(Math.max(cursor, content.length - openTag.length))
-        break
+      if (parts.length > 0) {
+        const end = window.indexOf(closeTag, cursor)
+        if (end < 0) {
+          // The element is not complete yet: keep what arrived and wait for the rest of it
+          if (covered < window.length) {
+            parts.push(window.slice(covered))
+            covered = window.length
+          }
+          break
+        }
+
+        parts.push(window.slice(covered, end + closeTag.length))
+        yield parts.join('')
+        parts = []
+        cursor = end + closeTag.length
+        covered = window.length
+        continue
       }
 
-      const end = content.indexOf(closeTag, start)
+      const start = findElementStart(window, openTag, cursor)
+      if (start < 0) break
+
+      const end = window.indexOf(closeTag, start + openTag.length)
       if (end < 0) {
-        // The element is not complete yet: keep it and wait for the rest of it
-        content = content.slice(start)
+        // The element began but its end has not been read yet: keep it and wait for the rest of it
+        parts.push(window.slice(start))
+        covered = window.length
         break
       }
 
-      yield content.slice(start, end + closeTag.length)
+      yield window.slice(start, end + closeTag.length)
       cursor = end + closeTag.length
     }
+
+    carry =
+      parts.length > 0
+        ? window.slice(window.length - overlap)
+        : window.slice(Math.max(cursor, window.length - overlap))
   }
 }
 
