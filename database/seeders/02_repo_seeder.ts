@@ -279,6 +279,66 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
   ]),
   nvidiaRpm('suse16', 'x86_64', 'openSUSE Leap 16', [release('openSUSE Leap', '16.0', 'x86_64')]),
   nvidiaRpm('suse16', 'aarch64', 'openSUSE Leap 16', [release('openSUSE Leap', '16.0', 'aarch64')]),
+  {
+    name: 'Zoom for Debian and Ubuntu',
+    type: 'deb',
+    source: 'vendor',
+    distros: [
+      release('Debian', '12', 'x86_64'),
+      release('Debian', '13', 'x86_64'),
+      release('Ubuntu', '24.04', 'x86_64'),
+      release('Ubuntu', '26.04', 'x86_64'),
+    ],
+    baseUrl: 'deb https://repo.zoom.us/repo/deb/release/ any main',
+    configContent: `deb https://repo.zoom.us/repo/deb/release/ any main`,
+    syncIntervalDays: 7,
+  },
+  {
+    name: 'Zoom for Fedora and Red Hat Enterprise Linux',
+    type: 'rpm',
+    source: 'vendor',
+    distros: [
+      release('Fedora Linux', '42', 'x86_64'),
+      release('Fedora Linux', '43', 'x86_64'),
+      release('Fedora Linux', '44', 'x86_64'),
+      release('Red Hat Enterprise Linux', '9', 'x86_64'),
+      release('Red Hat Enterprise Linux', '10', 'x86_64'),
+      release('CentOS Stream', '9', 'x86_64'),
+      release('CentOS Stream', '10', 'x86_64'),
+    ],
+    baseUrl: 'https://repo.zoom.us/repo/rpm/release/',
+    configContent: `[zoom-release]
+name=zoom (release)
+baseurl=https://repo.zoom.us/repo/rpm/release/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://zoom.us/linux/download/pubkey
+skip_if_unavailable=True
+`,
+    syncIntervalDays: 7,
+  },
+  {
+    name: 'Zoom for openSUSE and SUSE Linux Enterprise',
+    type: 'rpm',
+    source: 'vendor',
+    distros: [
+      release('openSUSE Leap', '16.0', 'x86_64'),
+      release('openSUSE Tumbleweed', null, 'x86_64'),
+      release('SUSE Linux Enterprise', '16.0', 'x86_64'),
+    ],
+    baseUrl: 'https://repo.zoom.us/repo/opensuse/release/',
+    configContent: `[zoom-release]
+name=zoom (release)
+baseurl=https://repo.zoom.us/repo/opensuse/release/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://zoom.us/linux/download/pubkey
+skip_if_unavailable=True
+`,
+    syncIntervalDays: 7,
+  },
 ]
 
 /** Release a repository serves, which the seeders of the distributions have to have stored already. */
