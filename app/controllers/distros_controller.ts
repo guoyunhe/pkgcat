@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import Distro from '#models/distro'
 import { attachCounts, distroCounts } from '#services/catalog_counts'
 import DistroTransformer from '#transformers/distro_transformer'
+import { pageOf } from '#utils/pagination'
 import { distroListValidator, distroValidator } from '#validators/distro'
 
 /** Lucid date columns expect a `DateTime` instance, while the validator hands over ISO strings. */
@@ -13,21 +14,29 @@ function toDateTime(value: string | null) {
 
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
-    const { sort } = await request.validateUsing(distroListValidator)
+    const { page, perPage, sort, arch } = await request.validateUsing(distroListValidator)
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
     // keep the order stable for releases published on the same day and for the architectures of one
     // entry
-    const distros = await Distro.query()
+    const query = Distro.query()
       .preload('compatibleDistro')
       .orderBy('name')
       .orderByRaw('release_date is null desc')
       .orderBy('releaseDate', 'desc')
       .orderBy('version')
       .orderBy('arch')
+    if (arch) query.where('arch', arch)
+
+    // The order by a count is the order of the whole listing — the counts say how the entries
+    // follow each other — so the page is cut out of the ordered releases instead of being asked of
+    // the database. The catalog is small enough to be read whole for it, and the counts are read
+    // for every release anyway
+    const distros = await query
     attachCounts(distros, await distroCounts(), sort)
-    return serialize(DistroTransformer.transform(distros))
+    const { entries, meta } = pageOf(distros, page, perPage)
+    return serialize(DistroTransformer.paginate(entries, meta))
   }
 
   async show({ params, serialize }: HttpContext) {

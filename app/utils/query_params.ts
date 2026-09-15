@@ -19,6 +19,17 @@ export function pageNumber(
 }
 
 /**
+ * Page size of a listing: how many entries one page of it holds. A listing that asks for none (`0`)
+ * is not paged at all and receives every entry, which is how a field that picks one entry out of
+ * the catalog reads it; anything else is a positive integer the listing reads at most.
+ */
+export function pageSize(value: unknown, fallback: number, maximum: number) {
+  const spelled = firstValue(value)
+  if (spelled === undefined) return fallback
+  return Number(spelled) === 0 ? 0 : pageNumber(spelled, fallback, maximum)
+}
+
+/**
  * Single value of a query parameter that narrows a listing. A request may spell such a parameter
  * once, repeat it, or leave it empty, and an empty value narrows nothing.
  */

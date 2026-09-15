@@ -21,7 +21,7 @@ import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
-import { distroLabel, getDistros } from '../services/distros'
+import { distroLabel, getDistroCatalog } from '../services/distros'
 import { createRepo, getRepo, updateRepo, type RepoPayload } from '../services/repos'
 
 import styles from './AppFormPage.module.css'
@@ -53,7 +53,7 @@ export default function RepoFormPage() {
   })
 
   useEffect(() => {
-    getDistros()
+    getDistroCatalog()
       .then(setDistros)
       .catch(() => undefined)
   }, [])

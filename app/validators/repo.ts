@@ -1,7 +1,7 @@
 import type { VineDbSearchOptions } from '@adonisjs/lucid/types/vine'
 import vine from '@vinejs/vine'
 
-import { firstValue, knownValue, positiveInteger } from '#utils/query_params'
+import { firstValue, knownValue, pageNumber, pageSize, positiveInteger } from '#utils/query_params'
 
 /**
  * Supported repository types.
@@ -56,9 +56,20 @@ export const repoValidator = vine.create({
 /** Sorts a repository listing can be read in; the name order is the default one. */
 export const repoSorts = ['name', 'packages', 'apps'] as const
 
-/** Query parameters of the repository listing. */
+/**
+ * Query parameters of the repository listing, which the table of them pages ten entries at a time.
+ * The search terms and the origin narrow the listing the same way the distribution does, and a
+ * value the request got wrong — an origin that is not one, a page that is not a number — narrows
+ * nothing instead of failing.
+ */
 export const repoListValidator = vine.create({
+  page: vine.number().parse((value) => pageNumber(value, 1)),
+  perPage: vine.number().parse((value) => pageSize(value, 10, 50)),
   sort: vine.enum(repoSorts).parse(knownValue(repoSorts, 'name')),
+  /** Search terms, which a repository is found by along with the releases it serves. */
+  q: vine.string().parse(firstValue).toLowerCase().optional(),
+  /** Where the repository comes from; another value widens the listing to every origin. */
+  source: vine.enum(repoSources).parse(knownValue(repoSources)).optional(),
   /**
    * Release whose repositories are read; a value that is not one widens the listing to every
    * repository.

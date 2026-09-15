@@ -41,8 +41,40 @@ export function distroSort(value: string | null | undefined): DistroSort {
   return distroSorts.find((sort) => sort === value) ?? 'name'
 }
 
-export async function getDistros(sort: DistroSort = 'name') {
-  const { data } = await api.get<{ data: Distro[] }>('/distros', { params: { sort } })
+/** What the distribution listing is narrowed by, which the toolbar of its page holds. */
+export type DistroFilters = {
+  /** Architecture the entries are published for; a release is one entry per architecture. */
+  arch: string | null
+}
+
+/** Listing with nothing set, which a page without the filter reads its entries with. */
+export const emptyDistroFilters: DistroFilters = { arch: null }
+
+/**
+ * One page of the distribution listing, which the API pages ten entries at a time. The order is
+ * read by the API as well, since it is the order of the whole listing: the entries with the most
+ * packages come first, and the rest follow by name.
+ */
+export async function getDistros(
+  sort: DistroSort = 'name',
+  filters: DistroFilters = emptyDistroFilters,
+  page = 1,
+) {
+  const { data } = await api.get<SerializedPaginated<Distro>>('/distros', {
+    params: { page, sort, arch: filters.arch },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Distro>
+}
+
+/**
+ * Every entry of the catalog, which a field that picks one of them reads: it offers what the
+ * catalog holds rather than the page of it a listing happened to read, so it asks for no page size
+ * at all and receives the entries in one page.
+ */
+export async function getDistroCatalog() {
+  const { data } = await api.get<SerializedPaginated<Distro>>('/distros', {
+    params: { perPage: 0 },
+  })
   return data.data
 }
 

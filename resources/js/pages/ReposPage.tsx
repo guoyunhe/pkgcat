@@ -9,7 +9,14 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import RepoTable from '../components/RepoTable'
-import { deleteRepo, getRepos, repoSort, repoSorts, type RepoSort } from '../services/repos'
+import {
+  deleteRepo,
+  getRepos,
+  repoSort,
+  repoSorts,
+  type RepoFilters,
+  type RepoSort,
+} from '../services/repos'
 
 import styles from './ReposPage.module.css'
 
@@ -25,7 +32,12 @@ export default function ReposPage() {
   const [error, setError] = useState<string | null>(null)
   // A deleted repository is not in the list anymore, which the table reads again to find out
   const [refresh, setRefresh] = useState(0)
-  const loadRepos = useCallback(() => getRepos(sort), [sort])
+  // The order is kept in the URL and the API reads it, and so are the filters the table holds: a
+  // change of either reads the first page of the listing again
+  const loadRepos = useCallback(
+    (page: number, filters: RepoFilters) => getRepos(sort, filters, page),
+    [sort],
+  )
 
   function reposUrl(nextSort: RepoSort) {
     return nextSort === 'name' ? '/repos' : `/repos?sort=${nextSort}`

@@ -19,7 +19,7 @@ import {
   getDistroPackages,
   type Distro,
 } from '../services/distros'
-import { getRepos } from '../services/repos'
+import { getRepos, type RepoFilters } from '../services/repos'
 import { formatCount, formatDate } from '../utils/format'
 
 import styles from './DistroDetailPage.module.css'
@@ -39,9 +39,11 @@ export default function DistroDetailPage() {
   const [pkgCount, setPkgCount] = useState<number | null>(null)
   const [repoCount, setRepoCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  // A route without a release reads nothing; the page shows the invalid id instead of the listings
+  // A route without a release reads nothing; the page shows the invalid id instead of the listings.
+  // The release the table lists is fixed by the page, so the table holds no filters of its own
   const loadRepos = useCallback(
-    () => (distroId ? getRepos('name', distroId) : Promise.resolve<Data.Repo[]>([])),
+    (page: number, filters: RepoFilters) =>
+      distroId ? getRepos('name', { ...filters, distroId }, page) : Promise.resolve(null),
     [distroId],
   )
   // The packages the release serves, which its repositories hold for its architecture

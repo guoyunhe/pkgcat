@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-import { getDistros } from '../services/distros'
+import { getDistroCatalog } from '../services/distros'
 import ListFilter from './ListFilter'
 
 type ArchSelectProps = {
@@ -30,7 +30,7 @@ export default function ArchSelect({ arches, ...field }: ArchSelectProps) {
     if (arches) return
 
     let active = true
-    getDistros()
+    getDistroCatalog()
       .then((result) => {
         if (active) setCatalogArches(result.map((distro) => distro.arch))
       })

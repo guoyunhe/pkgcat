@@ -8,6 +8,10 @@
   padding: 48px 0;
 }
 
+.pagination {
+  margin-top: 28px;
+}
+
 /* A repository row opens the editor for administrators, and is plain text for everyone else */
 .row {
   cursor: default;

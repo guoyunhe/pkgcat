@@ -4,7 +4,7 @@ import { XIcon } from '@phosphor-icons/react/X'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { getDistros, type Distro } from '../services/distros'
+import { getDistroCatalog, type Distro } from '../services/distros'
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import { packageTypes } from '../utils/pkgTypes'
 import ArchSelect from './ArchSelect'
@@ -58,7 +58,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
 
   useEffect(() => {
     let active = true
-    getDistros()
+    getDistroCatalog()
       .then((result) => {
         if (!active) return
         // A release that ships no native package is served by no repository of packages

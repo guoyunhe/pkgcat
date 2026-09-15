@@ -1,6 +1,7 @@
 import type { Data } from '@generated/data'
 import xior from 'xior'
 
+import type { Paginated, SerializedPaginated } from '../types/pagination'
 import { getAuthToken } from './auth'
 
 const api = xior.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api' })
@@ -26,9 +27,42 @@ export function repoSort(value: string | null | undefined): RepoSort {
   return repoSorts.find((sort) => sort === value) ?? 'name'
 }
 
-export async function getRepos(sort: RepoSort = 'name', distroId?: number) {
-  const { data } = await api.get<{ data: Data.Repo[] }>('/repos', { params: { sort, distroId } })
-  return data.data
+/**
+ * What the repository table is narrowed by, which its toolbar holds and the API reads back: the
+ * entries it shows, and therefore the count it reports, are the ones the filters kept.
+ */
+export type RepoFilters = {
+  /** Release the repositories serve, of which every repository serves at least one. */
+  distroId: number | null
+  /** Search terms, which a repository is found by along with the releases it serves. */
+  q: string
+  /** Where the repository comes from: provided by a distribution, or added by a person. */
+  source: string | null
+}
+
+/** Table with nothing set, which a page without a toolbar reads its repositories with. */
+export const emptyRepoFilters: RepoFilters = { distroId: null, q: '', source: null }
+
+/**
+ * One page of the repository listing, which the API pages ten entries at a time. The order is read
+ * by the API as well, since it is the order of the whole listing: the repositories with the most
+ * packages come first, and the rest follow by name.
+ */
+export async function getRepos(
+  sort: RepoSort = 'name',
+  filters: RepoFilters = emptyRepoFilters,
+  page = 1,
+) {
+  const { data } = await api.get<SerializedPaginated<Data.Repo>>('/repos', {
+    params: {
+      page,
+      sort,
+      q: filters.q || undefined,
+      source: filters.source,
+      distroId: filters.distroId,
+    },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Repo>
 }
 
 export async function getRepo(id: number) {

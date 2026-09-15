@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
-import { distroLabel, getDistros, type Distro } from '../services/distros'
+import { distroLabel, getDistroCatalog, type Distro } from '../services/distros'
 import ListFilter from './ListFilter'
 
 /** One release of the catalog, of the fields that name it. */
@@ -38,7 +38,7 @@ export default function DistroSelect({ distros, excludeIds, ...field }: DistroSe
     if (distros) return
 
     let active = true
-    getDistros()
+    getDistroCatalog()
       .then((result) => {
         if (active) setCatalog(result)
       })

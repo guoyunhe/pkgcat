@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-import { knownValue } from '#utils/query_params'
+import { firstValue, knownValue, pageNumber, pageSize } from '#utils/query_params'
 import { pkgTypes } from '#validators/pkg'
 
 /**
@@ -57,7 +57,11 @@ export const distroValidator = vine.create({
  */
 export const distroSorts = ['name', 'packages', 'apps'] as const
 
-/** Query parameters of the distribution listing. */
+/** Query parameters of the distribution listing, which its page pages ten entries at a time. */
 export const distroListValidator = vine.create({
+  page: vine.number().parse((value) => pageNumber(value, 1)),
+  perPage: vine.number().parse((value) => pageSize(value, 10, 50)),
   sort: vine.enum(distroSorts).parse(knownValue(distroSorts, 'name')),
+  /** Architecture the listing is narrowed to; a request without one reads every entry. */
+  arch: vine.string().parse(firstValue).optional(),
 })
