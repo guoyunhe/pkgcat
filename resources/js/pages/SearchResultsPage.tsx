@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
 
-import AppList from '../components/AppList'
+import AppList, { type AppFilters } from '../components/AppList'
 import CountBadge from '../components/CountBadge'
 import PkgList from '../components/PkgList'
 import { getApps } from '../services/apps'
@@ -22,10 +22,10 @@ export default function SearchResultsPage() {
   const [appsCount, setAppsCount] = useState<number | null>(null)
   const [pkgsCount, setPkgsCount] = useState<number | null>(null)
 
-  // The applications the search terms name, in the category the list is narrowed to
+  // The applications the search terms name, narrowed and ordered by the filters of the list
   const readApps = useCallback(
-    (page: number, category: string | null) =>
-      getApps(query, page, 12, category, null, 'newest', i18n.language),
+    (page: number, filters: AppFilters) =>
+      getApps(query, page, 12, filters.category, filters.type, filters.sort, i18n.language),
     [i18n.language, query],
   )
   // The packages the search terms name, narrowed by the filters the list holds

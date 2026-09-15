@@ -19,9 +19,9 @@ import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
+import AppTypeSelect from '../components/AppTypeSelect'
 import IconUpload from '../components/IconUpload'
 import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
-import { appTypes } from '../utils/appTypes'
 import { defaultLanguage, languageOptions } from '../utils/languages'
 import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
 
@@ -190,10 +190,7 @@ export default function AppFormPage() {
         {(nameMissing || summaryMissing) && (
           <Alert color='yellow'>{t('form.localizedRequired')}</Alert>
         )}
-        <Select
-          allowDeselect={false}
-          data={appTypes}
-          label={t('common.type')}
+        <AppTypeSelect
           value={form.type}
           onChange={(value) => setForm({ ...form, type: value ?? form.type })}
         />
