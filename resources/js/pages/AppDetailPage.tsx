@@ -20,7 +20,7 @@ import ReviewForm from '../components/ReviewForm'
 import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
 import { deleteApp, getApp, getAppPackages } from '../services/apps'
-import { deletePkg, type PkgFilters } from '../services/pkgs'
+import type { PkgFilters } from '../services/pkgs'
 import { deleteReview, getAppReviews } from '../services/reviews'
 import type { Paginated } from '../types/pagination'
 import {
@@ -134,16 +134,6 @@ export default function AppDetailPage() {
       setReviewsError(reason instanceof Error ? reason.message : t('reviews.deleteError'))
     } finally {
       setDeletingReviewId(null)
-    }
-  }
-
-  async function handleDeletePkg(pkg: Data.Pkg) {
-    if (!window.confirm(t('packages.deleteConfirm', { name: pkg.name }))) return
-    try {
-      await deletePkg(pkg.id)
-      setPackagesRefresh((value) => value + 1)
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('packages.deleteError'))
     }
   }
 
@@ -332,32 +322,6 @@ export default function AppDetailPage() {
           filteredEmptyMessage={t('common.packagesNotFound')}
           load={readPkgs}
           refreshKey={packagesRefresh}
-          renderActions={
-            isAdmin
-              ? (pkg) => (
-                  <>
-                    <Button
-                      aria-label={t('common.edit')}
-                      component={Link}
-                      href={`/pkgs/${pkg.id}/edit`}
-                      size='xs'
-                      variant='subtle'
-                    >
-                      <PencilSimpleIcon size={16} />
-                    </Button>
-                    <Button
-                      aria-label={t('common.delete')}
-                      color='red'
-                      size='xs'
-                      variant='subtle'
-                      onClick={() => void handleDeletePkg(pkg)}
-                    >
-                      <TrashIcon size={16} />
-                    </Button>
-                  </>
-                )
-              : undefined
-          }
           showDetails
         />
       </section>
