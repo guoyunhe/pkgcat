@@ -1,10 +1,10 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Select, Text, TextInput, Title } from '@mantine/core'
+import { Alert, Button, Group, Select, Text, TextInput, Title } from '@mantine/core'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'wouter'
 
@@ -25,29 +25,18 @@ export default function ReposPage() {
   // The sort order is read by the API, so it is kept in the URL and the listing is re-read for it
   const sort = repoSort(searchParams.get('sort'))
 
+  // The repositories the table read, which the controls below narrow down
   const [repos, setRepos] = useState<Data.Repo[]>([])
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // A deleted repository is not in the list anymore, which the table reads again to find out
+  const [refresh, setRefresh] = useState(0)
   // A repository serves the releases of the distributions it publishes, which is how the entries the
   // loaded repositories name become the options that narrow the list down
   const [distroFilter, setDistroFilter] = useState<string | null>(null)
   const [sourceFilter, setSourceFilter] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
-  async function loadRepos() {
-    try {
-      setLoading(true)
-      setRepos(await getRepos(sort))
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('repos.loadError'))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    void loadRepos()
-  }, [sort])
+  const loadRepos = useCallback(() => getRepos(sort), [sort])
 
   function reposUrl(nextSort: RepoSort) {
     return nextSort === 'name' ? '/repos' : `/repos?sort=${nextSort}`
@@ -57,7 +46,7 @@ export default function ReposPage() {
     if (!window.confirm(t('repos.confirmDelete', { name: repo.name }))) return
     try {
       await deleteRepo(repo.id)
-      setRepos((current) => current.filter((item) => item.id !== repo.id))
+      setRefresh((value) => value + 1)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('repos.deleteError'))
     }
@@ -77,10 +66,8 @@ export default function ReposPage() {
 
   // The list arrives complete and small, so the filters and the search only narrow what is already
   // loaded, and the order the API returns — the repositories by name — is left untouched
-  const visibleRepos = useMemo(() => {
-    const wanted = search.trim().toLowerCase()
-
-    return repos.filter((repo) => {
+  const repoIsVisible = useCallback(
+    (repo: Data.Repo) => {
       if (sourceFilter !== null && repo.source !== sourceFilter) return false
       if (
         distroFilter !== null &&
@@ -88,6 +75,8 @@ export default function ReposPage() {
       ) {
         return false
       }
+
+      const wanted = search.trim().toLowerCase()
       if (!wanted) return true
 
       // A repository is found by its name, by the URL it reads from, and by the releases it serves
@@ -99,8 +88,9 @@ export default function ReposPage() {
         ...repo.distros.flatMap((distro) => [distro.name, distro.version ?? '', distro.arch]),
       ]
       return fields.join(' ').toLowerCase().includes(wanted)
-    })
-  }, [distroFilter, repos, search, sourceFilter])
+    },
+    [distroFilter, search, sourceFilter],
+  )
 
   // An empty list is a different thing from a filter that matches nothing
   const emptyMessage =
@@ -143,82 +133,77 @@ export default function ReposPage() {
           {error}
         </Alert>
       )}
-      {!loading &&
-        repos.length > 0 && (
-          // The filter carries a label and the search box does not, so the two are aligned at their
-          // bottom edge, where the inputs themselves are
-          <Group align='flex-end' mb='lg'>
-            <TextInput
-              aria-label={t('repos.filterSearch')}
-              leftSection={<MagnifyingGlassIcon size={18} />}
-              placeholder={t('repos.filterSearch')}
-              value={search}
-              w={240}
-              onChange={(event) => setSearch(event.currentTarget.value)}
-            />
-            <DistroSelect
-              distros={distroEntries}
-              label={t('common.distribution')}
-              onChange={setDistroFilter}
-              placeholder={t('repos.filterAny')}
-              searchable
-              value={distroFilter}
-            />
-            <ListFilter
-              data={sourceOptions}
-              label={t('common.source')}
-              onChange={setSourceFilter}
-              placeholder={t('repos.filterAnySource')}
-              value={sourceFilter}
-            />
-            <Select
-              allowDeselect={false}
-              data={repoSorts.map((value) => ({ value, label: sortLabels[value] }))}
-              label={t('common.sortBy')}
-              onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
-              value={sort}
-              w={180}
-            />
-          </Group>
-        )}
-      {loading ? (
-        <div className={styles.loading}>
-          <Loader color='orange' />
-        </div>
-      ) : visibleRepos.length === 0 ? (
-        <Text c='dimmed'>{emptyMessage}</Text>
-      ) : (
-        <RepoTable
-          onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
-          renderActions={
-            isAdmin
-              ? (repo) => (
-                  <>
-                    <Button
-                      aria-label={t('common.edit')}
-                      component={Link}
-                      href={`/repos/${repo.id}/edit`}
-                      size='xs'
-                      variant='subtle'
-                    >
-                      <PencilSimpleIcon size={16} />
-                    </Button>
-                    <Button
-                      aria-label={t('common.delete')}
-                      color='red'
-                      size='xs'
-                      variant='subtle'
-                      onClick={() => void remove(repo)}
-                    >
-                      <TrashIcon size={16} />
-                    </Button>
-                  </>
-                )
-              : undefined
-          }
-          repos={visibleRepos}
-        />
+      {repos.length > 0 && (
+        // The filter carries a label and the search box does not, so the two are aligned at their
+        // bottom edge, where the inputs themselves are
+        <Group align='flex-end' mb='lg'>
+          <TextInput
+            aria-label={t('repos.filterSearch')}
+            leftSection={<MagnifyingGlassIcon size={18} />}
+            placeholder={t('repos.filterSearch')}
+            value={search}
+            w={240}
+            onChange={(event) => setSearch(event.currentTarget.value)}
+          />
+          <DistroSelect
+            distros={distroEntries}
+            label={t('common.distribution')}
+            onChange={setDistroFilter}
+            placeholder={t('repos.filterAny')}
+            searchable
+            value={distroFilter}
+          />
+          <ListFilter
+            data={sourceOptions}
+            label={t('common.source')}
+            onChange={setSourceFilter}
+            placeholder={t('repos.filterAnySource')}
+            value={sourceFilter}
+          />
+          <Select
+            allowDeselect={false}
+            data={repoSorts.map((value) => ({ value, label: sortLabels[value] }))}
+            label={t('common.sortBy')}
+            onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
+            value={sort}
+            w={180}
+          />
+        </Group>
       )}
+      <RepoTable
+        emptyMessage={emptyMessage}
+        filter={repoIsVisible}
+        load={loadRepos}
+        onLoad={setRepos}
+        onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
+        refreshKey={refresh}
+        renderActions={
+          isAdmin
+            ? (repo) => (
+                <>
+                  <Button
+                    aria-label={t('common.edit')}
+                    component={Link}
+                    href={`/repos/${repo.id}/edit`}
+                    size='xs'
+                    variant='subtle'
+                  >
+                    <PencilSimpleIcon size={16} />
+                  </Button>
+                  <Button
+                    aria-label={t('common.delete')}
+                    color='red'
+                    size='xs'
+                    variant='subtle'
+                    onClick={() => void remove(repo)}
+                  >
+                    <TrashIcon size={16} />
+                  </Button>
+                </>
+              )
+            : undefined
+        }
+      />
     </main>
   )
 }

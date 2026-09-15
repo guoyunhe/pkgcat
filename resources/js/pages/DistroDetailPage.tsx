@@ -1,9 +1,9 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Tabs, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useRoute } from 'wouter'
 
@@ -20,7 +20,6 @@ import {
   type Distro,
 } from '../services/distros'
 import { getRepos } from '../services/repos'
-import type { Paginated } from '../types/pagination'
 import { formatCount, formatDate } from '../utils/format'
 
 import styles from './DistroDetailPage.module.css'
@@ -36,14 +35,21 @@ export default function DistroDetailPage() {
   const distroId = params?.id ? Number(params.id) : undefined
   const [distro, setDistro] = useState<Distro | null>(null)
   const [activeTab, setActiveTab] = useState<DistroTab>('packages')
-  const [repos, setRepos] = useState<Data.Repo[]>([])
-  const [reposLoading, setReposLoading] = useState(true)
-  const [pkgs, setPkgs] = useState<Paginated<Data.Pkg> | null>(null)
-  const [pkgsPage, setPkgsPage] = useState(1)
-  const [pkgsLoading, setPkgsLoading] = useState(true)
+  // What the two listings hold, which they say themselves and the tabs show
+  const [pkgCount, setPkgCount] = useState<number | null>(null)
+  const [repoCount, setRepoCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [reposError, setReposError] = useState<string | null>(null)
-  const [pkgsError, setPkgsError] = useState<string | null>(null)
+  // A route without a release reads nothing; the page shows the invalid id instead of the listings
+  const loadRepos = useCallback(
+    () => (distroId ? getRepos('name', distroId) : Promise.resolve<Data.Repo[]>([])),
+    [distroId],
+  )
+  // The packages the release serves, which its repositories hold for its architecture
+  const readPkgs = useCallback(
+    (page: number) =>
+      distroId ? getDistroPackages(distroId, page, i18n.language) : Promise.resolve(null),
+    [distroId, i18n.language],
+  )
 
   useEffect(() => {
     if (!distroId) {
@@ -56,32 +62,6 @@ export default function DistroDetailPage() {
         setError(reason instanceof Error ? reason.message : t('distros.detail.loadError')),
       )
   }, [distroId])
-
-  useEffect(() => {
-    if (!distroId) return
-
-    setReposLoading(true)
-    setReposError(null)
-    getRepos('name', distroId)
-      .then(setRepos)
-      .catch((reason) =>
-        setReposError(reason instanceof Error ? reason.message : t('repos.loadError')),
-      )
-      .finally(() => setReposLoading(false))
-  }, [distroId])
-
-  useEffect(() => {
-    if (!distroId) return
-
-    setPkgsLoading(true)
-    setPkgsError(null)
-    getDistroPackages(distroId, pkgsPage, i18n.language)
-      .then(setPkgs)
-      .catch((reason) =>
-        setPkgsError(reason instanceof Error ? reason.message : t('common.loadPackagesError')),
-      )
-      .finally(() => setPkgsLoading(false))
-  }, [distroId, i18n.language, pkgsPage, t])
 
   if (error) {
     return (
@@ -218,62 +198,46 @@ export default function DistroDetailPage() {
 
       <Tabs
         className={styles.listings}
+        keepMounted
+        keepMountedMode='display-none'
         value={activeTab}
         onChange={(value) => setActiveTab(value as DistroTab)}
       >
         <Tabs.List>
           <Tabs.Tab
-            rightSection={<CountBadge count={pkgs?.meta.total} loading={pkgsLoading} />}
+            rightSection={<CountBadge count={pkgCount ?? undefined} loading={pkgCount === null} />}
             value='packages'
           >
             {t('common.packages')}
           </Tabs.Tab>
           <Tabs.Tab
-            rightSection={<CountBadge count={repos.length} loading={reposLoading} />}
+            rightSection={
+              <CountBadge count={repoCount ?? undefined} loading={repoCount === null} />
+            }
             value='repositories'
           >
             {t('common.repositories')}
           </Tabs.Tab>
         </Tabs.List>
 
+        {/* Both listings are read on their own, and the count of each of them is what the tabs show */}
         <Tabs.Panel pt='lg' value='packages'>
-          {pkgsError && <Alert color='red'>{pkgsError}</Alert>}
-          {pkgsLoading ? (
-            <div className={styles.loading}>
-              <Loader color='orange' size='sm' />
-            </div>
-          ) : pkgs && pkgs.data.length > 0 ? (
-            <>
-              <PkgList pkgs={pkgs.data} showDetails />
-              {pkgs.meta.lastPage > 1 && (
-                <Pagination
-                  className={styles.pagination}
-                  total={pkgs.meta.lastPage}
-                  value={pkgs.meta.currentPage}
-                  onChange={setPkgsPage}
-                />
-              )}
-            </>
-          ) : (
-            <Text c='dimmed'>{t('distros.detail.noPackages')}</Text>
-          )}
+          <PkgList
+            emptyMessage={t('distros.detail.noPackages')}
+            load={readPkgs}
+            onCountChange={setPkgCount}
+            showDetails
+          />
         </Tabs.Panel>
 
         <Tabs.Panel pt='lg' value='repositories'>
-          {reposError && <Alert color='red'>{reposError}</Alert>}
-          {reposLoading ? (
-            <div className={styles.loading}>
-              <Loader color='orange' size='sm' />
-            </div>
-          ) : repos.length === 0 ? (
-            <Text c='dimmed'>{t('distros.detail.noRepos')}</Text>
-          ) : (
-            <RepoTable
-              onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
-              repos={repos}
-              showDistros={false}
-            />
-          )}
+          <RepoTable
+            emptyMessage={t('distros.detail.noRepos')}
+            load={loadRepos}
+            onCountChange={setRepoCount}
+            onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
+            showDistros={false}
+          />
         </Tabs.Panel>
       </Tabs>
     </main>

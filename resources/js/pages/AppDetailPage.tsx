@@ -5,7 +5,7 @@ import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useRoute } from 'wouter'
 
@@ -41,13 +41,9 @@ export default function AppDetailPage() {
   const [, params] = useRoute('/apps/:id')
   const appId = params?.id ? Number(params.id) : undefined
   const [app, setApp] = useState<Data.App | null>(null)
-  const [packages, setPackages] = useState<Paginated<Data.Pkg> | null>(null)
-  const [packagesPage, setPackagesPage] = useState(1)
   const [packagesRefresh, setPackagesRefresh] = useState(0)
-  const [packagesLoading, setPackagesLoading] = useState(true)
   const [pkgFilters, setPkgFilters] = useStoredPkgFilters()
   const [error, setError] = useState<string | null>(null)
-  const [packagesError, setPackagesError] = useState<string | null>(null)
   const [reviews, setReviews] = useState<Paginated<Data.Review> | null>(null)
   const [reviewsPage, setReviewsPage] = useState(1)
   const [reviewsLoading, setReviewsLoading] = useState(true)
@@ -57,6 +53,12 @@ export default function AppDetailPage() {
   const component = useMemo(
     () => parseAppStreamContent(app?.appstreamContent),
     [app?.appstreamContent],
+  )
+  // The packages of the application, narrowed by the filters that sit above the list
+  const readPkgs = useCallback(
+    (page: number) =>
+      appId ? getAppPackages(appId, page, pkgFilters, i18n.language) : Promise.resolve(null),
+    [appId, i18n.language, pkgFilters],
   )
 
   useEffect(() => {
@@ -70,23 +72,6 @@ export default function AppDetailPage() {
         setError(reason instanceof Error ? reason.message : t('common.loadAppError')),
       )
   }, [appId, i18n.language])
-
-  useEffect(() => {
-    setPackagesPage(1)
-  }, [pkgFilters])
-
-  useEffect(() => {
-    if (!appId) return
-
-    setPackagesLoading(true)
-    setPackagesError(null)
-    getAppPackages(appId, packagesPage, pkgFilters, i18n.language)
-      .then(setPackages)
-      .catch((reason) =>
-        setPackagesError(reason instanceof Error ? reason.message : t('common.loadPackagesError')),
-      )
-      .finally(() => setPackagesLoading(false))
-  }, [appId, i18n.language, packagesPage, packagesRefresh, pkgFilters])
 
   useEffect(() => {
     if (!appId) return
@@ -140,7 +125,6 @@ export default function AppDetailPage() {
   }
 
   function handlePackageUploaded() {
-    setPackagesPage(1)
     setPackagesRefresh((value) => value + 1)
   }
 
@@ -163,7 +147,7 @@ export default function AppDetailPage() {
       await deletePkg(pkg.id)
       setPackagesRefresh((value) => value + 1)
     } catch (reason) {
-      setPackagesError(reason instanceof Error ? reason.message : t('packages.deleteError'))
+      setError(reason instanceof Error ? reason.message : t('packages.deleteError'))
     }
   }
 
@@ -347,58 +331,39 @@ export default function AppDetailPage() {
             </Group>
           )}
         </Group>
-        {packagesError && <Alert color='red'>{packagesError}</Alert>}
         <PkgFilters onChange={setPkgFilters} value={pkgFilters} />
-        {packagesLoading ? (
-          <div className={styles.packagesLoading}>
-            <Loader color='orange' size='sm' />
-          </div>
-        ) : packages?.data.length === 0 ? (
-          <Text c='dimmed'>
-            {hasPkgFilters ? t('common.packagesNotFound') : t('detail.noPackages')}
-          </Text>
-        ) : (
-          <>
-            <PkgList
-              pkgs={packages?.data ?? []}
-              renderActions={
-                isAdmin
-                  ? (pkg) => (
-                      <>
-                        <Button
-                          aria-label={t('common.edit')}
-                          component={Link}
-                          href={`/pkgs/${pkg.id}/edit`}
-                          size='xs'
-                          variant='subtle'
-                        >
-                          <PencilSimpleIcon size={16} />
-                        </Button>
-                        <Button
-                          aria-label={t('common.delete')}
-                          color='red'
-                          size='xs'
-                          variant='subtle'
-                          onClick={() => void handleDeletePkg(pkg)}
-                        >
-                          <TrashIcon size={16} />
-                        </Button>
-                      </>
-                    )
-                  : undefined
-              }
-              showDetails
-            />
-            {packages && packages.meta.lastPage > 1 && (
-              <Pagination
-                className={styles.pagination}
-                total={packages.meta.lastPage}
-                value={packages.meta.currentPage}
-                onChange={setPackagesPage}
-              />
-            )}
-          </>
-        )}
+        <PkgList
+          emptyMessage={hasPkgFilters ? t('common.packagesNotFound') : t('detail.noPackages')}
+          load={readPkgs}
+          refreshKey={packagesRefresh}
+          renderActions={
+            isAdmin
+              ? (pkg) => (
+                  <>
+                    <Button
+                      aria-label={t('common.edit')}
+                      component={Link}
+                      href={`/pkgs/${pkg.id}/edit`}
+                      size='xs'
+                      variant='subtle'
+                    >
+                      <PencilSimpleIcon size={16} />
+                    </Button>
+                    <Button
+                      aria-label={t('common.delete')}
+                      color='red'
+                      size='xs'
+                      variant='subtle'
+                      onClick={() => void handleDeletePkg(pkg)}
+                    >
+                      <TrashIcon size={16} />
+                    </Button>
+                  </>
+                )
+              : undefined
+          }
+          showDetails
+        />
       </section>
 
       <section className={styles.reviews}>

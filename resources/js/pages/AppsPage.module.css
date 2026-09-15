@@ -21,16 +21,6 @@
   letter-spacing: 0;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: 72px 0;
-}
-
-.pagination {
-  margin-top: 28px;
-}
-
 @media (max-width: 600px) {
   .page {
     padding: 44px 18px;

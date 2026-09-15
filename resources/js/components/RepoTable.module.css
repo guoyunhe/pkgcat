@@ -2,6 +2,12 @@
   border-top: 1px solid var(--ph-border);
 }
 
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
 /* A repository row opens the editor for administrators, and is plain text for everyone else */
 .row {
   cursor: default;

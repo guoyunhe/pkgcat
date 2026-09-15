@@ -1,6 +1,7 @@
 import type { Data } from '@generated/data'
-import { Table, Text } from '@mantine/core'
+import { Alert, Loader, Table, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import styles from './RepoTable.module.css'
@@ -13,7 +14,25 @@ function formatCount(value: number, language: string) {
 }
 
 type RepoTableProps = {
-  repos: Data.Repo[]
+  /**
+   * Reads the repositories to show. The loader has to keep its identity (`useCallback`), which is
+   * also what tells the table to read again — the repositories of another release, or the same list
+   * in another order.
+   */
+  load: () => Promise<Data.Repo[]>
+  /** Rows the table leaves out, for a page that narrows the list down by itself. */
+  filter?: (repo: Data.Repo) => boolean
+  /**
+   * The repositories that were read. A page that narrows the list down by itself builds the
+   * controls it does that with from the complete list, which is what it is handed here.
+   */
+  onLoad?: (repos: Data.Repo[]) => void
+  /** Number of repositories the table holds, told whenever they are read. */
+  onCountChange?: (count: number) => void
+  /** Bumped by the page when something outside the table changed it, such as a deleted repository. */
+  refreshKey?: number
+  /** Message of the empty table, which every page names after what it shows. */
+  emptyMessage: string
   /**
    * Releases every row serves. A page that lists the repositories of one release — its own detail
    * page — already says which release that is, so it leaves the column out.
@@ -25,14 +44,57 @@ type RepoTableProps = {
   onRowClick?: (repo: Data.Repo) => void
 }
 
-/** Table of repositories, shared by the repository listing and the detail page of a release. */
+/**
+ * Table of repositories, which reads them itself: shared by the repository listing and the detail
+ * page of a release.
+ */
 export default function RepoTable({
-  repos,
+  load,
+  filter,
+  onLoad,
+  onCountChange,
+  refreshKey,
+  emptyMessage,
   showDistros = true,
   renderActions,
   onRowClick,
 }: RepoTableProps) {
   const { t, i18n } = useTranslation()
+  const [repos, setRepos] = useState<Data.Repo[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  // The callbacks are held in refs, so that reading the repositories depends on the loader alone: a
+  // page that passes an inline arrow would otherwise read them again on every one of its renders
+  const reportRows = useRef(onLoad)
+  const reportCount = useRef(onCountChange)
+  reportRows.current = onLoad
+  reportCount.current = onCountChange
+
+  useEffect(() => {
+    let active = true
+
+    setLoading(true)
+    setError(null)
+    load()
+      .then((repositories) => {
+        if (!active) return
+        setRepos(repositories)
+        reportRows.current?.(repositories)
+        reportCount.current?.(repositories.length)
+      })
+      .catch((reason) => {
+        if (active) {
+          setError(reason instanceof Error ? reason.message : t('repos.loadError'))
+        }
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [load, refreshKey, t])
 
   function formatDate(value: string | null) {
     if (!value) return t('repos.neverSynced')
@@ -40,6 +102,26 @@ export default function RepoTable({
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(new Date(value))
+  }
+
+  if (error) {
+    return (
+      <Alert color='red' mb='lg'>
+        {error}
+      </Alert>
+    )
+  }
+  if (loading) {
+    return (
+      <div className={styles.loading}>
+        <Loader color='orange' />
+      </div>
+    )
+  }
+
+  const rows = filter ? repos.filter(filter) : repos
+  if (rows.length === 0) {
+    return <Text c='dimmed'>{emptyMessage}</Text>
   }
 
   return (
@@ -58,7 +140,7 @@ export default function RepoTable({
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
-        {repos.map((repo) => (
+        {rows.map((repo) => (
           <Table.Tr
             className={onRowClick ? styles.clickableRow : styles.row}
             key={repo.id}

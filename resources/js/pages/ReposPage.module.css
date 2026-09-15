@@ -21,12 +21,6 @@
   letter-spacing: 0;
 }
 
-.loading {
-  display: flex;
-  justify-content: center;
-  padding: 72px 0;
-}
-
 .status {
   align-items: center;
   display: flex;

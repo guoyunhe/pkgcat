@@ -1,6 +1,5 @@
-import type { Data } from '@generated/data'
-import { Alert, Group, Loader, Pagination, Tabs, Text, Title } from '@mantine/core'
-import { useEffect, useState } from 'react'
+import { Group, Tabs, Text, Title } from '@mantine/core'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
 
@@ -9,8 +8,8 @@ import CategoryFilter from '../components/CategoryFilter'
 import CountBadge from '../components/CountBadge'
 import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
-import { getApps, searchPackages } from '../services/apps'
-import type { Paginated } from '../types/pagination'
+import { getApps } from '../services/apps'
+import { loadPkgs } from '../services/pkgs'
 
 import styles from './AppsPage.module.css'
 
@@ -22,73 +21,22 @@ export default function SearchResultsPage() {
   const query = searchParams.get('q')?.trim() ?? ''
 
   const [activeTab, setActiveTab] = useState<SearchTab>('apps')
-  const [appsPage, setAppsPage] = useState(1)
   const [appsCategory, setAppsCategory] = useState<string | null>(null)
-  const [pkgsPage, setPkgsPage] = useState(1)
+  const [appsCount, setAppsCount] = useState<number | null>(null)
+  const [pkgsCount, setPkgsCount] = useState<number | null>(null)
 
-  const [appsResult, setAppsResult] = useState<Paginated<Data.App> | null>(null)
-  const [appsLoading, setAppsLoading] = useState(true)
-  const [appsError, setAppsError] = useState<string | null>(null)
-
-  const [pkgsResult, setPkgsResult] = useState<Paginated<Data.Pkg> | null>(null)
-  const [pkgsLoading, setPkgsLoading] = useState(true)
-  const [pkgsError, setPkgsError] = useState<string | null>(null)
   const [filters, setFilters] = useStoredPkgFilters()
-
-  useEffect(() => {
-    setAppsPage(1)
-    setPkgsPage(1)
-  }, [query])
-
-  useEffect(() => {
-    setPkgsPage(1)
-  }, [filters])
-
-  useEffect(() => {
-    setAppsPage(1)
-  }, [appsCategory])
-
-  useEffect(() => {
-    let active = true
-    setAppsLoading(true)
-    setAppsError(null)
-    getApps(query, appsPage, 12, appsCategory, null, 'newest', i18n.language)
-      .then((result) => {
-        if (active) setAppsResult(result)
-      })
-      .catch((reason) => {
-        if (active) {
-          setAppsError(reason instanceof Error ? reason.message : t('search.loadError'))
-        }
-      })
-      .finally(() => {
-        if (active) setAppsLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [appsCategory, appsPage, i18n.language, query, t])
-
-  useEffect(() => {
-    let active = true
-    setPkgsLoading(true)
-    setPkgsError(null)
-    searchPackages(query, pkgsPage, filters, i18n.language)
-      .then((result) => {
-        if (active) setPkgsResult(result)
-      })
-      .catch((reason) => {
-        if (active) {
-          setPkgsError(reason instanceof Error ? reason.message : t('search.loadPackagesError'))
-        }
-      })
-      .finally(() => {
-        if (active) setPkgsLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [filters, i18n.language, pkgsPage, query, t])
+  // The applications the search terms and the category name, which the list reads one page of at a
+  // time
+  const readApps = useCallback(
+    (page: number) => getApps(query, page, 12, appsCategory, null, 'newest', i18n.language),
+    [appsCategory, i18n.language, query],
+  )
+  // The packages the search terms and the filters name, which the list reads one page of at a time
+  const readPkgs = useCallback(
+    (page: number) => loadPkgs(query, page, filters, i18n.language),
+    [filters, i18n.language, query],
+  )
 
   return (
     <main className={styles.page}>
@@ -100,76 +48,55 @@ export default function SearchResultsPage() {
         </div>
       </header>
 
-      <Tabs mb='lg' value={activeTab} onChange={(value) => setActiveTab(value as SearchTab)}>
+      <Tabs
+        keepMounted
+        keepMountedMode='display-none'
+        mb='lg'
+        value={activeTab}
+        onChange={(value) => setActiveTab(value as SearchTab)}
+      >
         <Tabs.List>
           <Tabs.Tab
             value='apps'
-            rightSection={<CountBadge count={appsResult?.meta.total} loading={appsLoading} />}
+            rightSection={
+              <CountBadge count={appsCount ?? undefined} loading={appsCount === null} />
+            }
           >
             {t('common.apps')}
           </Tabs.Tab>
           <Tabs.Tab
             value='packages'
-            rightSection={<CountBadge count={pkgsResult?.meta.total} loading={pkgsLoading} />}
+            rightSection={
+              <CountBadge count={pkgsCount ?? undefined} loading={pkgsCount === null} />
+            }
           >
             {t('common.packages')}
           </Tabs.Tab>
         </Tabs.List>
+
+        {/* Both listings are read on their own, and the count of each of them is what the tabs show */}
+        <Tabs.Panel value='apps'>
+          <Group mb='lg'>
+            <CategoryFilter onChange={setAppsCategory} value={appsCategory} />
+          </Group>
+          <AppList
+            emptyMessage={t('common.appsNotFound')}
+            errorMessage={t('search.loadError')}
+            load={readApps}
+            onCountChange={setAppsCount}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel value='packages'>
+          <PkgFilters onChange={setFilters} value={filters} />
+          <PkgList
+            emptyMessage={t('common.packagesNotFound')}
+            errorMessage={t('search.loadPackagesError')}
+            load={readPkgs}
+            onCountChange={setPkgsCount}
+          />
+        </Tabs.Panel>
       </Tabs>
-
-      {activeTab === 'packages' && <PkgFilters onChange={setFilters} value={filters} />}
-
-      {activeTab === 'apps' && (
-        <Group mb='lg'>
-          <CategoryFilter onChange={setAppsCategory} value={appsCategory} />
-        </Group>
-      )}
-
-      {activeTab === 'apps' &&
-        (appsError ? (
-          <Alert color='red'>{appsError}</Alert>
-        ) : appsLoading ? (
-          <div className={styles.loading}>
-            <Loader color='orange' />
-          </div>
-        ) : appsResult && appsResult.data.length > 0 ? (
-          <>
-            <AppList apps={appsResult.data} />
-            {appsResult.meta.lastPage > 1 && (
-              <Pagination
-                className={styles.pagination}
-                total={appsResult.meta.lastPage}
-                value={appsResult.meta.currentPage}
-                onChange={setAppsPage}
-              />
-            )}
-          </>
-        ) : (
-          <Text c='dimmed'>{t('common.appsNotFound')}</Text>
-        ))}
-
-      {activeTab === 'packages' &&
-        (pkgsError ? (
-          <Alert color='red'>{pkgsError}</Alert>
-        ) : pkgsLoading ? (
-          <div className={styles.loading}>
-            <Loader color='orange' />
-          </div>
-        ) : pkgsResult && pkgsResult.data.length > 0 ? (
-          <>
-            <PkgList pkgs={pkgsResult.data} />
-            {pkgsResult.meta.lastPage > 1 && (
-              <Pagination
-                className={styles.pagination}
-                total={pkgsResult.meta.lastPage}
-                value={pkgsResult.meta.currentPage}
-                onChange={setPkgsPage}
-              />
-            )}
-          </>
-        ) : (
-          <Text c='dimmed'>{t('common.packagesNotFound')}</Text>
-        ))}
     </main>
   )
 }

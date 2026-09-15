@@ -4,6 +4,7 @@ import xior from 'xior'
 import type { Paginated, SerializedPaginated } from '../types/pagination'
 import type { PkgNameMapping } from '../utils/pkgNames'
 import { getAuthToken } from './auth'
+import { filterParams, type PkgFilters } from './pkgs'
 
 export type AppPayload = {
   name: Record<string, string>
@@ -36,27 +37,11 @@ export type Category = {
   parentId: number | null
 }
 
-/** Filters applied to package listings. */
-export type PkgFilters = {
-  distroId: string | null
-  type: string | null
-  arch: string | null
-}
-
 const api = xior.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api' })
 
 function authHeaders() {
   const token = getAuthToken()
   return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
-/** Query parameters of the package filters; unset filters are omitted from the query. */
-function filterParams(filters: PkgFilters) {
-  return {
-    distroId: filters.distroId ?? undefined,
-    type: filters.type ?? undefined,
-    arch: filters.arch ?? undefined,
-  }
 }
 
 /** Sort orders the application listing accepts; `newest` is the default. */
@@ -116,18 +101,6 @@ export async function getAppPackages(
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>(`/apps/${id}/pkgs`, {
     params: { page, ...filterParams(filters), locale },
-  })
-  return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
-}
-
-export async function searchPackages(
-  query = '',
-  page = 1,
-  filters: PkgFilters = { distroId: null, type: null, arch: null },
-  locale?: string,
-) {
-  const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
-    params: { page, q: query || undefined, ...filterParams(filters), locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
 }
