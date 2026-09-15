@@ -328,6 +328,14 @@
     "loadError": "Distributionen konnten nicht geladen werden",
     "saveError": "Die Distribution konnte nicht gespeichert werden",
     "deleteError": "Die Distribution konnte nicht gelöscht werden",
+    "detail": {
+      "invalidId": "Ungültige Distributions-ID",
+      "loadError": "Distribution konnte nicht geladen werden",
+      "back": "Zurück zu den Distributionen",
+      "eyebrow": "Linux-Distribution",
+      "repos": "Repositories",
+      "noRepos": "Für diese Distribution sind noch keine Repositories hinterlegt."
+    },
     "columns": {
       "name": "Distribution",
       "version": "Version",

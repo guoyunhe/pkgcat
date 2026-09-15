@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Select, Table, Text, TextInput, Title } from '@mantine/core'
+import { Alert, Button, Group, Loader, Select, Text, TextInput, Title } from '@mantine/core'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
@@ -11,19 +11,13 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 import { useAuth } from '../auth'
 import DistroSelect from '../components/DistroSelect'
 import ListFilter from '../components/ListFilter'
+import RepoTable from '../components/RepoTable'
 import { deleteRepo, getRepos, repoSort, repoSorts, type RepoSort } from '../services/repos'
 
 import styles from './ReposPage.module.css'
 
-const packageTypesWithIcons = new Set(['deb', 'rpm'])
-
-/** Counts run into the hundreds of thousands, so they are grouped the way the locale does it. */
-function formatCount(value: number, language: string) {
-  return new Intl.NumberFormat(language).format(value)
-}
-
 export default function ReposPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
   const [searchParams] = useSearchParams()
@@ -69,28 +63,16 @@ export default function ReposPage() {
     }
   }
 
-  function formatDate(value: string | null) {
-    if (!value) return t('repos.neverSynced')
-    return new Intl.DateTimeFormat(i18n.language, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(value))
-  }
-
   // The releases the loaded repositories name are the entries the filter offers
   const distroEntries = useMemo(() => repos.flatMap((repo) => repo.distros), [repos])
 
-  // Where a repository comes from, which the list shows and narrows down by as well
+  // Where a repository comes from, which the listing narrows down by as well
   const sourceOptions = useMemo(
     () => [
       { value: 'distro', label: t('repos.sources.distro') },
       { value: 'community', label: t('repos.sources.community') },
     ],
     [t],
-  )
-  const sourceLabels = useMemo(
-    () => new Map(sourceOptions.map((option) => [option.value, option.label])),
-    [sourceOptions],
   )
 
   // The list arrives complete and small, so the filters and the search only narrow what is already
@@ -199,112 +181,36 @@ export default function ReposPage() {
       ) : visibleRepos.length === 0 ? (
         <Text c='dimmed'>{emptyMessage}</Text>
       ) : (
-        <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>{t('repos.columns.type')}</Table.Th>
-              <Table.Th>{t('repos.columns.source')}</Table.Th>
-              <Table.Th>{t('repos.columns.name')}</Table.Th>
-              <Table.Th>{t('repos.columns.distros')}</Table.Th>
-              <Table.Th>{t('repos.columns.packages')}</Table.Th>
-              <Table.Th>{t('repos.columns.apps')}</Table.Th>
-              <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
-              <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
-              {isAdmin && <Table.Th />}
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {visibleRepos.map((repo) => (
-              <Table.Tr
-                className={isAdmin ? styles.clickableRow : styles.row}
-                key={repo.id}
-                onClick={() => {
-                  if (isAdmin) navigate(`/repos/${repo.id}/edit`)
-                }}
-              >
-                <Table.Td>
-                  <span className={styles.typeCell}>
-                    {packageTypesWithIcons.has(repo.type) && (
-                      <img alt='' className={styles.typeIcon} src={`/packages/${repo.type}.svg`} />
-                    )}
-                    {repo.type}
-                  </span>
-                </Table.Td>
-                <Table.Td>
-                  <Text size='sm' c='dimmed'>
-                    {sourceLabels.get(repo.source) ?? repo.source}
-                  </Text>
-                </Table.Td>
-                <Table.Td>
-                  <div className={styles.name}>{repo.name}</div>
-                  <div className={styles.baseUrl}>{repo.baseUrl}</div>
-                </Table.Td>
-                <Table.Td>
-                  {repo.distros.length === 0 ? (
-                    '—'
-                  ) : (
-                    <div className={styles.distrosCell}>
-                      {repo.distros.map((distro) => (
-                        <span className={styles.distroCell} key={distro.id}>
-                          <img
-                            alt=''
-                            className={styles.distroIcon}
-                            src={`/distros/${encodeURIComponent(distro.name)}.svg`}
-                          />
-                          <span>{distro.name}</span>
-                          {distro.version && (
-                            <span className={styles.distroVersion}>{distro.version}</span>
-                          )}
-                          <span className={styles.distroArch}>{distro.arch}</span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </Table.Td>
-                <Table.Td>
-                  <Text size='sm'>{formatCount(repo.pkgCount, i18n.language)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size='sm'>{formatCount(repo.appCount, i18n.language)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  {repo.syncIntervalDays
-                    ? t('repos.everyDays', { count: repo.syncIntervalDays })
-                    : t('repos.manual')}
-                </Table.Td>
-                <Table.Td>
-                  <Text size='sm' c='dimmed'>
-                    {formatDate(repo.lastSyncedAt)}
-                  </Text>
-                </Table.Td>
-                {isAdmin && (
-                  <Table.Td>
-                    <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-                      <Button
-                        aria-label={t('repos.edit')}
-                        component={Link}
-                        href={`/repos/${repo.id}/edit`}
-                        size='xs'
-                        variant='subtle'
-                      >
-                        <PencilSimpleIcon size={16} />
-                      </Button>
-                      <Button
-                        aria-label={t('repos.delete')}
-                        color='red'
-                        size='xs'
-                        variant='subtle'
-                        onClick={() => void remove(repo)}
-                      >
-                        <TrashIcon size={16} />
-                      </Button>
-                    </div>
-                  </Table.Td>
-                )}
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
+        <RepoTable
+          onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
+          renderActions={
+            isAdmin
+              ? (repo) => (
+                  <>
+                    <Button
+                      aria-label={t('repos.edit')}
+                      component={Link}
+                      href={`/repos/${repo.id}/edit`}
+                      size='xs'
+                      variant='subtle'
+                    >
+                      <PencilSimpleIcon size={16} />
+                    </Button>
+                    <Button
+                      aria-label={t('repos.delete')}
+                      color='red'
+                      size='xs'
+                      variant='subtle'
+                      onClick={() => void remove(repo)}
+                    >
+                      <TrashIcon size={16} />
+                    </Button>
+                  </>
+                )
+              : undefined
+          }
+          repos={visibleRepos}
+        />
       )}
     </main>
   )

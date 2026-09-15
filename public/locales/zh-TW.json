@@ -328,6 +328,14 @@
     "loadError": "無法載入發行版",
     "saveError": "無法儲存發行版",
     "deleteError": "無法刪除發行版",
+    "detail": {
+      "invalidId": "無效的發行版 ID",
+      "loadError": "無法載入發行版",
+      "back": "返回發行版清單",
+      "eyebrow": "Linux 發行版",
+      "repos": "軟體倉庫",
+      "noRepos": "此發行版尚無軟體倉庫。"
+    },
     "columns": {
       "name": "發行版",
       "version": "版本",

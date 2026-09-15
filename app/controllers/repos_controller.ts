@@ -7,8 +7,11 @@ import { repoListValidator, repoValidator } from '#validators/repo'
 
 export default class ReposController {
   async index({ request, serialize }: HttpContext) {
-    const { sort } = await request.validateUsing(repoListValidator)
-    const repos = await Repo.query().preload('distros').orderBy('name')
+    const { sort, distroId } = await request.validateUsing(repoListValidator)
+    const query = Repo.query().preload('distros').orderBy('name')
+    // The repositories of one release, which its detail page lists
+    if (distroId) query.whereHas('distros', (distros) => distros.where('distros.id', distroId))
+    const repos = await query
     attachCounts(repos, await repoCounts(), sort)
     return serialize(RepoTransformer.transform(repos))
   }

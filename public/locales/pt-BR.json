@@ -328,6 +328,14 @@
     "loadError": "Não foi possível carregar as distribuições",
     "saveError": "Não foi possível salvar a distribuição",
     "deleteError": "Não foi possível excluir a distribuição",
+    "detail": {
+      "invalidId": "ID de distribuição inválido",
+      "loadError": "Não foi possível carregar a distribuição",
+      "back": "Voltar às distribuições",
+      "eyebrow": "Distribuição Linux",
+      "repos": "Repositórios",
+      "noRepos": "Esta distribuição ainda não tem repositórios."
+    },
     "columns": {
       "name": "Distribuição",
       "version": "Versão",

@@ -31,12 +31,8 @@
   border-top: 1px solid var(--ph-border);
 }
 
-/* A distribution row opens the editor for administrators, and is plain text for everyone else */
+/* A distribution row opens the detail page of the release it names */
 .row {
-  cursor: default;
-}
-
-.clickableRow {
   cursor: pointer;
 }
 
@@ -52,12 +48,6 @@
 
 .expired {
   color: var(--mantine-color-red-6);
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
 }
 
 @media (max-width: 600px) {

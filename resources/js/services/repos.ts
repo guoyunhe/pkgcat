@@ -26,8 +26,8 @@ export function repoSort(value: string | null | undefined): RepoSort {
   return repoSorts.find((sort) => sort === value) ?? 'name'
 }
 
-export async function getRepos(sort: RepoSort = 'name') {
-  const { data } = await api.get<{ data: Data.Repo[] }>('/repos', { params: { sort } })
+export async function getRepos(sort: RepoSort = 'name', distroId?: number) {
+  const { data } = await api.get<{ data: Data.Repo[] }>('/repos', { params: { sort, distroId } })
   return data.data
 }
 

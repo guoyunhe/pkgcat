@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-import { localeField, pageNumber } from '#utils/query_params'
+import { firstValue, localeField, pageNumber, positiveInteger } from '#utils/query_params'
 
 /**
  * Package formats that can be created or edited by hand. Uploaded files are recognized by their
@@ -44,25 +44,6 @@ export const pkgValidator = vine.create({
   installCommand: vine.string().parse(emptyToNull).trim().nullable(),
   size: vine.number().parse(emptyToNull).min(0).nullable(),
 })
-
-/**
- * Single value of a query parameter that narrows a listing. A request may spell such a parameter
- * once, repeat it, or leave it empty, and an empty value narrows nothing.
- */
-function firstValue(value: unknown) {
-  if (typeof value === 'string') return value.trim() || undefined
-  if (Array.isArray(value)) {
-    const first = value.find((item) => typeof item === 'string' && item.trim() !== '')
-    return typeof first === 'string' ? first.trim() : undefined
-  }
-  return undefined
-}
-
-/** Positive integer a query parameter names; a value that is not one narrows nothing. */
-function positiveInteger(value: unknown) {
-  const parsed = Number(value)
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
-}
 
 /** Query parameter narrowing the listing by a single value, which may be omitted or empty. */
 const singleValue = () => vine.string().parse(firstValue).optional()

@@ -27,70 +27,6 @@
   padding: 72px 0;
 }
 
-.table {
-  border-top: 1px solid var(--ph-border);
-}
-
-/* A repository row opens the editor for administrators, and is plain text for everyone else */
-.row {
-  cursor: default;
-}
-
-.clickableRow {
-  cursor: pointer;
-}
-
-.typeCell {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.typeIcon {
-  border-radius: 4px;
-  height: 22px;
-  object-fit: contain;
-  width: 22px;
-}
-
-.distrosCell {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.distroCell {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.distroIcon {
-  height: 20px;
-  object-fit: contain;
-  width: 20px;
-}
-
-.distroVersion {
-  color: var(--ph-muted);
-}
-
-.distroArch {
-  color: var(--ph-muted);
-  font-size: 12px;
-}
-
-.name {
-  font-weight: 700;
-}
-
-.baseUrl {
-  color: var(--ph-muted);
-  font-size: 12px;
-  word-break: break-all;
-}
-
 .status {
   align-items: center;
   display: flex;
@@ -106,12 +42,6 @@
 
 .dotDisabled {
   background: #adb5bd;
-}
-
-.actions {
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
 }
 
 @media (max-width: 600px) {

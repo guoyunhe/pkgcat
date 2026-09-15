@@ -328,6 +328,14 @@
     "loadError": "Impossible de charger les distributions",
     "saveError": "Impossible d’enregistrer la distribution",
     "deleteError": "Impossible de supprimer la distribution",
+    "detail": {
+      "invalidId": "Identifiant de distribution invalide",
+      "loadError": "Impossible de charger la distribution",
+      "back": "Retour aux distributions",
+      "eyebrow": "Distribution Linux",
+      "repos": "Dépôts",
+      "noRepos": "Cette distribution n'a pas encore de dépôt."
+    },
     "columns": {
       "name": "Distribution",
       "version": "Version",

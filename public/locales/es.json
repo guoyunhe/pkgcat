@@ -328,6 +328,14 @@
     "loadError": "No se pudieron cargar las distribuciones",
     "saveError": "No se pudo guardar la distribución",
     "deleteError": "No se pudo eliminar la distribución",
+    "detail": {
+      "invalidId": "ID de distribución no válido",
+      "loadError": "No se pudo cargar la distribución",
+      "back": "Volver a las distribuciones",
+      "eyebrow": "Distribución Linux",
+      "repos": "Repositorios",
+      "noRepos": "Esta distribución todavía no tiene repositorios."
+    },
     "columns": {
       "name": "Distribución",
       "version": "Versión",

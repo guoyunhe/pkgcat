@@ -19,6 +19,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 // The list pages are only opened from the navigation, so each one is split in its own chunk and
 // downloaded when the visitor navigates to it
 const AppsPage = lazy(() => import('./pages/AppsPage'))
+const DistroDetailPage = lazy(() => import('./pages/DistroDetailPage'))
 const DistrosPage = lazy(() => import('./pages/DistrosPage'))
 const PkgsPage = lazy(() => import('./pages/PkgsPage'))
 const ReposPage = lazy(() => import('./pages/ReposPage'))
@@ -57,6 +58,7 @@ export default function AppRoutes() {
         <Route path='/repos' component={ReposPage} />
         <Route path='/distros/new' component={DistroFormPage} />
         <Route path='/distros/:id/edit' component={DistroFormPage} />
+        <Route path='/distros/:id' component={DistroDetailPage} />
         <Route path='/distros' component={DistrosPage} />
         <Route path='/users/:id' component={UserDetailPage} />
         <Route path='/apps/new' component={AppFormPage} />

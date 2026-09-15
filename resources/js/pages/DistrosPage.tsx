@@ -1,7 +1,5 @@
 import { Alert, Button, Group, Loader, Select, Table, Text, Title } from '@mantine/core'
-import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
-import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'wouter'
@@ -10,28 +8,15 @@ import { useAuth } from '../auth'
 import ArchSelect from '../components/ArchSelect'
 import DistroRelease from '../components/DistroRelease'
 import {
-  deleteDistro,
-  distroLabel,
   distroSort,
   distroSorts,
   getDistros,
   type Distro,
   type DistroSort,
 } from '../services/distros'
+import { formatCount, formatDate } from '../utils/format'
 
 import styles from './DistrosPage.module.css'
-
-/** Lucid serializes `date` columns as a UTC ISO string; format it without timezone drift. */
-function formatDate(value: string, language: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
-  return new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeZone: 'UTC' }).format(date)
-}
-
-/** Counts run into the tens of thousands, so they are grouped the way the locale does it. */
-function formatCount(value: number, language: string) {
-  return new Intl.NumberFormat(language).format(value)
-}
 
 export default function DistrosPage() {
   const { t, i18n } = useTranslation()
@@ -66,16 +51,6 @@ export default function DistrosPage() {
 
   function distrosUrl(nextSort: DistroSort) {
     return nextSort === 'name' ? '/distros' : `/distros?sort=${nextSort}`
-  }
-
-  async function remove(distro: Distro) {
-    if (!window.confirm(t('distros.confirmDelete', { name: distroLabel(distro) }))) return
-    try {
-      await deleteDistro(distro.id)
-      setDistros((current) => current.filter((item) => item.id !== distro.id))
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('distros.deleteError'))
-    }
   }
 
   function isExpired(distro: Distro) {
@@ -154,17 +129,14 @@ export default function DistrosPage() {
               <Table.Th>{t('distros.columns.apps')}</Table.Th>
               <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
               <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
-              {isAdmin && <Table.Th />}
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {visibleDistros.map((distro) => (
               <Table.Tr
-                className={isAdmin ? styles.clickableRow : styles.row}
+                className={styles.row}
                 key={distro.id}
-                onClick={() => {
-                  if (isAdmin) navigate(`/distros/${distro.id}/edit`)
-                }}
+                onClick={() => navigate(`/distros/${distro.id}`)}
               >
                 <Table.Td>
                   <DistroRelease distro={distro} />
@@ -200,30 +172,6 @@ export default function DistrosPage() {
                     '—'
                   )}
                 </Table.Td>
-                {isAdmin && (
-                  <Table.Td>
-                    <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-                      <Button
-                        aria-label={t('distros.edit')}
-                        component={Link}
-                        href={`/distros/${distro.id}/edit`}
-                        size='xs'
-                        variant='subtle'
-                      >
-                        <PencilSimpleIcon size={16} />
-                      </Button>
-                      <Button
-                        aria-label={t('distros.delete')}
-                        color='red'
-                        size='xs'
-                        variant='subtle'
-                        onClick={() => void remove(distro)}
-                      >
-                        <TrashIcon size={16} />
-                      </Button>
-                    </div>
-                  </Table.Td>
-                )}
               </Table.Tr>
             ))}
           </Table.Tbody>

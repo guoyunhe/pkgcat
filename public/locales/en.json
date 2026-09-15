@@ -328,6 +328,14 @@
     "loadError": "Unable to load distributions",
     "saveError": "Unable to save distribution",
     "deleteError": "Unable to delete distribution",
+    "detail": {
+      "invalidId": "Invalid distribution ID",
+      "loadError": "Unable to load distribution",
+      "back": "Back to distributions",
+      "eyebrow": "Linux distribution",
+      "repos": "Repositories",
+      "noRepos": "This distribution has no repositories yet."
+    },
     "columns": {
       "name": "Distribution",
       "version": "Version",

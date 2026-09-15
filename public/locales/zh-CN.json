@@ -328,6 +328,14 @@
     "loadError": "无法加载发行版",
     "saveError": "无法保存发行版",
     "deleteError": "无法删除发行版",
+    "detail": {
+      "invalidId": "无效的发行版 ID",
+      "loadError": "无法加载发行版",
+      "back": "返回发行版列表",
+      "eyebrow": "Linux 发行版",
+      "repos": "软件源",
+      "noRepos": "该发行版暂无软件源。"
+    },
     "columns": {
       "name": "发行版",
       "version": "版本",

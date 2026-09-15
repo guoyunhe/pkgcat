@@ -328,6 +328,14 @@
     "loadError": "배포판을 불러올 수 없습니다",
     "saveError": "배포판을 저장할 수 없습니다",
     "deleteError": "배포판을 삭제할 수 없습니다",
+    "detail": {
+      "invalidId": "배포판 ID가 올바르지 않습니다",
+      "loadError": "배포판을 불러올 수 없습니다",
+      "back": "배포판 목록으로 돌아가기",
+      "eyebrow": "Linux 배포판",
+      "repos": "저장소",
+      "noRepos": "이 배포판에는 아직 저장소가 없습니다."
+    },
     "columns": {
       "name": "배포판",
       "version": "버전",

@@ -1,7 +1,7 @@
 import type { VineDbSearchOptions } from '@adonisjs/lucid/types/vine'
 import vine from '@vinejs/vine'
 
-import { knownValue } from '#utils/query_params'
+import { firstValue, knownValue, positiveInteger } from '#utils/query_params'
 
 /**
  * Supported repository types.
@@ -59,4 +59,12 @@ export const repoSorts = ['name', 'packages', 'apps'] as const
 /** Query parameters of the repository listing. */
 export const repoListValidator = vine.create({
   sort: vine.enum(repoSorts).parse(knownValue(repoSorts, 'name')),
+  /**
+   * Release whose repositories are read; a value that is not one widens the listing to every
+   * repository.
+   */
+  distroId: vine
+    .number()
+    .parse((value) => positiveInteger(firstValue(value)))
+    .optional(),
 })
