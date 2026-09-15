@@ -59,7 +59,7 @@ export default function AppsPage() {
       setLoading(true)
       setResult(await getApps(query, page, 12, category, type, sort, i18n.language))
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('apps.loadError'))
+      setError(reason instanceof Error ? reason.message : t('common.loadAppsError'))
     } finally {
       setLoading(false)
     }
@@ -69,14 +69,21 @@ export default function AppsPage() {
     void loadApps()
   }, [category, i18n.language, page, query, sort, type])
 
-  const sortOptions = appSorts.map((value) => ({ value, label: t(`apps.sort.${value}`) }))
+  // `name` is the shared label of every name field, the other three are orders of this listing
+  const sortLabels: Record<AppSort, string> = {
+    favorites: t('apps.sort.favorites'),
+    name: t('common.name'),
+    newest: t('apps.sort.newest'),
+    rating: t('apps.sort.rating'),
+  }
+  const sortOptions = appSorts.map((value) => ({ value, label: sortLabels[value] }))
 
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>{t('apps.eyebrow')}</Text>
-          <Title order={1}>{t('apps.title')}</Title>
+          <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
+          <Title order={1}>{t('common.apps')}</Title>
           <Text c='dimmed'>{t('apps.subtitle')}</Text>
         </div>
         {isAdmin && (
@@ -85,7 +92,7 @@ export default function AppsPage() {
             href='/apps/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('header.addApplication')}
+            {t('common.addApp')}
           </Button>
         )}
       </header>
@@ -102,7 +109,7 @@ export default function AppsPage() {
         />
         <ListFilter
           data={typeOptions}
-          label={t('apps.filterType')}
+          label={t('common.type')}
           onChange={(nextType) => navigate(appsUrl({ type: nextType }))}
           placeholder={t('apps.filterAny')}
           value={type}
@@ -110,7 +117,7 @@ export default function AppsPage() {
         <Select
           allowDeselect={false}
           data={sortOptions}
-          label={t('apps.sort.label')}
+          label={t('common.sortBy')}
           onChange={(nextSort) => navigate(appsUrl({ sort: appSort(nextSort) }))}
           value={sort}
           w={180}
@@ -123,7 +130,7 @@ export default function AppsPage() {
       ) : (
         <>
           {result?.data.length === 0 ? (
-            <Text c='dimmed'>{filtered ? t('apps.filterEmpty') : t('apps.notFound')}</Text>
+            <Text c='dimmed'>{filtered ? t('apps.filterEmpty') : t('common.appsNotFound')}</Text>
           ) : (
             <>
               <AppList

@@ -98,7 +98,7 @@ export default function CategoryFilter({ value, onChange }: CategoryFilterProps)
       />
       {value !== null && (
         <Button leftSection={<XIcon size={16} />} onClick={() => onChange(null)} variant='subtle'>
-          {t('categories.filterClear')}
+          {t('common.clearFilters')}
         </Button>
       )}
     </Group>

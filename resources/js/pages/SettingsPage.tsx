@@ -92,8 +92,8 @@ export default function SettingsPage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <Text className={styles.eyebrow}>{t('settings.eyebrow')}</Text>
-        <Title order={1}>{t('settings.title')}</Title>
+        <Text className={styles.eyebrow}>{t('common.account')}</Text>
+        <Title order={1}>{t('common.settings')}</Title>
         <Text c='dimmed'>{t('settings.subtitle')}</Text>
       </header>
 
@@ -101,7 +101,7 @@ export default function SettingsPage() {
         <Card padding='lg' radius='sm' withBorder>
           <Stack>
             <div>
-              <Text fw={700}>{t('settings.profileTitle')}</Text>
+              <Text fw={700}>{t('common.profile')}</Text>
               <Text c='dimmed' size='sm'>
                 {t('settings.profileHint')}
               </Text>
@@ -111,7 +111,7 @@ export default function SettingsPage() {
             <form onSubmit={profileForm.onSubmit(saveProfile)}>
               <Stack>
                 <TextInput
-                  label={t('settings.name')}
+                  label={t('common.name')}
                   required
                   {...profileForm.getInputProps('name')}
                 />
@@ -138,7 +138,7 @@ export default function SettingsPage() {
         <Card padding='lg' radius='sm' withBorder>
           <Stack>
             <div>
-              <Text fw={700}>{t('settings.passwordTitle')}</Text>
+              <Text fw={700}>{t('common.password')}</Text>
               <Text c='dimmed' size='sm'>
                 {t('settings.passwordHint')}
               </Text>

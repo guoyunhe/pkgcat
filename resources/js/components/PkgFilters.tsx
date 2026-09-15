@@ -75,14 +75,14 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
     <Group align='flex-end' gap='sm' mb='lg'>
       <DistroSelect
         distros={distros}
-        label={t('packages.filterDistro')}
+        label={t('common.distribution')}
         onChange={(distroId) => onChange({ ...value, distroId })}
         placeholder={t('packages.filterAny')}
         searchable
         value={value.distroId}
       />
       <ArchSelect
-        label={t('packages.filterArch')}
+        label={t('common.architecture')}
         onChange={(arch) => onChange({ ...value, arch })}
         placeholder={t('packages.filterAny')}
         searchable
@@ -90,7 +90,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
       />
       <ListFilter
         data={packageTypes.map((type) => ({ label: type, value: type }))}
-        label={t('packages.filterType')}
+        label={t('common.packageFormat')}
         onChange={(type) => onChange({ ...value, type })}
         placeholder={t('packages.filterAny')}
         value={value.type}
@@ -102,7 +102,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
           onClick={() => onChange(emptyFilters)}
           variant='subtle'
         >
-          {t('packages.filterClear')}
+          {t('common.clearFilters')}
         </Button>
       )}
     </Group>

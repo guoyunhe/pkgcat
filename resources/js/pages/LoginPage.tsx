@@ -64,7 +64,7 @@ export default function LoginPage() {
               {...form.getInputProps('email')}
             />
             <PasswordInput
-              label={t('password')}
+              label={t('common.password')}
               key={form.key('password')}
               {...form.getInputProps('password')}
             />

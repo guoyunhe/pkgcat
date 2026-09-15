@@ -67,7 +67,7 @@ export default function AppDetailPage() {
     getApp(appId, i18n.language)
       .then(setApp)
       .catch((reason) =>
-        setError(reason instanceof Error ? reason.message : t('detail.loadAppError')),
+        setError(reason instanceof Error ? reason.message : t('common.loadAppError')),
       )
   }, [appId, i18n.language])
 
@@ -83,7 +83,7 @@ export default function AppDetailPage() {
     getAppPackages(appId, packagesPage, pkgFilters, i18n.language)
       .then(setPackages)
       .catch((reason) =>
-        setPackagesError(reason instanceof Error ? reason.message : t('detail.loadPackagesError')),
+        setPackagesError(reason instanceof Error ? reason.message : t('common.loadPackagesError')),
       )
       .finally(() => setPackagesLoading(false))
   }, [appId, i18n.language, packagesPage, packagesRefresh, pkgFilters])
@@ -187,7 +187,7 @@ export default function AppDetailPage() {
               leftSection={<PencilSimpleIcon size={18} />}
               variant='default'
             >
-              {t('detail.editApp')}
+              {t('common.editApp')}
             </Button>
             <Button
               color='red'
@@ -195,7 +195,7 @@ export default function AppDetailPage() {
               variant='subtle'
               onClick={() => void remove()}
             >
-              {t('detail.deleteApp')}
+              {t('common.delete')}
             </Button>
           </Group>
         )}
@@ -223,32 +223,32 @@ export default function AppDetailPage() {
       <section className={styles.metadata}>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('detail.version')}
+            {t('common.version')}
           </Text>
           <Text>{app.version ?? t('common.notSpecified')}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('detail.license')}
+            {t('common.license')}
           </Text>
           <Text>{app.license ?? t('common.notSpecified')}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('detail.appstreamId')}
+            {t('common.appstreamId')}
           </Text>
           <Text>{app.appstreamId ?? t('common.notSpecified')}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('detail.type')}
+            {t('common.type')}
           </Text>
           <Text>{app.type}</Text>
         </div>
         {app.appstreamIdAliases.length > 0 && (
           <div>
             <Text size='sm' c='dimmed'>
-              {t('detail.appstreamIdAliases')}
+              {t('common.appstreamIdAliases')}
             </Text>
             <Text>{app.appstreamIdAliases.join(', ')}</Text>
           </div>
@@ -256,7 +256,7 @@ export default function AppDetailPage() {
         {app.pkgNames.length > 0 && (
           <div>
             <Text size='sm' c='dimmed'>
-              {t('detail.pkgNames')}
+              {t('common.pkgNames')}
             </Text>
             <Text>{app.pkgNames.map(formatPkgNameMapping).join(', ')}</Text>
           </div>
@@ -299,7 +299,7 @@ export default function AppDetailPage() {
                 rightSection={<ArrowSquareOutIcon size={18} />}
                 variant='default'
               >
-                {t('detail.homepage')}
+                {t('common.homepage')}
               </Button>
             )}
             {app.appstreamUrl && (
@@ -323,7 +323,7 @@ export default function AppDetailPage() {
                 rightSection={<ArrowSquareOutIcon size={18} />}
                 variant='default'
               >
-                {t('detail.desktopEntry')}
+                {t('common.desktopEntry')}
               </Button>
             )}
           </Group>
@@ -332,7 +332,7 @@ export default function AppDetailPage() {
 
       <section className={styles.packages}>
         <Group align='center' justify='space-between'>
-          <Title order={2}>{t('detail.packages')}</Title>
+          <Title order={2}>{t('common.packages')}</Title>
           {isAdmin && (
             <Group gap='xs'>
               <PackageUpload appId={app.id} onUploaded={handlePackageUploaded} />
@@ -342,7 +342,7 @@ export default function AppDetailPage() {
                 leftSection={<PlusIcon size={16} weight='bold' />}
                 size='xs'
               >
-                {t('detail.addPackage')}
+                {t('common.addPackage')}
               </Button>
             </Group>
           )}
@@ -354,7 +354,9 @@ export default function AppDetailPage() {
             <Loader color='orange' size='sm' />
           </div>
         ) : packages?.data.length === 0 ? (
-          <Text c='dimmed'>{hasPkgFilters ? t('packages.notFound') : t('detail.noPackages')}</Text>
+          <Text c='dimmed'>
+            {hasPkgFilters ? t('common.packagesNotFound') : t('detail.noPackages')}
+          </Text>
         ) : (
           <>
             <PkgList
@@ -364,7 +366,7 @@ export default function AppDetailPage() {
                   ? (pkg) => (
                       <>
                         <Button
-                          aria-label={t('detail.editPackage')}
+                          aria-label={t('common.edit')}
                           component={Link}
                           href={`/pkgs/${pkg.id}/edit`}
                           size='xs'
@@ -373,7 +375,7 @@ export default function AppDetailPage() {
                           <PencilSimpleIcon size={16} />
                         </Button>
                         <Button
-                          aria-label={t('detail.deletePackage')}
+                          aria-label={t('common.delete')}
                           color='red'
                           size='xs'
                           variant='subtle'

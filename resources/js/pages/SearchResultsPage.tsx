@@ -106,13 +106,13 @@ export default function SearchResultsPage() {
             value='apps'
             rightSection={<CountBadge count={appsResult?.meta.total} loading={appsLoading} />}
           >
-            {t('search.tabs.apps')}
+            {t('common.apps')}
           </Tabs.Tab>
           <Tabs.Tab
             value='packages'
             rightSection={<CountBadge count={pkgsResult?.meta.total} loading={pkgsLoading} />}
           >
-            {t('search.tabs.packages')}
+            {t('common.packages')}
           </Tabs.Tab>
         </Tabs.List>
       </Tabs>
@@ -145,7 +145,7 @@ export default function SearchResultsPage() {
             )}
           </>
         ) : (
-          <Text c='dimmed'>{t('search.notFound')}</Text>
+          <Text c='dimmed'>{t('common.appsNotFound')}</Text>
         ))}
 
       {activeTab === 'packages' &&
@@ -168,7 +168,7 @@ export default function SearchResultsPage() {
             )}
           </>
         ) : (
-          <Text c='dimmed'>{t('search.packagesNotFound')}</Text>
+          <Text c='dimmed'>{t('common.packagesNotFound')}</Text>
         ))}
     </main>
   )

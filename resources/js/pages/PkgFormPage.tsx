@@ -97,7 +97,7 @@ export default function PkgFormPage() {
         }),
       )
       .catch((reason) =>
-        setError(reason instanceof Error ? reason.message : t('packages.loadError')),
+        setError(reason instanceof Error ? reason.message : t('common.loadPackagesError')),
       )
       .finally(() => setLoading(false))
   }, [pkgId])
@@ -153,7 +153,7 @@ export default function PkgFormPage() {
           <Text className={styles.eyebrow}>
             {pkgId ? t('packages.editEntry') : t('packages.newEntry')}
           </Text>
-          <Title order={1}>{pkgId ? t('packages.editPackage') : t('packages.addPackage')}</Title>
+          <Title order={1}>{pkgId ? t('packages.editPackage') : t('common.addPackage')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -171,7 +171,7 @@ export default function PkgFormPage() {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack className={styles.form}>
           <MultiSelect
-            label={t('packages.fields.apps')}
+            label={t('common.apps')}
             clearable
             searchable
             data={appOptions}
@@ -180,18 +180,18 @@ export default function PkgFormPage() {
             error={form.errors.appIds}
           />
           <Select
-            label={t('packages.fields.type')}
+            label={t('common.packageFormat')}
             required
             allowDeselect={false}
             data={packageTypes}
             {...form.getInputProps('type')}
           />
-          <TextInput label={t('packages.fields.name')} required {...form.getInputProps('name')} />
-          <TextInput label={t('packages.fields.version')} {...form.getInputProps('version')} />
+          <TextInput label={t('common.name')} required {...form.getInputProps('name')} />
+          <TextInput label={t('common.version')} {...form.getInputProps('version')} />
           <TextInput label={t('packages.fields.release')} {...form.getInputProps('release')} />
-          <TextInput label={t('packages.fields.arch')} {...form.getInputProps('arch')} />
-          <TextInput label={t('packages.fields.license')} {...form.getInputProps('license')} />
-          <TextInput label={t('packages.fields.summary')} {...form.getInputProps('summary')} />
+          <TextInput label={t('common.architecture')} {...form.getInputProps('arch')} />
+          <TextInput label={t('common.license')} {...form.getInputProps('license')} />
+          <TextInput label={t('common.summary')} {...form.getInputProps('summary')} />
           <Textarea
             autosize
             label={t('packages.fields.description')}

@@ -46,12 +46,12 @@ export default function RepoTable({
     <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
       <Table.Thead>
         <Table.Tr>
-          <Table.Th>{t('repos.columns.type')}</Table.Th>
-          <Table.Th>{t('repos.columns.source')}</Table.Th>
-          <Table.Th>{t('repos.columns.name')}</Table.Th>
-          {showDistros && <Table.Th>{t('repos.columns.distros')}</Table.Th>}
-          <Table.Th>{t('repos.columns.packages')}</Table.Th>
-          <Table.Th>{t('repos.columns.apps')}</Table.Th>
+          <Table.Th>{t('common.packageFormat')}</Table.Th>
+          <Table.Th>{t('common.source')}</Table.Th>
+          <Table.Th>{t('common.repository')}</Table.Th>
+          {showDistros && <Table.Th>{t('common.distributions')}</Table.Th>}
+          <Table.Th>{t('common.packages')}</Table.Th>
+          <Table.Th>{t('common.apps')}</Table.Th>
           <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
           <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
           {renderActions && <Table.Th />}

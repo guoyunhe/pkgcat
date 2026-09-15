@@ -61,7 +61,7 @@ export default function RegisterPage() {
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack>
             <TextInput
-              label={t('name')}
+              label={t('common.name')}
               key={form.key('name')}
               {...form.getInputProps('name')}
               maxLength={32}
@@ -73,7 +73,7 @@ export default function RegisterPage() {
               {...form.getInputProps('email')}
             />
             <PasswordInput
-              label={t('password')}
+              label={t('common.password')}
               description={t('passwordHint')}
               key={form.key('password')}
               {...form.getInputProps('password')}

@@ -69,12 +69,19 @@ export default function DistrosPage() {
   // An empty list is a different thing from a filter that matches nothing
   const emptyMessage = distros.length === 0 ? t('distros.notFound') : t('distros.filterEmpty')
 
+  // Every order is shared with the listing it names, so no label lives in the distributions section
+  const sortLabels: Record<DistroSort, string> = {
+    apps: t('common.apps'),
+    name: t('common.name'),
+    packages: t('common.packages'),
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>{t('distros.eyebrow')}</Text>
-          <Title order={1}>{t('distros.title')}</Title>
+          <Text className={styles.eyebrow}>{t('common.administration')}</Text>
+          <Title order={1}>{t('common.distributions')}</Title>
           <Text c='dimmed'>{t('distros.subtitle')}</Text>
         </div>
         {isAdmin && (
@@ -96,15 +103,15 @@ export default function DistrosPage() {
       {!loading && distros.length > 0 && (
         <Group align='flex-end' mb='lg'>
           <ArchSelect
-            label={t('distros.filterArch')}
+            label={t('common.architecture')}
             onChange={setArchFilter}
             placeholder={t('distros.filterAny')}
             value={archFilter}
           />
           <Select
             allowDeselect={false}
-            data={distroSorts.map((value) => ({ value, label: t(`distros.sort.${value}`) }))}
-            label={t('distros.sort.label')}
+            data={distroSorts.map((value) => ({ value, label: sortLabels[value] }))}
+            label={t('common.sortBy')}
             onChange={(nextSort) => navigate(distrosUrl(distroSort(nextSort)))}
             value={sort}
             w={180}
@@ -121,12 +128,12 @@ export default function DistrosPage() {
         <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
           <Table.Thead>
             <Table.Tr>
-              <Table.Th>{t('distros.columns.name')}</Table.Th>
-              <Table.Th>{t('distros.columns.arch')}</Table.Th>
-              <Table.Th>{t('distros.columns.pkgType')}</Table.Th>
+              <Table.Th>{t('common.distribution')}</Table.Th>
+              <Table.Th>{t('common.architecture')}</Table.Th>
+              <Table.Th>{t('common.packageFormat')}</Table.Th>
               <Table.Th>{t('distros.columns.compatible')}</Table.Th>
-              <Table.Th>{t('distros.columns.packages')}</Table.Th>
-              <Table.Th>{t('distros.columns.apps')}</Table.Th>
+              <Table.Th align='right'>{t('common.packages')}</Table.Th>
+              <Table.Th align='right'>{t('common.apps')}</Table.Th>
               <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
               <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
             </Table.Tr>
@@ -152,12 +159,8 @@ export default function DistrosPage() {
                     '—'
                   )}
                 </Table.Td>
-                <Table.Td>
-                  <Text size='sm'>{formatCount(distro.pkgCount, i18n.language)}</Text>
-                </Table.Td>
-                <Table.Td>
-                  <Text size='sm'>{formatCount(distro.appCount, i18n.language)}</Text>
-                </Table.Td>
+                <Table.Td align='right'>{formatCount(distro.pkgCount, i18n.language)}</Table.Td>
+                <Table.Td align='right'>{formatCount(distro.appCount, i18n.language)}</Table.Td>
                 <Table.Td>
                   {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}
                 </Table.Td>

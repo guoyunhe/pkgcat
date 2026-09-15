@@ -98,7 +98,9 @@ export default function AppFormPage() {
         setForm(formFromApp(app))
         setIconUrl(app.icon?.url ?? null)
       })
-      .catch((reason) => setError(reason instanceof Error ? reason.message : t('form.loadError')))
+      .catch((reason) =>
+        setError(reason instanceof Error ? reason.message : t('common.loadAppError')),
+      )
       .finally(() => setLoading(false))
   }, [appId])
 
@@ -135,7 +137,7 @@ export default function AppFormPage() {
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{appId ? t('form.editEntry') : t('form.newEntry')}</Text>
-          <Title order={1}>{appId ? t('form.editApp') : t('form.addApp')}</Title>
+          <Title order={1}>{appId ? t('common.editApp') : t('common.addApp')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -166,7 +168,7 @@ export default function AppFormPage() {
           onChange={(value) => setChosenLanguage(value)}
         />
         <TextInput
-          label={t('form.name')}
+          label={t('common.name')}
           value={form.name[editingLanguage] ?? ''}
           onChange={(event) =>
             setForm({
@@ -176,7 +178,7 @@ export default function AppFormPage() {
           }
         />
         <TextInput
-          label={t('form.summary')}
+          label={t('common.summary')}
           value={form.summary[editingLanguage] ?? ''}
           onChange={(event) =>
             setForm({
@@ -191,39 +193,39 @@ export default function AppFormPage() {
         <Select
           allowDeselect={false}
           data={appTypes}
-          label={t('form.type')}
+          label={t('common.type')}
           value={form.type}
           onChange={(value) => setForm({ ...form, type: value ?? form.type })}
         />
         <TextInput
-          label={t('form.version')}
+          label={t('common.version')}
           value={form.version ?? ''}
           onChange={(event) => setForm({ ...form, version: event.currentTarget.value })}
         />
         <TextInput
-          label={t('form.license')}
+          label={t('common.license')}
           value={form.license ?? ''}
           onChange={(event) => setForm({ ...form, license: event.currentTarget.value })}
         />
         <TextInput
-          label={t('form.homepage')}
+          label={t('common.homepage')}
           value={form.homepage ?? ''}
           onChange={(event) => setForm({ ...form, homepage: event.currentTarget.value })}
         />
         <TextInput
-          label={t('form.appstreamId')}
+          label={t('common.appstreamId')}
           value={form.appstreamId ?? ''}
           onChange={(event) => setForm({ ...form, appstreamId: event.currentTarget.value })}
         />
         <TagsInput
           description={t('form.appstreamIdAliasesHint')}
-          label={t('form.appstreamIdAliases')}
+          label={t('common.appstreamIdAliases')}
           value={form.appstreamIdAliases ?? []}
           onChange={(aliases) => setForm({ ...form, appstreamIdAliases: aliases })}
         />
         <TagsInput
           description={t('form.pkgNamesHint')}
-          label={t('form.pkgNames')}
+          label={t('common.pkgNames')}
           value={(form.pkgNames ?? []).map(formatPkgNameMapping)}
           onChange={(tags) => setForm({ ...form, pkgNames: tags.map(parsePkgNameMapping) })}
         />
@@ -249,7 +251,7 @@ export default function AppFormPage() {
         <Textarea
           autosize
           description={t('form.desktopContentHint')}
-          label={t('form.desktopContent')}
+          label={t('common.desktopEntry')}
           maxRows={12}
           minRows={4}
           value={form.desktopContent ?? ''}

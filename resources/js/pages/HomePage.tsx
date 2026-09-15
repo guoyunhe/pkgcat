@@ -45,8 +45,8 @@ export default function HomePage() {
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <div>
-                <Text className={styles.eyebrow}>{t('home.eyebrow')}</Text>
-                <Title order={1}>{t('home.applications')}</Title>
+                <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
+                <Title order={1}>{t('common.apps')}</Title>
               </div>
               <Anchor component={Link} href='/apps'>
                 {t('home.viewAll')} <ArrowRightIcon size={16} />
@@ -63,7 +63,7 @@ export default function HomePage() {
             <div className={styles.sectionHeader}>
               <div>
                 <Text className={styles.eyebrow}>{t('home.operatingSystems')}</Text>
-                <Title order={2}>{t('home.distributions')}</Title>
+                <Title order={2}>{t('common.distributions')}</Title>
               </div>
             </div>
             <div className={styles.distroGrid}>

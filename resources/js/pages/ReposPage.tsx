@@ -112,12 +112,19 @@ export default function ReposPage() {
           ? t('repos.filterEmpty')
           : t('repos.sourceEmpty')
 
+  // Every order is shared with the listing it names, so no label lives in the repositories section
+  const sortLabels: Record<RepoSort, string> = {
+    apps: t('common.apps'),
+    name: t('common.name'),
+    packages: t('common.packages'),
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>{t('repos.eyebrow')}</Text>
-          <Title order={1}>{t('repos.title')}</Title>
+          <Text className={styles.eyebrow}>{t('common.administration')}</Text>
+          <Title order={1}>{t('common.repositories')}</Title>
           <Text c='dimmed'>{t('repos.subtitle')}</Text>
         </div>
         {isAdmin && (
@@ -151,7 +158,7 @@ export default function ReposPage() {
             />
             <DistroSelect
               distros={distroEntries}
-              label={t('repos.filterDistro')}
+              label={t('common.distribution')}
               onChange={setDistroFilter}
               placeholder={t('repos.filterAny')}
               searchable
@@ -159,15 +166,15 @@ export default function ReposPage() {
             />
             <ListFilter
               data={sourceOptions}
-              label={t('repos.filterSource')}
+              label={t('common.source')}
               onChange={setSourceFilter}
               placeholder={t('repos.filterAnySource')}
               value={sourceFilter}
             />
             <Select
               allowDeselect={false}
-              data={repoSorts.map((value) => ({ value, label: t(`repos.sort.${value}`) }))}
-              label={t('repos.sort.label')}
+              data={repoSorts.map((value) => ({ value, label: sortLabels[value] }))}
+              label={t('common.sortBy')}
               onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
               value={sort}
               w={180}
@@ -188,7 +195,7 @@ export default function ReposPage() {
               ? (repo) => (
                   <>
                     <Button
-                      aria-label={t('repos.edit')}
+                      aria-label={t('common.edit')}
                       component={Link}
                       href={`/repos/${repo.id}/edit`}
                       size='xs'
@@ -197,7 +204,7 @@ export default function ReposPage() {
                       <PencilSimpleIcon size={16} />
                     </Button>
                     <Button
-                      aria-label={t('repos.delete')}
+                      aria-label={t('common.delete')}
                       color='red'
                       size='xs'
                       variant='subtle'

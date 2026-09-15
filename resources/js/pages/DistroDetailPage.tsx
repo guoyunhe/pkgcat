@@ -111,7 +111,7 @@ export default function DistroDetailPage() {
               variant='subtle'
               onClick={() => void remove()}
             >
-              {t('distros.delete')}
+              {t('common.delete')}
             </Button>
           </Group>
         )}
@@ -132,19 +132,19 @@ export default function DistroDetailPage() {
       <section className={styles.metadata}>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('distros.columns.version')}
+            {t('common.version')}
           </Text>
           <Text>{distro.version ?? t('common.notSpecified')}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('distros.columns.pkgType')}
+            {t('common.packageFormat')}
           </Text>
           <Text className={styles.status}>{distro.pkgType ?? t('common.notSpecified')}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('distros.columns.arch')}
+            {t('common.architecture')}
           </Text>
           <Text>{distro.arch}</Text>
         </div>
@@ -174,20 +174,20 @@ export default function DistroDetailPage() {
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('distros.columns.packages')}
+            {t('common.packages')}
           </Text>
           <Text>{formatCount(distro.pkgCount, i18n.language)}</Text>
         </div>
         <div>
           <Text size='sm' c='dimmed'>
-            {t('distros.columns.apps')}
+            {t('common.apps')}
           </Text>
           <Text>{formatCount(distro.appCount, i18n.language)}</Text>
         </div>
       </section>
 
       <section className={styles.repos}>
-        <Title order={2}>{t('distros.detail.repos')}</Title>
+        <Title order={2}>{t('common.repositories')}</Title>
         {reposError && <Alert color='red'>{reposError}</Alert>}
         {reposLoading ? (
           <div className={styles.loading}>

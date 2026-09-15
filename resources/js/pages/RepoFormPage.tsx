@@ -112,7 +112,7 @@ export default function RepoFormPage() {
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>
-            {repoId ? t('repos.editEntry') : t('repos.newEntry')}
+            {repoId ? t('common.repository') : t('repos.newEntry')}
           </Text>
           <Title order={1}>{repoId ? t('repos.editRepo') : t('repos.addRepo')}</Title>
         </div>
@@ -134,7 +134,7 @@ export default function RepoFormPage() {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack className={styles.form}>
           <Select
-            label={t('repos.fields.type')}
+            label={t('common.packageFormat')}
             required
             allowDeselect={false}
             data={[
@@ -146,7 +146,7 @@ export default function RepoFormPage() {
             {...form.getInputProps('type')}
           />
 
-          <TextInput label={t('repos.fields.name')} required {...form.getInputProps('name')} />
+          <TextInput label={t('common.name')} required {...form.getInputProps('name')} />
 
           <TextInput
             label={t('repos.fields.baseUrl')}
@@ -156,7 +156,7 @@ export default function RepoFormPage() {
           />
 
           <Select
-            label={t('repos.fields.source')}
+            label={t('common.source')}
             required
             allowDeselect={false}
             data={[
@@ -173,7 +173,7 @@ export default function RepoFormPage() {
               label: distroLabel(distro),
             }))}
             description={t('repos.fields.distrosHint')}
-            label={t('repos.fields.distros')}
+            label={t('common.distributions')}
             searchable
             value={(form.values.distroIds ?? []).map(String)}
             onChange={(values) => form.setFieldValue('distroIds', values.map(Number))}

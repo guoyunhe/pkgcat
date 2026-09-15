@@ -41,7 +41,8 @@ export default function AppMergeModal({ app, onMerged }: AppMergeModalProps) {
         if (!cancelled) setCandidates(data.filter((candidate) => candidate.id !== app.id))
       })
       .catch((reason) => {
-        if (!cancelled) setError(reason instanceof Error ? reason.message : t('merge.loadError'))
+        if (!cancelled)
+          setError(reason instanceof Error ? reason.message : t('common.loadAppsError'))
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -96,7 +97,7 @@ export default function AppMergeModal({ app, onMerged }: AppMergeModalProps) {
         variant='default'
         onClick={() => setOpened(true)}
       >
-        {t('merge.action')}
+        {t('common.merge')}
       </Button>
       <Modal opened={opened} onClose={close} title={t('merge.title')}>
         <Stack gap='md'>
@@ -128,7 +129,7 @@ export default function AppMergeModal({ app, onMerged }: AppMergeModalProps) {
               loading={merging}
               onClick={() => void merge()}
             >
-              {t('merge.confirm')}
+              {t('common.merge')}
             </Button>
           </Group>
         </Stack>

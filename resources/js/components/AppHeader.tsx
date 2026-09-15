@@ -72,7 +72,7 @@ export default function AppHeader() {
             leftSection={<SquaresFourIcon size={18} />}
             variant='subtle'
           >
-            {t('header.applications')}
+            {t('common.apps')}
           </Button>
           <Button
             component={Link}
@@ -82,7 +82,7 @@ export default function AppHeader() {
             leftSection={<PackageIcon size={18} />}
             variant='subtle'
           >
-            {t('header.packages')}
+            {t('common.packages')}
           </Button>
           <Button
             component={Link}
@@ -92,7 +92,7 @@ export default function AppHeader() {
             leftSection={<HardDrivesIcon size={18} />}
             variant='subtle'
           >
-            {t('header.repositories')}
+            {t('common.repositories')}
           </Button>
           <Button
             component={Link}
@@ -102,7 +102,7 @@ export default function AppHeader() {
             leftSection={<LinuxLogoIcon size={18} />}
             variant='subtle'
           >
-            {t('header.distributions')}
+            {t('common.distributions')}
           </Button>
           <form
             className={styles.searchForm}
@@ -163,9 +163,9 @@ export default function AppHeader() {
             <Menu position='bottom-end' shadow='md' width={220}>
               <Menu.Target>
                 <ActionIcon
-                  aria-label={t('header.account')}
+                  aria-label={t('common.account')}
                   size='lg'
-                  title={t('header.account')}
+                  title={t('common.account')}
                   variant='default'
                 >
                   <UserCircleIcon size={20} />
@@ -183,14 +183,14 @@ export default function AppHeader() {
                   href={`/users/${user.id}`}
                   leftSection={<UserCircleIcon size={16} />}
                 >
-                  {t('header.profile')}
+                  {t('common.profile')}
                 </Menu.Item>
                 <Menu.Item
                   component={Link}
                   href='/settings'
                   leftSection={<GearSixIcon size={16} />}
                 >
-                  {t('header.settings')}
+                  {t('common.settings')}
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item

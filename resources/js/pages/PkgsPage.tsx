@@ -41,7 +41,7 @@ export default function PkgsPage() {
       })
       .catch((reason) => {
         if (active) {
-          setError(reason instanceof Error ? reason.message : t('packages.loadError'))
+          setError(reason instanceof Error ? reason.message : t('common.loadPackagesError'))
         }
       })
       .finally(() => {
@@ -66,8 +66,8 @@ export default function PkgsPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>{t('packages.eyebrow')}</Text>
-          <Title order={1}>{t('packages.title')}</Title>
+          <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
+          <Title order={1}>{t('common.packages')}</Title>
           <Text c='dimmed'>{t('packages.subtitle')}</Text>
         </div>
         {isAdmin && (
@@ -76,7 +76,7 @@ export default function PkgsPage() {
             href='/pkgs/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('packages.addPackage')}
+            {t('common.addPackage')}
           </Button>
         )}
       </header>
@@ -110,7 +110,7 @@ export default function PkgsPage() {
                         <PencilSimpleIcon size={16} />
                       </Button>
                       <Button
-                        aria-label={t('packages.delete')}
+                        aria-label={t('common.delete')}
                         color='red'
                         size='xs'
                         variant='subtle'
@@ -133,7 +133,7 @@ export default function PkgsPage() {
           )}
         </>
       ) : (
-        <Text c='dimmed'>{t('packages.notFound')}</Text>
+        <Text c='dimmed'>{t('common.packagesNotFound')}</Text>
       )}
     </main>
   )

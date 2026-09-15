@@ -129,7 +129,7 @@ export default function DistroFormPage() {
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>
-            {distroId ? t('distros.editEntry') : t('distros.newEntry')}
+            {distroId ? t('common.distribution') : t('distros.newEntry')}
           </Text>
           <Title order={1}>{distroId ? t('distros.editDistro') : t('distros.addDistro')}</Title>
         </div>
@@ -151,7 +151,7 @@ export default function DistroFormPage() {
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack className={styles.form}>
           <TextInput
-            label={t('distros.fields.name')}
+            label={t('common.name')}
             placeholder='Ubuntu'
             required
             {...form.getInputProps('name')}
@@ -159,13 +159,13 @@ export default function DistroFormPage() {
 
           <TextInput
             description={t('distros.fields.versionHint')}
-            label={t('distros.fields.version')}
+            label={t('common.version')}
             placeholder='24.04'
             {...form.getInputProps('version')}
           />
 
           <Select
-            label={t('distros.fields.pkgType')}
+            label={t('common.packageFormat')}
             clearable
             data={packageTypes}
             description={t('distros.fields.pkgTypeHint')}
@@ -175,7 +175,7 @@ export default function DistroFormPage() {
           <Autocomplete
             data={commonArchs}
             description={t('distros.fields.archHint')}
-            label={t('distros.fields.arch')}
+            label={t('common.architecture')}
             placeholder='x86_64'
             required
             {...form.getInputProps('arch')}
