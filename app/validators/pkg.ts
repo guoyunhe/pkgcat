@@ -64,6 +64,14 @@ export const pkgListValidator = vine.create({
     .number()
     .parse((value) => positiveInteger(firstValue(value)))
     .optional(),
+  /**
+   * Repository the listing is narrowed to, which the detail page of one reads: it holds the
+   * packages extracted from that repository.
+   */
+  repoId: vine
+    .number()
+    .parse((value) => positiveInteger(firstValue(value)))
+    .optional(),
   arch: singleValue(),
   type: singleValue(),
   locale: localeField(),

@@ -22,7 +22,7 @@ import {
 import { getRepos, type RepoFilters } from '../services/repos'
 import { formatCount, formatDate } from '../utils/format'
 
-import styles from './DistroDetailPage.module.css'
+import styles from './DetailPage.module.css'
 
 /** Sections of the page, which the tabs switch between. */
 type DistroTab = 'packages' | 'repositories'
@@ -238,7 +238,7 @@ export default function DistroDetailPage() {
             emptyMessage={t('distros.detail.noRepos')}
             load={loadRepos}
             onCountChange={setRepoCount}
-            onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
+            onRowClick={(repo) => navigate(`/repos/${repo.id}`)}
             showDistros={false}
           />
         </Tabs.Panel>

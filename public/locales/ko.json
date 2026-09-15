@@ -143,6 +143,14 @@
       "checksumType": "체크섬 방식",
       "size": "크기(바이트)",
       "installCommand": "설치 명령"
+    },
+    "detail": {
+      "invalidId": "패키지 ID가 올바르지 않습니다",
+      "loadError": "패키지를 불러올 수 없습니다",
+      "back": "패키지 목록으로 돌아가기",
+      "eyebrow": "Linux 패키지",
+      "size": "크기",
+      "noApps": "이 패키지가 제공하는 애플리케이션이 아직 없습니다."
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "배포판 제공",
       "community": "커뮤니티 저장소"
+    },
+    "detail": {
+      "invalidId": "저장소 ID가 올바르지 않습니다",
+      "loadError": "저장소를 불러올 수 없습니다",
+      "back": "저장소 목록으로 돌아가기",
+      "eyebrow": "패키지 저장소",
+      "noPackages": "이 저장소에는 아직 패키지가 없습니다.",
+      "noDistros": "이 저장소가 제공하는 배포판이 아직 없습니다."
     },
     "columns": {
       "syncInterval": "동기화 주기",

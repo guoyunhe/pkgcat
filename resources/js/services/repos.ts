@@ -70,6 +70,17 @@ export async function getRepo(id: number) {
   return data.data
 }
 
+/**
+ * Packages the repository holds, which are the ones extracted from it. They are read the way every
+ * package listing is — ten to a page — and are the same ones its package count adds up.
+ */
+export async function getRepoPackages(id: number, page = 1, locale?: string) {
+  const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
+    params: { page, repoId: id, locale },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
+}
+
 export async function createRepo(payload: RepoPayload) {
   const { data } = await api.post<{ data: Data.Repo }>('/repos', payload, {
     headers: authHeaders(),

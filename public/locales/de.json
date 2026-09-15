@@ -143,6 +143,14 @@
       "checksumType": "Art der Prüfsumme",
       "size": "Größe (Bytes)",
       "installCommand": "Installationsbefehl"
+    },
+    "detail": {
+      "invalidId": "Ungültige Paket-ID",
+      "loadError": "Paket konnte nicht geladen werden",
+      "back": "Zurück zu den Paketen",
+      "eyebrow": "Linux-Paket",
+      "size": "Größe",
+      "noApps": "Dieses Paket liefert noch keine Anwendung."
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "Von der Distribution bereitgestellt",
       "community": "Community-Repository"
+    },
+    "detail": {
+      "invalidId": "Ungültige Repository-ID",
+      "loadError": "Repository konnte nicht geladen werden",
+      "back": "Zurück zu den Repositories",
+      "eyebrow": "Paket-Repository",
+      "noPackages": "In diesem Repository sind noch keine Pakete hinterlegt.",
+      "noDistros": "Dieses Repository bedient noch keine Distribution."
     },
     "columns": {
       "syncInterval": "Sync-Intervall",

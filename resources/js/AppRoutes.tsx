@@ -21,7 +21,9 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 const AppsPage = lazy(() => import('./pages/AppsPage'))
 const DistroDetailPage = lazy(() => import('./pages/DistroDetailPage'))
 const DistrosPage = lazy(() => import('./pages/DistrosPage'))
+const PkgDetailPage = lazy(() => import('./pages/PkgDetailPage'))
 const PkgsPage = lazy(() => import('./pages/PkgsPage'))
+const RepoDetailPage = lazy(() => import('./pages/RepoDetailPage'))
 const ReposPage = lazy(() => import('./pages/ReposPage'))
 
 // The search results are reached from the header search box, so their code is also split out and
@@ -42,6 +44,7 @@ export default function AppRoutes() {
         <Route path='/search' component={SearchResultsPage} />
         <Route path='/pkgs/new' component={PkgFormPage} />
         <Route path='/pkgs/:id/edit' component={PkgFormPage} />
+        <Route path='/pkgs/:id' component={PkgDetailPage} />
         <Route path='/pkgs' component={PkgsPage} />
         {/* Package pages used to live under `/packages` and keep redirecting, so old links still work */}
         <Route path='/packages/new'>
@@ -55,6 +58,7 @@ export default function AppRoutes() {
         </Route>
         <Route path='/repos/new' component={RepoFormPage} />
         <Route path='/repos/:id/edit' component={RepoFormPage} />
+        <Route path='/repos/:id' component={RepoDetailPage} />
         <Route path='/repos' component={ReposPage} />
         <Route path='/distros/new' component={DistroFormPage} />
         <Route path='/distros/:id/edit' component={DistroFormPage} />

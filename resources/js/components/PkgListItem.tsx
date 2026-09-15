@@ -33,7 +33,12 @@ export default function PkgListItem({ pkg, actions, showDetails = false }: PkgLi
         <div className={styles.pkgTypeIcon} />
       )}
       <div className={styles.copy}>
-        <Title order={3}>{pkg.name}</Title>
+        <Title order={3}>
+          {/* The package has a page of its own, which the lists it appears in all link to */}
+          <Link className={styles.link} href={`/pkgs/${pkg.id}`}>
+            {pkg.name}
+          </Link>
+        </Title>
         <div className={styles.meta}>
           <span>{pkg.type}</span>
           {pkg.version && <span>{pkg.version}</span>}

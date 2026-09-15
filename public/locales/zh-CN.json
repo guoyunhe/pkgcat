@@ -143,6 +143,14 @@
       "checksumType": "校验和类型",
       "size": "大小（字节）",
       "installCommand": "安装命令"
+    },
+    "detail": {
+      "invalidId": "无效的软件包 ID",
+      "loadError": "无法加载软件包",
+      "back": "返回软件包列表",
+      "eyebrow": "Linux 软件包",
+      "size": "大小",
+      "noApps": "该软件包暂未提供应用。"
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "发行版自带",
       "community": "社区仓库"
+    },
+    "detail": {
+      "invalidId": "无效的仓库 ID",
+      "loadError": "无法加载仓库",
+      "back": "返回软件源列表",
+      "eyebrow": "软件包仓库",
+      "noPackages": "该仓库暂无软件包。",
+      "noDistros": "该仓库暂未服务任何发行版。"
     },
     "columns": {
       "syncInterval": "同步周期",

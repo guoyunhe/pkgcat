@@ -143,6 +143,14 @@
       "checksumType": "校驗碼類型",
       "size": "大小（位元組）",
       "installCommand": "安裝指令"
+    },
+    "detail": {
+      "invalidId": "無效的軟體套件 ID",
+      "loadError": "無法載入軟體套件",
+      "back": "返回軟體套件清單",
+      "eyebrow": "Linux 軟體套件",
+      "size": "大小",
+      "noApps": "此軟體套件尚未提供應用程式。"
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "發行版內建",
       "community": "社群倉庫"
+    },
+    "detail": {
+      "invalidId": "無效的倉庫 ID",
+      "loadError": "無法載入倉庫",
+      "back": "返回軟體倉庫清單",
+      "eyebrow": "軟體套件倉庫",
+      "noPackages": "此倉庫尚無軟體套件。",
+      "noDistros": "此倉庫尚未服務任何發行版。"
     },
     "columns": {
       "syncInterval": "同步週期",

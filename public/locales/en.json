@@ -143,6 +143,14 @@
       "checksumType": "Checksum type",
       "size": "Size (bytes)",
       "installCommand": "Install command"
+    },
+    "detail": {
+      "invalidId": "Invalid package ID",
+      "loadError": "Unable to load package",
+      "back": "Back to packages",
+      "eyebrow": "Linux package",
+      "size": "Size",
+      "noApps": "This package provides no application yet."
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "Provided by the distribution",
       "community": "Community repository"
+    },
+    "detail": {
+      "invalidId": "Invalid repository ID",
+      "loadError": "Unable to load repository",
+      "back": "Back to repositories",
+      "eyebrow": "Package repository",
+      "noPackages": "This repository has no packages yet.",
+      "noDistros": "This repository serves no distribution yet."
     },
     "columns": {
       "syncInterval": "Sync interval",

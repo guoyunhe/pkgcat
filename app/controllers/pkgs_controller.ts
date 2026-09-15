@@ -27,7 +27,7 @@ const maxPackageSize = 2 * 1024 * 1024 * 1024
 
 export default class PkgsController {
   async index({ params, request, serialize }: HttpContext) {
-    const { page, perPage, q, distroId, arch, type, locale } =
+    const { page, perPage, q, distroId, repoId, arch, type, locale } =
       await request.validateUsing(pkgListValidator)
     // Packages are listed by name, which is how a package is looked up; the id keeps the order of a
     // name stable, so that paging never repeats or skips a row the way a partly ordered list does.
@@ -75,6 +75,7 @@ export default class PkgsController {
 
     if (arch) pkgsQuery.where('arch', arch)
     if (type) pkgsQuery.where('type', type)
+    if (repoId) pkgsQuery.where('repo_id', repoId)
 
     const paginator = await pkgsQuery.paginate(page, perPage)
     await this.loadAppNames(paginator.all(), locale)
@@ -83,7 +84,11 @@ export default class PkgsController {
 
   async show({ params, request, serialize }: HttpContext) {
     const { locale } = await request.validateUsing(pkgLocaleValidator)
-    const pkg = await Pkg.query().where('id', params.id).preload('apps').firstOrFail()
+    const pkg = await Pkg.query()
+      .where('id', params.id)
+      .preload('apps')
+      .preload('repo')
+      .firstOrFail()
     await this.loadAppNames([pkg], locale)
     return serialize(PkgTransformer.transform(pkg))
   }

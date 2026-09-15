@@ -143,6 +143,14 @@
       "checksumType": "Tipo di checksum",
       "size": "Dimensione (byte)",
       "installCommand": "Comando di installazione"
+    },
+    "detail": {
+      "invalidId": "ID del pacchetto non valido",
+      "loadError": "Impossibile caricare il pacchetto",
+      "back": "Torna ai pacchetti",
+      "eyebrow": "Pacchetto Linux",
+      "size": "Dimensione",
+      "noApps": "Questo pacchetto non fornisce ancora applicazioni."
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "Fornito dalla distribuzione",
       "community": "Repository della comunità"
+    },
+    "detail": {
+      "invalidId": "ID del repository non valido",
+      "loadError": "Impossibile caricare il repository",
+      "back": "Torna ai repository",
+      "eyebrow": "Repository di pacchetti",
+      "noPackages": "Questo repository non ha ancora pacchetti.",
+      "noDistros": "Questo repository non serve ancora alcuna distribuzione."
     },
     "columns": {
       "syncInterval": "Intervallo di sincronizzazione",

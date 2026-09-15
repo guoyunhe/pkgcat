@@ -1,3 +1,8 @@
+/**
+ * Page of one entry of the catalog — a release, a repository or a package — which all read the same
+ * way: what the entry is at the top, its numbers under it, and what it holds below. The rules are
+ * shared by the three detail pages, which is why the module is not named after one of them.
+ */
 .page {
   margin: 0 auto;
   max-width: 1100px;
@@ -43,12 +48,44 @@
   padding: 22px 0;
 }
 
+/* A field may hold a long value — a license expression, a set of checksums — which wraps inside
+   its cell instead of widening the page */
+.metadata div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .status {
   text-transform: uppercase;
 }
 
 .expired {
   color: var(--mantine-color-red-6);
+}
+
+/* A block of the page that is named by a heading, such as the setup of a repository */
+.section {
+  margin: 36px 0;
+}
+
+/* What was configured verbatim — a source list, an install script, a description */
+.code {
+  border: 1px solid var(--ph-border);
+  display: block;
+  margin-top: 10px;
+  overflow-wrap: anywhere;
+  padding: 12px 14px;
+  white-space: pre-wrap;
+}
+
+/* A link that names another entry of the catalog, such as a release a repository serves */
+.namedLink {
+  color: inherit;
+  display: inline-flex;
+}
+
+.namedLink:hover {
+  color: var(--ph-primary);
 }
 
 .listings {

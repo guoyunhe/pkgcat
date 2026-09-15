@@ -143,6 +143,14 @@
       "checksumType": "Type de somme de contrôle",
       "size": "Taille (octets)",
       "installCommand": "Commande d’installation"
+    },
+    "detail": {
+      "invalidId": "Identifiant de paquet invalide",
+      "loadError": "Impossible de charger le paquet",
+      "back": "Retour aux paquets",
+      "eyebrow": "Paquet Linux",
+      "size": "Taille",
+      "noApps": "Ce paquet ne fournit encore aucune application."
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "Fourni par la distribution",
       "community": "Dépôt communautaire"
+    },
+    "detail": {
+      "invalidId": "Identifiant de dépôt invalide",
+      "loadError": "Impossible de charger le dépôt",
+      "back": "Retour aux dépôts",
+      "eyebrow": "Dépôt de paquets",
+      "noPackages": "Ce dépôt n'a pas encore de paquet.",
+      "noDistros": "Ce dépôt ne dessert encore aucune distribution."
     },
     "columns": {
       "syncInterval": "Intervalle de synchronisation",

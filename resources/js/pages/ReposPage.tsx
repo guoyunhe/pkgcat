@@ -97,7 +97,7 @@ export default function ReposPage() {
           />
         }
         load={loadRepos}
-        onRowClick={isAdmin ? (repo) => navigate(`/repos/${repo.id}/edit`) : undefined}
+        onRowClick={(repo) => navigate(`/repos/${repo.id}`)}
         refreshKey={refresh}
         renderActions={
           isAdmin

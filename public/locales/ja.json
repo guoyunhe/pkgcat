@@ -143,6 +143,14 @@
       "checksumType": "チェックサム方式",
       "size": "サイズ（バイト）",
       "installCommand": "インストールコマンド"
+    },
+    "detail": {
+      "invalidId": "パッケージ ID が正しくありません",
+      "loadError": "パッケージを読み込めません",
+      "back": "パッケージ 一覧に戻る",
+      "eyebrow": "Linux パッケージ",
+      "size": "サイズ",
+      "noApps": "このパッケージが提供するアプリケーションはまだありません。"
     }
   },
   "search": {
@@ -232,6 +240,14 @@
     "sources": {
       "distro": "ディストリビューション提供",
       "community": "コミュニティリポジトリ"
+    },
+    "detail": {
+      "invalidId": "リポジトリ ID が正しくありません",
+      "loadError": "リポジトリを読み込めません",
+      "back": "リポジトリ 一覧に戻る",
+      "eyebrow": "パッケージ リポジトリ",
+      "noPackages": "このリポジトリにはまだパッケージがありません。",
+      "noDistros": "このリポジトリが対応するディストリビューションはまだありません。"
     },
     "columns": {
       "syncInterval": "同期間隔",
