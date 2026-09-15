@@ -26,9 +26,8 @@ import RepoAppstreamExtractor, {
 } from '#services/repo_appstream_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ExtractedPackage } from '#services/repo_package_extractor'
-
-import { belongsToArch } from '../app/utils/arch.js'
-import { compareVersions } from '../app/utils/version.js'
+import { belongsToArch } from '#utils/arch'
+import { compareVersions } from '#utils/version'
 
 type PackageIdentity = Pick<ExtractedPackage, 'name' | 'version' | 'release' | 'arch'>
 

@@ -17,9 +17,8 @@ import Pkg from '#models/pkg'
 import { attachTranslations } from '#services/app_translations'
 import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
+import { archIndependentPackageArches } from '#utils/arch'
 import { pkgListValidator, pkgLocaleValidator, pkgValidator } from '#validators/pkg'
-
-import { archIndependentPackageArches } from '../utils/arch.js'
 
 // Package files are uploaded outside of the global multipart limit (see config/bodyparser.ts)
 // and streamed to the disk instead of being buffered in memory.

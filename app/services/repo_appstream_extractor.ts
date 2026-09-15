@@ -18,10 +18,9 @@ import type Repo from '#models/repo'
 import PackageFileExtractor, { normalizePackagePath } from '#services/package_file_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ExtractedPackage, ResolvedDebSource } from '#services/repo_package_extractor'
-
-import { compressionExtension, decompress, decompressStream } from '../utils/compression.js'
-import { readTarEntries } from '../utils/tar.js'
-import { eachXmlElement } from '../utils/xml.js'
+import { compressionExtension, decompress, decompressStream } from '#utils/compression'
+import { readTarEntries } from '#utils/tar'
+import { eachXmlElement } from '#utils/xml'
 
 /** Icon of a component, named the way the AppStream icon archive stores it. */
 export type AppstreamIcon = {

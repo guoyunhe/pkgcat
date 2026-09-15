@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-import { localeField, pageNumber } from '../utils/query_params.js'
+import { localeField, pageNumber } from '#utils/query_params'
 
 /**
  * Package formats that can be created or edited by hand. Uploaded files are recognized by their

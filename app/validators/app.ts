@@ -5,8 +5,7 @@ import { canonicalLocale } from '#services/app_locales'
 import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
-
-import { localeField, pageNumber } from '../utils/query_params.js'
+import { localeField, pageNumber } from '#utils/query_params'
 
 type LocalizedText = Record<string, string>
 

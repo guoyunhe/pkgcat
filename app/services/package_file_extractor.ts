@@ -7,9 +7,9 @@ import { gunzipSync, zstdDecompressSync } from 'node:zlib'
 
 import { Exception } from '@adonisjs/core/exceptions'
 
-import { decompress as decompressMetadata } from '../utils/compression.js'
-import { splitDebDescription, splitDebVersion } from '../utils/deb.js'
-import { readTarEntries, type TarEntry } from '../utils/tar.js'
+import { decompress as decompressMetadata } from '#utils/compression'
+import { splitDebDescription, splitDebVersion } from '#utils/deb'
+import { readTarEntries, type TarEntry } from '#utils/tar'
 
 export const uploadedPackageTypes = ['deb', 'rpm', 'appimage'] as const
 

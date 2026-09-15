@@ -2,10 +2,9 @@ import { XMLParser } from 'fast-xml-parser'
 import xior, { isXiorError } from 'xior'
 
 import type Repo from '#models/repo'
-
-import { decompress, decompressStream, compressionExtension } from '../utils/compression.js'
-import { splitDebDescription, splitDebVersion } from '../utils/deb.js'
-import { eachXmlElement } from '../utils/xml.js'
+import { decompress, decompressStream, compressionExtension } from '#utils/compression'
+import { splitDebDescription, splitDebVersion } from '#utils/deb'
+import { eachXmlElement } from '#utils/xml'
 
 export type RepoPackageType = 'rpm' | 'deb'
 
