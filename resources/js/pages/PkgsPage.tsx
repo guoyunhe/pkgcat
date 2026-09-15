@@ -8,9 +8,8 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
 import { useAuth } from '../auth'
-import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
-import { deletePkg, getPkgs } from '../services/pkgs'
+import { deletePkg, getPkgs, type PkgFilters } from '../services/pkgs'
 
 import styles from './AppsPage.module.css'
 
@@ -18,13 +17,12 @@ export default function PkgsPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const isAdmin = ready && user?.role === 'admin'
-  const [filters, setFilters] = useStoredPkgFilters()
   const [error, setError] = useState<string | null>(null)
   const [refresh, setRefresh] = useState(0)
-  // The listing the filters in the toolbar name, which the list reads one page of at a time
+  // The listing the filters in its toolbar name, which the list reads one page of at a time
   const readPkgs = useCallback(
-    (page: number) => getPkgs('', page, filters, i18n.language),
-    [filters, i18n.language],
+    (page: number, filters: PkgFilters) => getPkgs('', page, filters, i18n.language),
+    [i18n.language],
   )
 
   async function remove(pkg: Data.Pkg) {
@@ -55,8 +53,6 @@ export default function PkgsPage() {
           </Button>
         )}
       </header>
-
-      <PkgFilters onChange={setFilters} value={filters} />
 
       {error && (
         <Alert color='red' mb='lg'>

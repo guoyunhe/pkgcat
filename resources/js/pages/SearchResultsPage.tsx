@@ -1,15 +1,13 @@
-import { Group, Tabs, Text, Title } from '@mantine/core'
+import { Tabs, Text, Title } from '@mantine/core'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
 
 import AppList from '../components/AppList'
-import CategoryFilter from '../components/CategoryFilter'
 import CountBadge from '../components/CountBadge'
-import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
 import { getApps } from '../services/apps'
-import { getPkgs } from '../services/pkgs'
+import { getPkgs, type PkgFilters } from '../services/pkgs'
 
 import styles from './AppsPage.module.css'
 
@@ -21,21 +19,19 @@ export default function SearchResultsPage() {
   const query = searchParams.get('q')?.trim() ?? ''
 
   const [activeTab, setActiveTab] = useState<SearchTab>('apps')
-  const [appsCategory, setAppsCategory] = useState<string | null>(null)
   const [appsCount, setAppsCount] = useState<number | null>(null)
   const [pkgsCount, setPkgsCount] = useState<number | null>(null)
 
-  const [filters, setFilters] = useStoredPkgFilters()
-  // The applications the search terms and the category name, which the list reads one page of at a
-  // time
+  // The applications the search terms name, in the category the list is narrowed to
   const readApps = useCallback(
-    (page: number) => getApps(query, page, 12, appsCategory, null, 'newest', i18n.language),
-    [appsCategory, i18n.language, query],
+    (page: number, category: string | null) =>
+      getApps(query, page, 12, category, null, 'newest', i18n.language),
+    [i18n.language, query],
   )
-  // The packages the search terms and the filters name, which the list reads one page of at a time
+  // The packages the search terms name, narrowed by the filters the list holds
   const readPkgs = useCallback(
-    (page: number) => getPkgs(query, page, filters, i18n.language),
-    [filters, i18n.language, query],
+    (page: number, filters: PkgFilters) => getPkgs(query, page, filters, i18n.language),
+    [i18n.language, query],
   )
 
   return (
@@ -76,9 +72,6 @@ export default function SearchResultsPage() {
 
         {/* Both listings are read on their own, and the count of each of them is what the tabs show */}
         <Tabs.Panel value='apps'>
-          <Group mb='lg'>
-            <CategoryFilter onChange={setAppsCategory} value={appsCategory} />
-          </Group>
           <AppList
             emptyMessage={t('common.appsNotFound')}
             errorMessage={t('search.loadError')}
@@ -88,7 +81,6 @@ export default function SearchResultsPage() {
         </Tabs.Panel>
 
         <Tabs.Panel value='packages'>
-          <PkgFilters onChange={setFilters} value={filters} />
           <PkgList
             emptyMessage={t('common.packagesNotFound')}
             errorMessage={t('search.loadPackagesError')}

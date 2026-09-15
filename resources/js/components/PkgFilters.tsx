@@ -12,7 +12,9 @@ import DistroSelect from './DistroSelect'
 import ListFilter from './ListFilter'
 
 const storageKey = 'pkg-filters'
-const emptyFilters: PkgFiltersValue = { distroId: null, type: null, arch: null }
+
+/** Filters that narrow nothing, which a listing that shows no toolbar reads with. */
+export const emptyPkgFilters: PkgFiltersValue = { distroId: null, type: null, arch: null }
 
 /**
  * Filters are remembered across visits, but older shapes (distributions by name, or lists from when
@@ -27,7 +29,7 @@ function parseFilters(raw: string) {
       arch: typeof value.arch === 'string' ? value.arch : null,
     }
   } catch {
-    return emptyFilters
+    return emptyPkgFilters
   }
 }
 
@@ -36,7 +38,7 @@ function parseFilters(raw: string) {
  * first query uses.
  */
 export function useStoredPkgFilters() {
-  return useLocalStorage<PkgFiltersValue>(storageKey, emptyFilters, { parser: parseFilters })
+  return useLocalStorage<PkgFiltersValue>(storageKey, emptyPkgFilters, { parser: parseFilters })
 }
 
 type PkgFiltersProps = {
@@ -45,9 +47,10 @@ type PkgFiltersProps = {
 }
 
 /**
- * Distribution, package format and architecture filters for the package listings. A distribution is
- * one release for one architecture, and the packages it serves are the ones its repositories hold
- * for that architecture.
+ * Distribution, package format and architecture filters for the package listings, which `PkgList`
+ * shows above its rows and holds what they are set to. A distribution is one release for one
+ * architecture, and the packages it serves are the ones its repositories hold for that
+ * architecture.
  */
 export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
   const { t } = useTranslation()
@@ -99,7 +102,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
       {hasFilters && (
         <Button
           leftSection={<XIcon size={16} />}
-          onClick={() => onChange(emptyFilters)}
+          onClick={() => onChange(emptyPkgFilters)}
           variant='subtle'
         >
           {t('common.clearFilters')}

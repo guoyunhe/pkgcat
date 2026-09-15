@@ -227,6 +227,7 @@ export default function DistroDetailPage() {
             load={readPkgs}
             onCountChange={setPkgCount}
             showDetails
+            showFilters={false}
           />
         </Tabs.Panel>
 

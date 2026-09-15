@@ -1,4 +1,4 @@
-import { Button, Group, Select, Text, Title } from '@mantine/core'
+import { Button, Select, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -6,7 +6,6 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import AppList from '../components/AppList'
-import CategoryFilter from '../components/CategoryFilter'
 import FavoriteButton from '../components/FavoriteButton'
 import ListFilter from '../components/ListFilter'
 import { appSort, appSorts, getApps, type AppSort } from '../services/apps'
@@ -49,8 +48,9 @@ export default function AppsPage() {
 
   // The listing the URL names, which the list reads one page of at a time
   const readApps = useCallback(
-    (page: number) => getApps(query, page, 12, category, type, sort, i18n.language),
-    [category, i18n.language, query, sort, type],
+    (page: number, category: string | null) =>
+      getApps(query, page, 12, category, type, sort, i18n.language),
+    [i18n.language, query, sort, type],
   )
 
   // `name` is the shared label of every name field, the other three are orders of this listing
@@ -81,30 +81,31 @@ export default function AppsPage() {
         )}
       </header>
 
-      <Group align='flex-end' gap='sm' mb='lg'>
-        <CategoryFilter
-          onChange={(nextCategory) => navigate(appsUrl({ category: nextCategory }))}
-          value={category}
-        />
-        <ListFilter
-          data={typeOptions}
-          label={t('common.type')}
-          onChange={(nextType) => navigate(appsUrl({ type: nextType }))}
-          placeholder={t('apps.filterAny')}
-          value={type}
-        />
-        <Select
-          allowDeselect={false}
-          data={sortOptions}
-          label={t('common.sortBy')}
-          onChange={(nextSort) => navigate(appsUrl({ sort: appSort(nextSort) }))}
-          value={sort}
-          w={180}
-        />
-      </Group>
       <AppList
+        category={category}
         emptyMessage={filtered ? t('apps.filterEmpty') : t('common.appsNotFound')}
+        extraFilters={
+          // The type and the order are read by the API too, so they are kept in the URL as well
+          <>
+            <ListFilter
+              data={typeOptions}
+              label={t('common.type')}
+              onChange={(nextType) => navigate(appsUrl({ type: nextType }))}
+              placeholder={t('apps.filterAny')}
+              value={type}
+            />
+            <Select
+              allowDeselect={false}
+              data={sortOptions}
+              label={t('common.sortBy')}
+              onChange={(nextSort) => navigate(appsUrl({ sort: appSort(nextSort) }))}
+              value={sort}
+              w={180}
+            />
+          </>
+        }
         load={readApps}
+        onCategoryChange={(nextCategory) => navigate(appsUrl({ category: nextCategory }))}
         renderActions={(app) => <FavoriteButton appId={app.id} favorite={app.isFavorite} />}
       />
     </main>

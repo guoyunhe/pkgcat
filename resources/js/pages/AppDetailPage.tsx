@@ -15,13 +15,12 @@ import AverageRating from '../components/AverageRating'
 import CategoryBadges from '../components/CategoryBadges'
 import FavoriteButton from '../components/FavoriteButton'
 import PackageUpload from '../components/PackageUpload'
-import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
 import ReviewForm from '../components/ReviewForm'
 import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
 import { deleteApp, getApp, getAppPackages } from '../services/apps'
-import { deletePkg } from '../services/pkgs'
+import { deletePkg, type PkgFilters } from '../services/pkgs'
 import { deleteReview, getAppReviews } from '../services/reviews'
 import type { Paginated } from '../types/pagination'
 import {
@@ -42,7 +41,6 @@ export default function AppDetailPage() {
   const appId = params?.id ? Number(params.id) : undefined
   const [app, setApp] = useState<Data.App | null>(null)
   const [packagesRefresh, setPackagesRefresh] = useState(0)
-  const [pkgFilters, setPkgFilters] = useStoredPkgFilters()
   const [error, setError] = useState<string | null>(null)
   const [reviews, setReviews] = useState<Paginated<Data.Review> | null>(null)
   const [reviewsPage, setReviewsPage] = useState(1)
@@ -54,11 +52,11 @@ export default function AppDetailPage() {
     () => parseAppStreamContent(app?.appstreamContent),
     [app?.appstreamContent],
   )
-  // The packages of the application, narrowed by the filters that sit above the list
+  // The packages of the application, narrowed by the filters the list holds
   const readPkgs = useCallback(
-    (page: number) =>
-      appId ? getAppPackages(appId, page, pkgFilters, i18n.language) : Promise.resolve(null),
-    [appId, i18n.language, pkgFilters],
+    (page: number, filters: PkgFilters) =>
+      appId ? getAppPackages(appId, page, filters, i18n.language) : Promise.resolve(null),
+    [appId, i18n.language],
   )
 
   useEffect(() => {
@@ -105,8 +103,6 @@ export default function AppDetailPage() {
   const description = resolveDescription(component, i18n.language)
   const screenshots = selectScreenshots(component?.screenshots ?? [], i18n.language)
   const isAdmin = user?.role === 'admin'
-  const hasPkgFilters =
-    pkgFilters.distroId !== null || pkgFilters.type !== null || pkgFilters.arch !== null
 
   async function remove() {
     if (!app) return
@@ -331,9 +327,9 @@ export default function AppDetailPage() {
             </Group>
           )}
         </Group>
-        <PkgFilters onChange={setPkgFilters} value={pkgFilters} />
         <PkgList
-          emptyMessage={hasPkgFilters ? t('common.packagesNotFound') : t('detail.noPackages')}
+          emptyMessage={t('detail.noPackages')}
+          filteredEmptyMessage={t('common.packagesNotFound')}
           load={readPkgs}
           refreshKey={packagesRefresh}
           renderActions={
