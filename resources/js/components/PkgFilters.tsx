@@ -97,7 +97,6 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
         onChange={(type) => onChange({ ...value, type })}
         placeholder={t('packages.filterAny')}
         value={value.type}
-        width={160}
       />
       {hasFilters && (
         <Button

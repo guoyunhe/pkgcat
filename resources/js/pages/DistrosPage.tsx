@@ -7,6 +7,7 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 import { useAuth } from '../auth'
 import ArchSelect from '../components/ArchSelect'
 import DistroRelease from '../components/DistroRelease'
+import { filterWidth } from '../components/ListFilter'
 import {
   distroSort,
   distroSorts,
@@ -134,7 +135,7 @@ export default function DistrosPage() {
             label={t('common.sortBy')}
             onChange={(nextSort) => navigate(distrosUrl(distroSort(nextSort)))}
             value={sort}
-            w={180}
+            w={filterWidth}
           />
         </Group>
       )}

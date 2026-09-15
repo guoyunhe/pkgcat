@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { emptyRepoFilters, type RepoFilters } from '../services/repos'
 import type { Paginated } from '../types/pagination'
 import DistroSelect from './DistroSelect'
-import ListFilter from './ListFilter'
+import ListFilter, { filterWidth } from './ListFilter'
 
 import styles from './RepoTable.module.css'
 
@@ -182,7 +182,7 @@ export default function RepoTable({
             leftSection={<MagnifyingGlassIcon size={18} />}
             placeholder={t('repos.filterSearch')}
             value={search}
-            w={240}
+            w={filterWidth}
             onChange={(event) => setSearch(event.currentTarget.value)}
           />
           <DistroSelect

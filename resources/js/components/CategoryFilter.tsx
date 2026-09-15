@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { getCategories, type Category } from '../services/apps'
 import { localized } from '../utils/appstream'
+import { filterWidth } from './ListFilter'
 
 type CategoryOption = {
   value: string
@@ -94,7 +95,7 @@ export default function CategoryFilter({ value, onChange }: CategoryFilterProps)
         placeholder={t('categories.filterAny')}
         searchable
         value={value}
-        w={260}
+        w={filterWidth}
       />
       {value !== null && (
         <Button leftSection={<XIcon size={16} />} onClick={() => onChange(null)} variant='subtle'>

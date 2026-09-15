@@ -3,6 +3,12 @@ import type { ReactNode } from 'react'
 
 import styles from './ListFilter.module.css'
 
+/**
+ * Width every field of a listing toolbar — the filters and the order — is shown at, so that the
+ * toolbars of the listings line up however many fields a page puts next to each other.
+ */
+export const filterWidth = 240
+
 /** One value a filter offers, with the icon a listing names its values by, when it has one. */
 export type FilterOption = {
   value: string
@@ -24,7 +30,7 @@ type ListFilterProps = {
   placeholder?: string
   searchable?: boolean
   value: string | null
-  /** Width of the field, which is the one the values it offers read best at. */
+  /** Width of the field, which every field of a toolbar shares unless a listing says otherwise. */
   width?: number
   /** Hint the field shows under it, for the fields whose values have to be explained */
   description?: ReactNode
@@ -44,7 +50,7 @@ export default function ListFilter({
   placeholder,
   searchable,
   value,
-  width = 240,
+  width = filterWidth,
 }: ListFilterProps) {
   const selected = data.find((option) => option.value === value)
 

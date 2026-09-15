@@ -1,13 +1,14 @@
 import type { Data } from '@generated/data'
-import { Alert, Group, Loader, Pagination, Select, Text } from '@mantine/core'
+import { Alert, Group, Loader, Pagination, Text } from '@mantine/core'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'wouter'
 
-import { appSort, appSorts, type AppSort } from '../services/apps'
+import { appSort, type AppSort } from '../services/apps'
 import type { Paginated } from '../types/pagination'
 import AppListItem from './AppListItem'
+import AppSortSelect from './AppSortSelect'
 import AppTypeSelect from './AppTypeSelect'
 import CategoryFilter from './CategoryFilter'
 
@@ -140,19 +141,9 @@ export default function AppList({
   }
 
   // The default order is left out of the query string, the way it reads as no order of its own
-  function changeSort(nextSort: string | null) {
-    const chosen = appSort(nextSort)
-    setParameter('sort', chosen === 'newest' ? null : chosen)
+  function changeSort(nextSort: AppSort) {
+    setParameter('sort', nextSort === 'newest' ? null : nextSort)
   }
-
-  // `name` is the shared label of every name field, the other three are orders of this listing
-  const sortLabels: Record<AppSort, string> = {
-    favorites: t('apps.sort.favorites'),
-    name: t('common.name'),
-    newest: t('apps.sort.newest'),
-    rating: t('apps.sort.rating'),
-  }
-  const sortOptions = appSorts.map((value) => ({ value, label: sortLabels[value] }))
 
   const narrowed = category !== null || type !== null
 
@@ -166,14 +157,7 @@ export default function AppList({
           placeholder={t('apps.filterAny')}
           value={type}
         />
-        <Select
-          allowDeselect={false}
-          data={sortOptions}
-          label={t('common.sortBy')}
-          onChange={changeSort}
-          value={sort}
-          w={180}
-        />
+        <AppSortSelect onChange={changeSort} value={sort} />
       </Group>
       {error ? (
         <Alert color='red' mb='lg'>

@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
+import { filterWidth } from '../components/ListFilter'
 import RepoTable from '../components/RepoTable'
 import {
   deleteRepo,
@@ -93,7 +94,7 @@ export default function ReposPage() {
             label={t('common.sortBy')}
             onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
             value={sort}
-            w={180}
+            w={filterWidth}
           />
         }
         load={loadRepos}
