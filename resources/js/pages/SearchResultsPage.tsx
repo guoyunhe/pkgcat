@@ -9,7 +9,7 @@ import CountBadge from '../components/CountBadge'
 import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
 import { getApps } from '../services/apps'
-import { loadPkgs } from '../services/pkgs'
+import { getPkgs } from '../services/pkgs'
 
 import styles from './AppsPage.module.css'
 
@@ -34,7 +34,7 @@ export default function SearchResultsPage() {
   )
   // The packages the search terms and the filters name, which the list reads one page of at a time
   const readPkgs = useCallback(
-    (page: number) => loadPkgs(query, page, filters, i18n.language),
+    (page: number) => getPkgs(query, page, filters, i18n.language),
     [filters, i18n.language, query],
   )
 

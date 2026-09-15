@@ -38,7 +38,7 @@ export function filterParams(filters: PkgFilters) {
  * Read one page of the packages the catalog holds, which the listing of every package and the
  * catalog search both show, each with its own search terms and filters.
  */
-export async function loadPkgs(
+export async function getPkgs(
   query = '',
   page = 1,
   filters: PkgFilters = { distroId: null, type: null, arch: null },

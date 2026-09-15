@@ -10,7 +10,7 @@ import { Link } from 'wouter'
 import { useAuth } from '../auth'
 import PkgFilters, { useStoredPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
-import { deletePkg, loadPkgs } from '../services/pkgs'
+import { deletePkg, getPkgs } from '../services/pkgs'
 
 import styles from './AppsPage.module.css'
 
@@ -23,7 +23,7 @@ export default function PkgsPage() {
   const [refresh, setRefresh] = useState(0)
   // The listing the filters in the toolbar name, which the list reads one page of at a time
   const readPkgs = useCallback(
-    (page: number) => loadPkgs('', page, filters, i18n.language),
+    (page: number) => getPkgs('', page, filters, i18n.language),
     [filters, i18n.language],
   )
 
