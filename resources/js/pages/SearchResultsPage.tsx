@@ -15,15 +15,25 @@ import { getRepos, type RepoFilters } from '../services/repos'
 
 import styles from './AppsPage.module.css'
 
-type SearchTab = 'apps' | 'packages' | 'repos' | 'distros'
+/** Tabs the results are split into, in the order they are shown; the applications are the default. */
+const searchTabs = ['apps', 'pkgs', 'repos', 'distros'] as const
+
+type SearchTab = (typeof searchTabs)[number]
+
+/** Tab a query string names, falling back to the applications, which a search opens on. */
+function searchTab(value: string | null | undefined): SearchTab {
+  return searchTabs.find((tab) => tab === value) ?? 'apps'
+}
 
 export default function SearchResultsPage() {
   const { t, i18n } = useTranslation()
-  const [searchParams] = useSearchParams()
+  // The terms and the tab are both kept in the query string, so that a search is shared and reloaded
+  // with what it looked for and what it was showing
+  const [searchParams, setSearchParams] = useSearchParams()
   const [, navigate] = useLocation()
   const query = searchParams.get('q')?.trim() ?? ''
+  const activeTab = searchTab(searchParams.get('tab'))
 
-  const [activeTab, setActiveTab] = useState<SearchTab>('apps')
   const [appsCount, setAppsCount] = useState<number | null>(null)
   const [pkgsCount, setPkgsCount] = useState<number | null>(null)
   const [reposCount, setReposCount] = useState<number | null>(null)
@@ -51,6 +61,18 @@ export default function SearchResultsPage() {
     [query],
   )
 
+  // The tab the reader opened is the one shown, which leaves the rest of the query string — the
+  // terms the search was made with, and the filters the listings keep there — as it is. The default
+  // tab is left out, the way the orders of the listings are
+  function changeTab(nextTab: SearchTab) {
+    setSearchParams((current) => {
+      const params = new URLSearchParams(current)
+      if (nextTab === 'apps') params.delete('tab')
+      else params.set('tab', nextTab)
+      return params
+    })
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -66,7 +88,7 @@ export default function SearchResultsPage() {
         keepMountedMode='display-none'
         mb='lg'
         value={activeTab}
-        onChange={(value) => setActiveTab(value as SearchTab)}
+        onChange={(value) => changeTab(searchTab(value))}
       >
         <Tabs.List>
           <Tabs.Tab
@@ -78,7 +100,7 @@ export default function SearchResultsPage() {
             {t('common.apps')}
           </Tabs.Tab>
           <Tabs.Tab
-            value='packages'
+            value='pkgs'
             rightSection={
               <CountBadge count={pkgsCount ?? undefined} loading={pkgsCount === null} />
             }
@@ -104,7 +126,7 @@ export default function SearchResultsPage() {
         </Tabs.List>
 
         {/* Every listing is read on its own, and the count of each of them is what the tabs show */}
-        <Tabs.Panel value='apps'>
+        <Tabs.Panel pt='lg' value='apps'>
           <AppList
             emptyMessage={t('common.appsNotFound')}
             errorMessage={t('search.loadError')}
@@ -113,7 +135,7 @@ export default function SearchResultsPage() {
           />
         </Tabs.Panel>
 
-        <Tabs.Panel value='packages'>
+        <Tabs.Panel pt='lg' value='pkgs'>
           <PkgList
             emptyMessage={t('common.packagesNotFound')}
             errorMessage={t('search.loadPackagesError')}
@@ -122,7 +144,7 @@ export default function SearchResultsPage() {
           />
         </Tabs.Panel>
 
-        <Tabs.Panel value='repos'>
+        <Tabs.Panel pt='lg' value='repos'>
           <RepoTable
             emptyMessage={t('repos.searchEmpty')}
             errorMessage={t('search.loadReposError')}
@@ -133,7 +155,7 @@ export default function SearchResultsPage() {
           />
         </Tabs.Panel>
 
-        <Tabs.Panel value='distros'>
+        <Tabs.Panel pt='lg' value='distros'>
           <DistroTable
             emptyMessage={t('distros.searchEmpty')}
             errorMessage={t('search.loadDistrosError')}

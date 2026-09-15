@@ -168,7 +168,9 @@ export default function AppList({
           <Loader color='orange' />
         </div>
       ) : !result || result.data.length === 0 ? (
-        <Text c='dimmed'>{narrowed ? (filteredEmptyMessage ?? emptyMessage) : emptyMessage}</Text>
+        <Text c='dimmed' className={styles.empty}>
+          {narrowed ? (filteredEmptyMessage ?? emptyMessage) : emptyMessage}
+        </Text>
       ) : (
         <>
           <section className={styles.grid}>

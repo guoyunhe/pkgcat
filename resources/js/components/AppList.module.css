@@ -8,6 +8,12 @@
   padding: 48px 0;
 }
 
+/* The message of an empty listing stands where the loader does, which is centred as well */
+.empty {
+  padding: 48px 0;
+  text-align: center;
+}
+
 .pagination {
   margin-top: 28px;
 }

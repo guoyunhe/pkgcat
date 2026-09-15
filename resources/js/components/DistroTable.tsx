@@ -154,7 +154,9 @@ export default function DistroTable({
           <Loader color='orange' />
         </div>
       ) : !result || result.data.length === 0 ? (
-        <Text c='dimmed'>{noRows}</Text>
+        <Text c='dimmed' className={styles.empty}>
+          {noRows}
+        </Text>
       ) : (
         <>
           <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
