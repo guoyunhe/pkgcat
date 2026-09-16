@@ -21,7 +21,7 @@ export default class extends BaseSchema {
         .nullable()
         .references('id')
         .inTable('repos')
-        .onDelete('SET NULL')
+        .onDelete('CASCADE')
       table.string('path').nullable()
       table
         .integer('user_id')

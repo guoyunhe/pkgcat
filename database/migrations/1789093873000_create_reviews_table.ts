@@ -23,7 +23,7 @@ export default class extends BaseSchema {
         .inTable('apps')
         .onDelete('CASCADE')
 
-      table.integer('rating').unsigned().notNullable()
+      table.smallint('rating').unsigned().notNullable()
       table.text('comment').nullable()
 
       table.unique(['user_id', 'app_id'])
