@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.string('mime_type').notNullable()
+      table.string('format').notNullable()
       table.string('path').notNullable().unique()
       table.integer('size').unsigned().notNullable()
       table.smallint('width').unsigned().notNullable()

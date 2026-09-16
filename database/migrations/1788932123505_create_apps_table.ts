@@ -7,7 +7,7 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
 
-      table.string('type').notNullable().defaultTo('desktop-application')
+      table.string('type').notNullable().defaultTo('desktop-application').index()
       table.string('version').nullable()
       table.string('license').nullable()
       table.string('homepage').nullable()
@@ -19,7 +19,13 @@ export default class extends BaseSchema {
       table.text('desktop_content').nullable()
       table.string('desktop_url').nullable()
 
-      table.integer('icon_id').nullable()
+      table
+        .integer('icon_id')
+        .unsigned()
+        .nullable()
+        .references('id')
+        .inTable('images')
+        .onDelete('SET NULL')
 
       table.timestamp('created_at').notNullable().defaultTo(this.now())
       table.timestamp('updated_at').nullable()

@@ -232,16 +232,16 @@ export class FavoriteSchema extends BaseModel {
 }
 
 export class ImageSchema extends BaseModel {
-  static $columns = ['createdAt', 'height', 'id', 'mimeType', 'path', 'size', 'updatedAt', 'userId', 'width'] as const
+  static $columns = ['createdAt', 'format', 'height', 'id', 'path', 'size', 'updatedAt', 'userId', 'width'] as const
   $columns = ImageSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()
+  declare format: string
+  @column()
   declare height: number
   @column({ isPrimary: true })
   declare id: number
-  @column()
-  declare mimeType: string
   @column()
   declare path: string
   @column()

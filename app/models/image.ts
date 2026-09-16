@@ -33,6 +33,8 @@ export type ImageOptions = {
 type RequestFile = { tmpPath?: string; isValid: boolean }
 
 export default class Image extends ImageSchema {
+  declare format: ImageFormat
+
   static async createFromLocalFile(filePath: string, options: ImageOptions = {}) {
     return this.createFromBuffer(await readFile(filePath), options)
   }
@@ -69,7 +71,7 @@ export default class Image extends ImageSchema {
     const existing = await this.findBy('path', attributes.path)
     if (existing) return existing
 
-    return this.create(attributes)
+    return this.create({ ...attributes, userId: options.userId ?? null })
   }
 
   private static async replaceFromBuffer(image: Image, data: Buffer, options: ImageOptions) {
@@ -93,6 +95,7 @@ export default class Image extends ImageSchema {
     return image
   }
 
+  /** Write the bytes of an image and describe them; the owner of a row is set where it is created. */
   private static async process(data: Buffer, options: ImageOptions) {
     const maxSize = options.maxSize ?? DEFAULT_MAX_SIZE
     const sourceMetadata = await sharp(data).metadata()
@@ -149,12 +152,11 @@ export default class Image extends ImageSchema {
     await drive.use().put(path, outputData)
 
     return {
-      userId: options.userId ?? null,
       path,
       size: outputData.length,
       width,
       height,
-      mimeType: format === 'svg' ? 'image/svg+xml' : `image/${format}`,
+      format,
     }
   }
 
