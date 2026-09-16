@@ -101,6 +101,7 @@ export default class RepoImport extends BaseCommand {
 
         await this.save(repository, distroIds, counts, byUrl, byName, takenNames)
       },
+      onDirectory: (path) => this.logger.info(chalk.dim(path)),
       onProgress: (state) => {
         if (state.directories % 500 === 0) this.logger.info(chalk.dim(walkLine(state)))
       },

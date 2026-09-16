@@ -42,6 +42,8 @@ export type ObsWalkOptions = {
   /** Number of directory listings read at the same time. */
   concurrency?: number
   onRepository: (repository: ObsRepository) => Promise<void>
+  /** Called for every directory whose listing was read, with its path within the download tree. */
+  onDirectory?: (path: string) => void
   onProgress?: (progress: ObsWalkProgress) => void
   /** Called for a listing that could not be read, which leaves its repositories out of the walk. */
   onFailure?: (url: string, error: unknown) => void
@@ -144,6 +146,7 @@ export async function eachObsRepository(options: ObsWalkOptions): Promise<ObsWal
         continue
       }
       progress.directories += 1
+      options.onDirectory?.(treePath(path))
 
       if (isRepository(entries)) {
         const repository = readRepository(path, entries)
@@ -200,6 +203,11 @@ async function readDirectory(path: string[]) {
 
 function directoryUrl(path: string[]) {
   return `${downloadRoot}${path.join('/')}${path.length > 0 ? '/' : ''}`
+}
+
+/** Path of a directory within the download tree, which is what a walk is watched by. */
+function treePath(path: string[]) {
+  return `/${path.join('/')}`
 }
 
 /**
