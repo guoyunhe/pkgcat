@@ -25,7 +25,7 @@ function releaseLabel({ name, version }: ObsRelease) {
 }
 
 function importLabel(repository: ObsRepository) {
-  return `${repository.project} (${repository.repository})`
+  return `[OBS] ${repository.project} (${repository.repository})`
 }
 
 type ImportCounts = { created: number; updated: number; unchanged: number; skipped: number }
