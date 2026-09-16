@@ -55,6 +55,13 @@ const downloadRoot = 'https://download.opensuse.org/repositories/'
  */
 const ignoredNamespaces = ['openSUSE:', 'Debian:', 'Arch:']
 
+/**
+ * Directory the build service nests the projects of a package branch under
+ * (`home:someone:branches:*`). A branch copies a package of another project, so it is not a project
+ * the catalog imports from.
+ */
+const branchDirectory = 'branches:'
+
 const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
 /**
@@ -160,8 +167,9 @@ export async function eachObsRepository(options: ObsWalkOptions): Promise<ObsWal
 /** Configuration file of a repository as the build service publishes it next to the packages. */
 export async function obsRepoConfig(configUrl: string): Promise<string | null> {
   try {
-    const content = (await readText(configUrl)).trim()
-    return content || null
+    const content = await readText(configUrl)
+    const trimmed = content.trim()
+    return trimmed || null
   } catch {
     return null
   }
@@ -235,6 +243,7 @@ function isRepository(entries: DirectoryEntry[]) {
 function subProjects(path: string[], entries: DirectoryEntry[]) {
   return entries
     .filter((entry) => entry.directory && !packageDirectoryNames.includes(entry.name))
+    .filter((entry) => entry.name !== branchDirectory)
     .filter((entry) => path.length > 0 || !ignoredNamespaces.includes(entry.name))
     .map((entry) => [...path, entry.name])
 }

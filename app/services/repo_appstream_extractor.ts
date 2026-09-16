@@ -414,9 +414,9 @@ export default class RepoAppstreamExtractor {
       components.set(appstreamId, byPkg)
     }
 
-    return [...components].map(([appstreamId, files]) => ({
+    return [...components].map(([appstreamId, paths]) => ({
       appstreamId,
-      files: [...files].map(([pkgName, path]) => ({ pkgName, path })),
+      files: [...paths].map(([pkgName, path]) => ({ pkgName, path })),
     }))
   }
 
