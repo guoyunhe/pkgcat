@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "發行版內建",
-      "community": "社群倉庫"
+      "community": "社群倉庫",
+      "user": "使用者倉庫",
+      "vendor": "廠商倉庫"
     },
     "detail": {
       "invalidId": "無效的倉庫 ID",

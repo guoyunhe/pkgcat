@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "发行版自带",
-      "community": "社区仓库"
+      "community": "社区仓库",
+      "user": "用户仓库",
+      "vendor": "厂商仓库"
     },
     "detail": {
       "invalidId": "无效的仓库 ID",

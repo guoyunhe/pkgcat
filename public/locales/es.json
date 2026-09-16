@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "Proporcionado por la distribución",
-      "community": "Repositorio de la comunidad"
+      "community": "Repositorio de la comunidad",
+      "user": "Repositorio de usuario",
+      "vendor": "Repositorio de proveedor"
     },
     "detail": {
       "invalidId": "ID de repositorio no válido",

@@ -9,9 +9,10 @@ import { firstValue, knownValue, pageNumber, pageSize, positiveInteger } from '#
 const repoTypes = ['deb', 'rpm', 'flatpak', 'snap'] as const
 
 /**
- * Supported repository origins.
+ * Supported repository origins: the distributions themselves, their communities, the projects of a
+ * single user, and software vendors.
  */
-const repoSources = ['distro', 'community'] as const
+export const repoSources = ['distro', 'community', 'user', 'vendor'] as const
 
 /**
  * HTML forms send empty strings for unset values and JSON clients may omit the key entirely. Both

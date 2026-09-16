@@ -22,6 +22,12 @@ export const repoSorts = ['name', 'packages', 'apps'] as const
 
 export type RepoSort = (typeof repoSorts)[number]
 
+/**
+ * Origins a repository is listed by, in the order the API lists them: the distributions themselves,
+ * their communities, the projects of a single user, and software vendors.
+ */
+export const repoSources = ['distro', 'community', 'user', 'vendor'] as const
+
 /** Sort order named by a listing query, falling back to the name order. */
 export function repoSort(value: string | null | undefined): RepoSort {
   return repoSorts.find((sort) => sort === value) ?? 'name'

@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "ディストリビューション提供",
-      "community": "コミュニティリポジトリ"
+      "community": "コミュニティリポジトリ",
+      "user": "ユーザーリポジトリ",
+      "vendor": "ベンダーリポジトリ"
     },
     "detail": {
       "invalidId": "リポジトリ ID が正しくありません",

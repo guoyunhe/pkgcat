@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "배포판 제공",
-      "community": "커뮤니티 저장소"
+      "community": "커뮤니티 저장소",
+      "user": "사용자 저장소",
+      "vendor": "벤더 저장소"
     },
     "detail": {
       "invalidId": "저장소 ID가 올바르지 않습니다",

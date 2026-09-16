@@ -241,7 +241,9 @@
     },
     "sources": {
       "distro": "Fourni par la distribution",
-      "community": "Dépôt communautaire"
+      "community": "Dépôt communautaire",
+      "user": "Dépôt utilisateur",
+      "vendor": "Dépôt fournisseur"
     },
     "detail": {
       "invalidId": "Identifiant de dépôt invalide",

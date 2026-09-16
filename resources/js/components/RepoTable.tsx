@@ -6,7 +6,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { emptyRepoFilters, type RepoFilters } from '../services/repos'
+import { emptyRepoFilters, repoSources, type RepoFilters } from '../services/repos'
 import type { Paginated } from '../types/pagination'
 import DistroSelect from './DistroSelect'
 import ListFilter, { filterWidth } from './ListFilter'
@@ -152,10 +152,7 @@ export default function RepoTable({
 
   // Where a repository comes from, which the table narrows down by as well
   const sourceOptions = useMemo(
-    () => [
-      { value: 'distro', label: t('repos.sources.distro') },
-      { value: 'community', label: t('repos.sources.community') },
-    ],
+    () => repoSources.map((source) => ({ value: source, label: t(`repos.sources.${source}`) })),
     [t],
   )
 

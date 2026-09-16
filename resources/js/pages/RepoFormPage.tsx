@@ -22,7 +22,7 @@ import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
 import { distroLabel, getDistroCatalog } from '../services/distros'
-import { createRepo, getRepo, updateRepo, type RepoPayload } from '../services/repos'
+import { createRepo, getRepo, repoSources, updateRepo, type RepoPayload } from '../services/repos'
 
 import styles from './AppFormPage.module.css'
 
@@ -159,10 +159,10 @@ export default function RepoFormPage() {
             label={t('common.source')}
             required
             allowDeselect={false}
-            data={[
-              { value: 'distro', label: t('repos.sources.distro') },
-              { value: 'community', label: t('repos.sources.community') },
-            ]}
+            data={repoSources.map((source) => ({
+              value: source,
+              label: t(`repos.sources.${source}`),
+            }))}
             {...form.getInputProps('source')}
           />
 
