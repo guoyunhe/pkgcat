@@ -1,4 +1,5 @@
 import { basename } from 'node:path'
+import type { Readable } from 'node:stream'
 
 import {
   DEFAULT_LOCALE,
@@ -17,8 +18,9 @@ import { parse as parseYaml } from 'yaml'
 import type Repo from '#models/repo'
 import PackageFileExtractor, { normalizePackagePath } from '#services/package_file_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
-import type { ExtractedPackage, ResolvedDebSource } from '#services/repo_package_extractor'
+import type { ResolvedDebSource, RepoPackageType } from '#services/repo_package_extractor'
 import { compressionExtension, decompress, decompressStream } from '#utils/compression'
+import { collectGarbage } from '#utils/memory'
 import { readTarEntries } from '#utils/tar'
 import { eachXmlElement } from '#utils/xml'
 
@@ -28,6 +30,29 @@ export type AppstreamIcon = {
   width: number | null
   height: number | null
 }
+
+/** Parts of the file list a repository publishes, which is scanned as bytes instead of as XML. */
+const filelistPackageTag = Buffer.from('<package')
+const filelistPackageClose = Buffer.from('</package>')
+const filelistFileTag = Buffer.from('<file')
+const filelistFileClose = Buffer.from('</file>')
+const filelistNameAttribute = /\bname="([^"]*)"/
+const tagEndByte = 0x3e
+/**
+ * Length of the text that is kept when a tag is split between two chunks: a tag of the document may
+ * begin with any of them, and the longest is `</package>`.
+ */
+const filelistTagOverlap =
+  Math.max(
+    filelistPackageTag.length,
+    filelistPackageClose.length,
+    filelistFileTag.length,
+    filelistFileClose.length,
+  ) - 1
+/** Longest path a file list may name; anything longer is not a metadata file. */
+const filelistPathLimit = 4096
+/** Bytes of a file list that are scanned before the garbage collector is asked to run. */
+const filelistCollectionInterval = 4 * 1024 * 1024
 
 /**
  * An AppStream component a repository publishes, together with the XML it was read from and the
@@ -48,6 +73,13 @@ export type ExtractedApp = {
 export type PackagedApp = {
   app: ExtractedApp
   icon: Buffer | null
+}
+
+/** Package a metadata file is read from, which the synchronization reads from the catalog. */
+export type PackagedSource = {
+  type: RepoPackageType
+  name: string
+  downloadUrl: string | null
 }
 
 /** An AppStream component a package announces through its file list, without any metadata. */
@@ -89,6 +121,33 @@ const appstreamFileDirectories = ['/usr/share/metainfo/', '/usr/share/appdata/']
 
 /** Suffixes of an AppStream metadata file; the rest of the file name is the AppStream ID. */
 const appstreamFileSuffixes = ['.metainfo.xml', '.appdata.xml']
+
+/**
+ * Whether the bytes read so far can still become the path of a metadata file. A file list names
+ * every file of the repository, so a path is only turned into a string when it is one of the
+ * directories AppStream metadata lives in.
+ */
+function startsWithAppstreamDirectory(path: Buffer) {
+  let start = 0
+  while (start < path.length && path[start] !== 0x2f) {
+    if (
+      path[start] !== 0x20 &&
+      path[start] !== 0x09 &&
+      path[start] !== 0x0a &&
+      path[start] !== 0x0d
+    ) {
+      return false
+    }
+    start += 1
+  }
+
+  return appstreamFileDirectories.some((directory) => {
+    for (let index = 0; start + index < path.length && index < directory.length; index++) {
+      if (path[start + index] !== directory.charCodeAt(index)) return false
+    }
+    return true
+  })
+}
 
 /**
  * Component ID of a component. Legacy `appdata.xml` files identified a component by the name of its
@@ -344,16 +403,148 @@ export default class RepoAppstreamExtractor {
     const filelists = hrefs.get('filelists')
     if (!filelists) return []
 
-    // The file list unpacks to hundreds of megabytes — 625 MB for AlmaLinux 8 `BaseOS`, 875 MB for
-    // Fedora 42 — past what a string can hold, so it is read package by package instead
     const components = new Map<string, Map<string, string>>()
-    const elements = this.eachMetadataElement(joinUrl(repo.baseUrl, filelists), 'package')
-    for await (const element of elements) this.collectFilelistPackage(element, components)
+    const files = this.eachAppstreamFile(joinUrl(repo.baseUrl, filelists))
+    for await (const file of files) {
+      const appstreamId = appstreamFileId(file.path)
+      if (!appstreamId) continue
+
+      const byPkg = components.get(appstreamId) ?? new Map<string, string>()
+      byPkg.set(file.pkgName, file.path)
+      components.set(appstreamId, byPkg)
+    }
 
     return [...components].map(([appstreamId, files]) => ({
       appstreamId,
       files: [...files].map(([pkgName, path]) => ({ pkgName, path })),
     }))
+  }
+
+  /**
+   * Read the metadata file paths a file list names, together with the package that ships each of
+   * them. The file list names every file of every package of the repository in one document, which
+   * unpacks to hundreds of megabytes — 625 MB for AlmaLinux 8 `BaseOS`, 875 MB for Fedora 42 — so
+   * the document is scanned as bytes while it is decompressed: neither the document nor the element
+   * of one package ever becomes a string, which is what would take most of the memory of a
+   * synchronization.
+   */
+  private async *eachAppstreamFile(url: string): AsyncGenerator<{ pkgName: string; path: string }> {
+    const data = await this.download(url, { optional: true })
+    if (!data) return
+
+    const chunks = decompressStream(data, compressionExtension(url))
+    // The text of the document is joined in buffers that are reused — one for the text that is
+    // being scanned and one for the path that is being read — so that scanning a document of
+    // hundreds of megabytes allocates neither for every piece of it nor for every file it names
+    let carry = Buffer.alloc(0)
+    let window = Buffer.alloc(0)
+    let path = Buffer.alloc(0)
+    let pathLength = 0
+    let pkgName: string | null = null
+    let readingPath = false
+    let position = 0
+    let collected = filelistCollectionInterval
+
+    for await (const chunk of chunks) {
+      const piece = chunk as Buffer
+      const size = carry.length + piece.length
+      if (window.length < size) {
+        window = Buffer.allocUnsafe(Math.max(size, window.length * 2, 64 * 1024))
+      }
+      carry.copy(window, 0)
+      piece.copy(window, carry.length)
+      const buffer = window.subarray(0, size)
+      let cursor = 0
+      // End of the package that is being read: `null` while it has not been searched for in this
+      // text, and `-1` when it was searched for and is not there
+      let packageEnd: number | null = null
+
+      while (true) {
+        if (pkgName === null) {
+          const start = buffer.indexOf(filelistPackageTag, cursor)
+          if (start < 0) {
+            cursor = Math.max(cursor, buffer.length - filelistTagOverlap)
+            break
+          }
+
+          const end = buffer.indexOf(tagEndByte, start)
+          if (end < 0) {
+            cursor = start
+            break
+          }
+
+          const attributes = buffer.subarray(start, end).toString('latin1')
+          pkgName = filelistNameAttribute.exec(attributes)?.[1] ?? ''
+          packageEnd = null
+          cursor = end + 1
+          continue
+        }
+
+        if (!readingPath) {
+          const fileAt = buffer.indexOf(filelistFileTag, cursor)
+          if (packageEnd === null) packageEnd = buffer.indexOf(filelistPackageClose, cursor)
+          if (packageEnd >= 0 && (fileAt < 0 || packageEnd < fileAt)) {
+            cursor = packageEnd + filelistPackageClose.length
+            pkgName = null
+            packageEnd = null
+            continue
+          }
+          if (fileAt < 0) {
+            cursor = Math.max(cursor, buffer.length - filelistTagOverlap)
+            break
+          }
+
+          const end = buffer.indexOf(tagEndByte, fileAt)
+          if (end < 0) {
+            cursor = fileAt
+            break
+          }
+
+          readingPath = true
+          pathLength = 0
+          cursor = end + 1
+          continue
+        }
+
+        const end = buffer.indexOf(filelistFileClose, cursor)
+        // The path is only read up to the end of its tag, so that a `</file>` split between two
+        // chunks is still found in the text that arrives next
+        const stop = end < 0 ? Math.max(cursor, buffer.length - filelistTagOverlap) : end
+        const room = filelistPathLimit - pathLength
+        const take = Math.min(stop - cursor, room)
+        if (take > 0) {
+          if (path.length < pathLength + take) {
+            path = Buffer.allocUnsafe(Math.max(pathLength + take, path.length * 2))
+          }
+          buffer.copy(path, pathLength, cursor, cursor + take)
+          pathLength += take
+        }
+        cursor = stop
+        if (end < 0) break
+
+        readingPath = false
+        cursor = end + filelistFileClose.length
+        // The path only becomes a string when it names a metadata file, which the bytes tell
+        const named = path.subarray(0, pathLength)
+        if (pkgName && startsWithAppstreamDirectory(named)) {
+          yield { pkgName, path: named.toString('utf8').trim() }
+        }
+      }
+
+      // Text that has not been resolved yet, which a tag split between two chunks is found in
+      const tail = buffer.subarray(cursor)
+      if (carry.length < tail.length) carry = Buffer.allocUnsafe(tail.length)
+      tail.copy(carry, 0)
+      carry = carry.subarray(0, tail.length)
+
+      // A document of hundreds of megabytes is read in thousands of pieces, whose memory is only
+      // released when the garbage collector runs
+      position += size
+      if (position >= collected) {
+        collectGarbage()
+        collected = position + filelistCollectionInterval
+      }
+    }
   }
 
   /**
@@ -363,17 +554,24 @@ export default class RepoAppstreamExtractor {
    * when the metadata does not name a file in an icon archive, for the icon as well.
    */
   async readPackagedApp(
-    pkg: ExtractedPackage,
+    pkg: PackagedSource,
     path: string,
     appstreamId: string,
   ): Promise<PackagedApp | null> {
-    const archive = await this.download(pkg.downloadUrl)
-    if (!archive) return null
+    if (!pkg.downloadUrl) return null
 
-    const files = await new PackageFileExtractor().readMatchingFiles(pkg.type, archive, [
-      path,
-      ...packagedIconPatterns,
-    ])
+    // The package is read while it is still being downloaded, because a package of a repository is
+    // up to hundreds of megabytes against the few kilobytes of metadata it is read for
+    const archive = await this.downloadStream(pkg.downloadUrl)
+    let files: Map<string, Buffer>
+    try {
+      files = await new PackageFileExtractor().readMatchingFilesFromStream(pkg.type, archive, [
+        path,
+        ...packagedIconPatterns,
+      ])
+    } finally {
+      archive.destroy()
+    }
 
     const content = files.get(normalizePackagePath(path))
     if (!content) return null
@@ -385,27 +583,6 @@ export default class RepoAppstreamExtractor {
     return {
       app: toExtractedApp(component, xml),
       icon: await packagedIcon(files, declaredIcons(component), appstreamId, pkg.name),
-    }
-  }
-
-  /**
-   * Collect the AppStream metadata files one `<package>` element of a file list names: a flat
-   * document of every package with the files it owns, which is scanned with regular expressions
-   * instead of being parsed into objects, because it is much larger than the other metadata
-   * documents.
-   */
-  private collectFilelistPackage(element: string, components: Map<string, Map<string, string>>) {
-    const attributes = /^<package\b([^>]*)>/.exec(element)?.[1]
-    const name = attributes ? /\bname="([^"]*)"/.exec(attributes)?.[1] : undefined
-    if (!name) return
-
-    for (const file of element.matchAll(/<file\b[^>]*>([^<]*)<\/file>/g)) {
-      const appstreamId = appstreamFileId(file[1])
-      if (!appstreamId) continue
-
-      const files = components.get(appstreamId) ?? new Map<string, string>()
-      files.set(name, file[1].trim())
-      components.set(appstreamId, files)
     }
   }
 
@@ -576,6 +753,20 @@ export default class RepoAppstreamExtractor {
     } catch (error) {
       const status = isXiorError(error) ? error.response?.status : undefined
       if (options.optional && (status === 404 || status === 410)) return null
+      throw new Error(`Unable to download ${url}${status ? ` (${status})` : ''}`, { cause: error })
+    }
+  }
+
+  /** Read a file of a repository without holding it in memory, which packages are read through. */
+  private async downloadStream(url: string): Promise<Readable> {
+    try {
+      const response = await xior.get<Readable>(url, {
+        responseType: 'stream',
+        headers: requestHeaders,
+      })
+      return response.data
+    } catch (error) {
+      const status = isXiorError(error) ? error.response?.status : undefined
       throw new Error(`Unable to download ${url}${status ? ` (${status})` : ''}`, { cause: error })
     }
   }

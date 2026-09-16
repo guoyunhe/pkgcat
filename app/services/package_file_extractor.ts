@@ -6,7 +6,11 @@ import { pipeline } from 'node:stream/promises'
 
 import { Exception } from '@adonisjs/core/exceptions'
 
-import { decompress as decompressMetadata, decompressStream } from '#utils/compression'
+import {
+  decompress as decompressMetadata,
+  decompressChunks,
+  decompressStream,
+} from '#utils/compression'
 import { splitDebDescription, splitDebVersion } from '#utils/deb'
 import { readTarEntries, type TarEntry } from '#utils/tar'
 
@@ -64,6 +68,11 @@ const appImageMagic = Buffer.from([0x41, 0x49])
 // Everything we read (ar entries, RPM headers, ELF header) lives at the beginning of the file.
 const maxHeadSize = 32 * 1024 * 1024
 
+/** Limit of the RPM header, which keeps a damaged package from being read as a huge one. */
+const maxRpmHeaderEntries = 100_000
+const maxRpmHeaderDataSize = 32 * 1024 * 1024
+const rpmHeaderEntrySize = 16
+
 // RPM header tags we read. Name, version, release, arch and license are plain strings, while the
 // summary and description are localized strings (the first value is the C locale).
 const rpmTags = {
@@ -83,6 +92,12 @@ const rpmI18nStringType = 9
 /** Length of the fixed part of a SVR4 "newc" cpio entry, which is followed by the file name. */
 const cpioHeaderSize = 110
 
+/** Length of the RPM lead, which precedes the signature header. */
+const rpmLeadSize = 96
+
+/** Length of the intro of an RPM header: magic, version, reserved, index count and data size. */
+const rpmHeaderIntroSize = 16
+
 /** Compression of an RPM payload, named the way the package header names it. */
 const rpmPayloadExtensions: Record<string, string> = {
   gzip: '.gz',
@@ -91,6 +106,14 @@ const rpmPayloadExtensions: Record<string, string> = {
   xz: '.xz',
   lzma: '.xz',
   none: '',
+}
+
+/** First bytes of an RPM payload, which tell where the payload begins and how it is compressed. */
+const rpmPayloadMagics: Record<string, number[]> = {
+  '.gz': [0x1f, 0x8b],
+  '.zst': [0x28, 0xb5, 0x2f, 0xfd],
+  '.xz': [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00],
+  '': [0x30, 0x37, 0x30, 0x37],
 }
 
 /** Paths inside a package carry a leading `./` or `/`; they are compared without it. */
@@ -211,6 +234,112 @@ export default class PackageFileExtractor {
       matchers.some((matcher) => matcher.test(path)),
     )
     return new Map(entries.map((entry) => [normalizePackagePath(entry.name), entry.data]))
+  }
+
+  /**
+   * Read every file of a package whose path matches one of the patterns while the package is being
+   * downloaded, keyed by the path inside the package. Packages of a repository are up to hundreds
+   * of megabytes, so the archive is never held in memory as a whole.
+   */
+  async readMatchingFilesFromStream(
+    type: UploadedPackageType,
+    chunks: AsyncIterable<Buffer>,
+    patterns: string[],
+  ): Promise<Map<string, Buffer>> {
+    const matchers = patterns.map(compilePackagePattern)
+    if (matchers.length === 0) return new Map()
+    const match = (path: string) => matchers.some((matcher) => matcher.test(path))
+
+    // Only the rpm payload can be walked while it is read; the other formats are archives that
+    // have to be decompressed before their entries can be found
+    const entries =
+      type === 'rpm'
+        ? await this.readRpmStreamEntries(chunks, match)
+        : await this.readPackageEntries(type, await collectChunks(chunks), match)
+
+    return new Map(entries.map((entry) => [normalizePackagePath(entry.name), entry.data]))
+  }
+
+  /**
+   * Read the files of an RPM that is still being downloaded. The headers are read first, which name
+   * the compression of the payload that follows; the payload is then decompressed and walked as it
+   * arrives, so that neither the package nor its payload is held in memory.
+   */
+  private async readRpmStreamEntries(
+    chunks: AsyncIterable<Buffer>,
+    match: (path: string) => boolean,
+  ): Promise<TarEntry[]> {
+    const reader = new ChunkReader(chunks[Symbol.asyncIterator]())
+
+    // RPM layout: a 96 byte lead, the signature header (padded to 8 bytes) and the main header
+    if (!(await reader.skip(rpmLeadSize))) {
+      throw new Exception('Not a valid RPM package: the signature header is malformed', {
+        status: 422,
+      })
+    }
+
+    const signature = await this.readStreamedRpmHeader(reader)
+    if (!signature) {
+      throw new Exception('Not a valid RPM package: the signature header is malformed', {
+        status: 422,
+      })
+    }
+
+    const signaturePadding = (8 - (signature.end % 8)) % 8
+    if (signaturePadding > 0 && !(await reader.skip(signaturePadding))) {
+      throw new Exception('Not a valid RPM package: the header is malformed', { status: 422 })
+    }
+
+    const header = await this.readStreamedRpmHeader(reader)
+    if (!header) {
+      throw new Exception('Not a valid RPM package: the header is malformed', { status: 422 })
+    }
+
+    const format = this.readRpmString(header, rpmTags.payloadFormat)
+    if (format && format !== 'cpio') {
+      throw new Exception(`Unsupported RPM payload format: ${format}`, { status: 422 })
+    }
+
+    const compressor = this.readRpmString(header, rpmTags.payloadCompressor)
+    // The payload either follows the header directly or is padded to an 8 byte boundary, which the
+    // signature it begins with tells apart
+    const headerPadding = (8 - (header.end % 8)) % 8
+    if (headerPadding > 0) {
+      const padding = await reader.collect(headerPadding)
+      if (!padding) {
+        throw new Exception('Not a valid RPM package: the payload is missing', { status: 422 })
+      }
+      if (payloadStartsAt(padding, compressor)) reader.unread(padding)
+    }
+
+    const extension = rpmPayloadExtensions[(compressor ?? 'gzip').toLowerCase()]
+    if (extension === undefined) {
+      throw new Exception(`Unsupported RPM payload compression: ${compressor}`)
+    }
+
+    try {
+      return await readCpioEntries(decompressChunks(reader.remaining(), extension), match)
+    } catch (error) {
+      throw new Exception(
+        `Unable to decompress the RPM payload${error instanceof Error ? `: ${error.message}` : ''}`,
+        { status: 422 },
+      )
+    }
+  }
+
+  /** One RPM header of the stream, which intro names the size of the index and of the data store. */
+  private async readStreamedRpmHeader(reader: ChunkReader): Promise<RpmHeader | null> {
+    const intro = await reader.collect(rpmHeaderIntroSize)
+    if (!intro) return null
+
+    const indexCount = intro.readUInt32BE(8)
+    const dataSize = intro.readUInt32BE(12)
+    if (indexCount > maxRpmHeaderEntries || dataSize > maxRpmHeaderDataSize) return null
+
+    const rest = await reader.collect(indexCount * rpmHeaderEntrySize + dataSize)
+    if (!rest) return null
+
+    return this.readRpmHeader(Buffer.concat([intro, rest]), 0)
   }
 
   private async readPackageEntries(
@@ -537,7 +666,7 @@ export default class PackageFileExtractor {
 
     const indexCount = data.readUInt32BE(offset + 8)
     const dataSize = data.readUInt32BE(offset + 12)
-    if (indexCount > 100_000 || offset + 16 + indexCount * 16 > data.length) return null
+    if (indexCount > maxRpmHeaderEntries || offset + 16 + indexCount * 16 > data.length) return null
 
     const entries: RpmHeaderEntry[] = []
     let position = offset + 16
@@ -699,6 +828,24 @@ class ChunkReader {
     return true
   }
 
+  /** Put bytes back at the front of the stream, which the caller did not need after all. */
+  unread(piece: Buffer) {
+    if (piece.length === 0) return
+
+    const rest = this.chunk.subarray(this.offset)
+    this.chunk = rest.length > 0 ? Buffer.concat([piece, rest]) : piece
+    this.offset = 0
+  }
+
+  /** The bytes that have not been read yet, as a stream. */
+  async *remaining(): AsyncGenerator<Buffer> {
+    while (true) {
+      const piece = await this.read(Number.MAX_SAFE_INTEGER)
+      if (!piece) return
+      yield piece
+    }
+  }
+
   /** At most `size` bytes of the stream, or `null` when it has ended. */
   private async read(size: number): Promise<Buffer | null> {
     while (this.offset >= this.chunk.length) {
@@ -712,4 +859,26 @@ class ChunkReader {
     this.offset += piece.length
     return piece
   }
+}
+
+/**
+ * Whether the bytes given begin the payload, instead of being the padding of the RPM header. A
+ * prefix shorter than the signature cannot be told apart, and counts as the payload.
+ */
+function payloadStartsAt(prefix: Buffer, compressor: string | null) {
+  const extension = rpmPayloadExtensions[(compressor ?? 'gzip').toLowerCase()] ?? ''
+  const magic = rpmPayloadMagics[extension] ?? []
+
+  for (let index = 0; index < Math.min(prefix.length, magic.length); index++) {
+    if (prefix[index] !== magic[index]) return false
+  }
+
+  return true
+}
+
+/** The whole stream as one buffer, for the archives that have to be read as a whole. */
+async function collectChunks(chunks: AsyncIterable<Buffer>): Promise<Buffer> {
+  const parts: Buffer[] = []
+  for await (const piece of chunks) parts.push(piece)
+  return Buffer.concat(parts)
 }

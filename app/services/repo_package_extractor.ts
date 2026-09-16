@@ -141,13 +141,25 @@ export default class RepoPackageExtractor {
     isArray: (tagName) => tagName === 'data' || tagName === 'package',
   })
 
-  async extract(repo: Repo, options: ExtractOptions = {}): Promise<ExtractedPackage[]> {
-    if (repo.type === 'rpm') return this.extractRpm(repo)
-    if (repo.type === 'deb') return this.extractDeb(repo, options.arch ?? null)
+  /**
+   * Read the packages of a repository one at a time. A repository holds tens of thousands of
+   * packages with their descriptions, which the caller writes to the catalog as they arrive instead
+   * of holding the whole repository in memory.
+   */
+  async *extract(repo: Repo, options: ExtractOptions = {}): AsyncGenerator<ExtractedPackage> {
+    if (repo.type === 'rpm') {
+      yield* this.extractRpm(repo)
+      return
+    }
+    if (repo.type === 'deb') {
+      yield* this.extractDeb(repo, options.arch ?? null)
+      return
+    }
+
     throw new Error(`Unsupported repository type "${repo.type}": expected "rpm" or "deb"`)
   }
 
-  private async extractRpm(repo: Repo): Promise<ExtractedPackage[]> {
+  private async *extractRpm(repo: Repo): AsyncGenerator<ExtractedPackage> {
     const repomdUrl = joinUrl(repo.baseUrl, 'repodata/repomd.xml')
     const repomd = await this.downloadText(repomdUrl)
     const parsedRepomd = this.xmlParser.parse(repomd) as unknown as {
@@ -160,17 +172,14 @@ export default class RepoPackageExtractor {
 
     // The primary metadata of a large repository unpacks to hundreds of megabytes — 429 MB for
     // AlmaLinux 8 `BaseOS` — so the packages are read one at a time instead of as one document
-    const result: ExtractedPackage[] = []
     for await (const element of this.eachMetadataElement(joinUrl(repo.baseUrl, href), 'package')) {
       const parsed = this.xmlParser.parse(element) as unknown as { package?: XmlRpmPackage[] }
       const entry = parsed.package?.[0]
       if (!entry) continue
 
       const pkg = this.readRpmPackage(repo, entry)
-      if (pkg) result.push(pkg)
+      if (pkg) yield pkg
     }
-
-    return result
   }
 
   /** One `<package>` element of the primary metadata as a catalog package. */
@@ -197,10 +206,12 @@ export default class RepoPackageExtractor {
     }
   }
 
-  private async extractDeb(repo: Repo, archOverride: string | null): Promise<ExtractedPackage[]> {
+  private async *extractDeb(
+    repo: Repo,
+    archOverride: string | null,
+  ): AsyncGenerator<ExtractedPackage> {
     const sources = this.debSources(repo, archOverride)
     const seen = new Set<string>()
-    const result: ExtractedPackage[] = []
 
     for (const source of sources) {
       const indexUrls =
@@ -228,7 +239,7 @@ export default class RepoPackageExtractor {
           const key = `${stanza.Package}|${stanza.Version}|${arch ?? ''}`
           if (seen.has(key)) continue
           seen.add(key)
-          result.push({
+          yield {
             type: 'deb',
             name: stanza.Package,
             version: version.version,
@@ -247,12 +258,10 @@ export default class RepoPackageExtractor {
                   ? 'md5'
                   : null,
             size: this.readNumber(stanza.Size),
-          })
+          }
         }
       }
     }
-
-    return result
   }
 
   /**

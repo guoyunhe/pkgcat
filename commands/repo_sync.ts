@@ -25,11 +25,21 @@ import RepoAppstreamExtractor, {
   type InferredComponent,
 } from '#services/repo_appstream_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
-import type { ExtractedPackage } from '#services/repo_package_extractor'
+import type { ExtractedPackage, RepoPackageType } from '#services/repo_package_extractor'
 import { belongsToArch } from '#utils/arch'
+import { collectGarbage } from '#utils/memory'
 import { compareVersions } from '#utils/version'
 
 type PackageIdentity = Pick<ExtractedPackage, 'name' | 'version' | 'release' | 'arch'>
+
+/**
+ * Package of a repository as the application phase reads it. The packages themselves are not kept
+ * in memory while a repository is synchronized, so they are read back from the catalog.
+ */
+type StoredPackage = Pick<
+  Pkg,
+  'id' | 'name' | 'type' | 'arch' | 'summary' | 'description' | 'license' | 'downloadUrl'
+>
 
 export default class RepoSync extends BaseCommand {
   static commandName = 'repo:sync'
@@ -89,14 +99,15 @@ export default class RepoSync extends BaseCommand {
         // architecture; the flag limits the run to a single one
         for (const arch of this.syncArches(repo)) {
           const label = arch ? `${repo.name} (${arch})` : repo.name
-          const packages = await extractor.extract(repo, { arch })
-          const { created, updated, deleted } = await this.savePackages(repo, packages, arch)
+          // The packages are written to the catalog as they are read, so that a repository of tens
+          // of thousands of packages never has to be held in memory as a whole
+          const packages = await this.savePackages(repo, extractor.extract(repo, { arch }), arch)
           const entries = await appstream.extract(repo, { arch })
-          const apps = await this.saveApps(repo, appstream, entries, packages)
+          const apps = await this.saveApps(repo, appstream, entries, packages.names)
           this.logger.info(
-            `${label}: ${chalk.green(String(packages.length))} packages` +
-              ` (${chalk.green(String(created))} created, ${chalk.yellow(String(updated))} updated,` +
-              ` ${chalk.red(String(deleted))} removed)`,
+            `${label}: ${chalk.green(String(packages.total))} packages` +
+              ` (${chalk.green(String(packages.created))} created, ${chalk.yellow(String(packages.updated))} updated,` +
+              ` ${chalk.red(String(packages.deleted))} removed)`,
           )
           if (entries.length > 0) {
             this.logger.info(
@@ -127,12 +138,12 @@ export default class RepoSync extends BaseCommand {
               `${label}: ${chalk.green(String(apps.mapped))} package(s) linked by package name`,
             )
           }
-          for (const pkg of packages.slice(0, this.limit)) {
+          for (const pkg of packages.sample) {
             const details = [pkg.version, pkg.release, pkg.arch].filter(Boolean).join(' ')
             this.logger.info(`  ${pkg.name}${details ? ` ${chalk.dim(details)}` : ''}`)
           }
-          if (packages.length > this.limit) {
-            this.logger.info(chalk.dim(`  ... and ${packages.length - this.limit} more`))
+          if (packages.total > packages.sample.length) {
+            this.logger.info(chalk.dim(`  ... and ${packages.total - packages.sample.length} more`))
           }
         }
 
@@ -185,8 +196,12 @@ export default class RepoSync extends BaseCommand {
    * that are no longer in the repository are removed, unless the repository returned nothing at
    * all, which is more likely a metadata problem than an emptied repository. Repository packages
    * are not tied to a catalog application.
+   *
+   * The packages are written as they are read and only their names are kept, so that a repository
+   * of tens of thousands of packages is never held in memory as a whole; a few of them are kept to
+   * report what was synchronized.
    */
-  private async savePackages(repo: Repo, packages: ExtractedPackage[], arch?: string) {
+  private async savePackages(repo: Repo, packages: AsyncIterable<ExtractedPackage>, arch?: string) {
     // Only the columns that identify a package are read, because a package carries the long
     // description of its metadata and a repository holds tens of thousands of them, which is what
     // the synchronization would otherwise hold in memory at once. Saving a package that was read
@@ -196,11 +211,30 @@ export default class RepoSync extends BaseCommand {
       .select('id', 'name', 'version', 'release', 'arch')
     const known = new Map(existing.map((pkg) => [this.packageKey(pkg), pkg]))
     const stale = new Map([...known].filter(([, pkg]) => belongsToArch(pkg.arch, arch)))
+    const names = new Set<string>()
+    const sample: PackageIdentity[] = []
+    let total = 0
     let created = 0
     let updated = 0
     let deleted = 0
 
-    for (const item of packages) {
+    for await (const item of packages) {
+      total += 1
+      names.add(item.name)
+      if (sample.length < this.limit) {
+        sample.push({
+          name: item.name,
+          version: item.version,
+          release: item.release,
+          arch: item.arch,
+        })
+      }
+
+      // Reading the metadata of a repository leaves the memory of everything that was read behind
+      // until the garbage collector runs, which the heap of a repository of tens of thousands of
+      // packages would otherwise grow for
+      if (total % packageCollectionInterval === 0) collectGarbage()
+
       const key = this.packageKey(item)
       stale.delete(key)
 
@@ -231,7 +265,7 @@ export default class RepoSync extends BaseCommand {
       await pkg.save()
     }
 
-    if (packages.length === 0) {
+    if (total === 0) {
       if (stale.size > 0) {
         this.logger.warning(
           `${repo.name}: no packages were extracted, keeping the ${stale.size} stored package(s)`,
@@ -244,7 +278,7 @@ export default class RepoSync extends BaseCommand {
       }
     }
 
-    return { created, updated, deleted }
+    return { created, updated, deleted, total, names, sample }
   }
 
   private packageKey(pkg: PackageIdentity) {
@@ -261,7 +295,7 @@ export default class RepoSync extends BaseCommand {
     repo: Repo,
     appstream: RepoAppstreamExtractor,
     entries: ExtractedApp[],
-    packages: ExtractedPackage[],
+    pkgNames: Set<string>,
   ) {
     const result = {
       created: 0,
@@ -276,7 +310,6 @@ export default class RepoSync extends BaseCommand {
       inferredIcons: 0,
       mapped: 0,
     }
-    const pkgNames = new Set(packages.map((pkg) => pkg.name))
     // Package names the repository's own metadata already assigns to an application. The package
     // name mappings only fill in what is left over, so that curated metadata keeps winning.
     const claimedPkgNames = new Set<string>()
@@ -291,13 +324,7 @@ export default class RepoSync extends BaseCommand {
       // Repositories that publish no AppStream metadata at all still name their applications in
       // the files their packages ship, which the file list of the repository reveals.
       if (entries.length === 0) {
-        const inferred = await this.saveInferredApps(
-          repo,
-          appstream,
-          packages,
-          pkgNames,
-          claimedPkgNames,
-        )
+        const inferred = await this.saveInferredApps(repo, appstream, pkgNames, claimedPkgNames)
         result.inferred = inferred.created
         result.inferredLinked = inferred.linked
         result.inferredExtracted = inferred.extracted
@@ -444,7 +471,6 @@ export default class RepoSync extends BaseCommand {
   private async saveInferredApps(
     repo: Repo,
     appstream: RepoAppstreamExtractor,
-    packages: ExtractedPackage[],
     pkgNames: Set<string>,
     claimedPkgNames: Set<string>,
   ) {
@@ -458,14 +484,29 @@ export default class RepoSync extends BaseCommand {
     const registry = await AppRegistry.load([
       ...new Set(candidates.flatMap((component) => appstreamIdVariants(component.appstreamId))),
     ])
-    const byName = new Map<string, ExtractedPackage[]>()
-    for (const pkg of packages) {
+    // The packages that ship a metadata file are read back from the catalog, because the packages
+    // of the repository were written to it instead of being kept in memory
+    const stored = await Pkg.query()
+      .where('repoId', repo.id)
+      .whereIn('name', [
+        ...new Set(
+          candidates.flatMap((component) =>
+            component.files
+              .filter((file) => pkgNames.has(file.pkgName))
+              .map((file) => file.pkgName),
+          ),
+        ),
+      ])
+      .select('id', 'name', 'type', 'arch', 'summary', 'description', 'license', 'downloadUrl')
+    const byName = new Map<string, StoredPackage[]>()
+    for (const pkg of stored) {
       const siblings = byName.get(pkg.name) ?? []
       siblings.push(pkg)
       byName.set(pkg.name, siblings)
     }
 
     const pending: Array<{ app: App; component: InferredComponent }> = []
+    let read = 0
 
     for (const component of candidates) {
       let app = registry.find(component.appstreamId)
@@ -505,7 +546,15 @@ export default class RepoSync extends BaseCommand {
       if (!file) continue
 
       try {
-        const packaged = await appstream.readPackagedApp(file.pkg, file.path, component.appstreamId)
+        const packaged = await appstream.readPackagedApp(
+          {
+            type: storedPackageType(file.pkg.type),
+            name: file.pkg.name,
+            downloadUrl: file.pkg.downloadUrl,
+          },
+          file.path,
+          component.appstreamId,
+        )
         if (!packaged) continue
 
         const extracted = packaged.app
@@ -546,6 +595,12 @@ export default class RepoSync extends BaseCommand {
           }`,
         )
       }
+
+      // A package is downloaded and decompressed in pieces that are only released once the garbage
+      // collector runs, and the memory of a package of a hundred megabytes has to be gone before
+      // the next one is read
+      read += 1
+      if (read % appCollectionInterval === 0) collectGarbage()
     }
 
     return result
@@ -558,8 +613,8 @@ export default class RepoSync extends BaseCommand {
    */
   private inferredFile(
     component: InferredComponent,
-    packages: Map<string, ExtractedPackage[]>,
-  ): { pkg: ExtractedPackage; path: string } | null {
+    packages: Map<string, StoredPackage[]>,
+  ): { pkg: StoredPackage; path: string } | null {
     const candidates = component.files.flatMap((file) =>
       (packages.get(file.pkgName) ?? []).map((pkg) => ({ pkg, path: file.path })),
     )
@@ -611,7 +666,7 @@ function appstreamIconIsLarger(app: App, icon: AppstreamIcon) {
  * file. The package summary is the closest thing to a display name and its first description
  * paragraph becomes the summary, so that the application is usable until better metadata arrives.
  */
-function placeholderAppMetadata(pkg: ExtractedPackage | undefined) {
+function placeholderAppMetadata(pkg: StoredPackage | undefined) {
   const summary = pkg?.summary?.trim() || null
   const name = summary ?? pkg?.name ?? 'Unknown application'
   return {
@@ -619,6 +674,17 @@ function placeholderAppMetadata(pkg: ExtractedPackage | undefined) {
     summary: { en: firstParagraph(pkg?.description) ?? summary ?? name },
     license: pkg?.license?.trim().slice(0, 255) || null,
   }
+}
+
+/** Number of packages that are written before the garbage collector is asked to run. */
+const packageCollectionInterval = 2000
+
+/** Number of packages that are read before the garbage collector is asked to run. */
+const appCollectionInterval = 5
+
+/** Format a stored package is read by, which the extractors only read rpm and deb packages by. */
+function storedPackageType(type: string): RepoPackageType {
+  return type === 'deb' ? 'deb' : 'rpm'
 }
 
 /** First paragraph of a long description, collapsed into a single line. */

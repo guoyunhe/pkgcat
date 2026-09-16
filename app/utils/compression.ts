@@ -31,7 +31,15 @@ export async function decompress(data: Buffer, extension: string): Promise<Buffe
  * that carries a SHA-256 check, which is what the Enterprise Linux rebuilds compress with.
  */
 export function decompressStream(data: Buffer, extension: string): Readable {
-  const compressed = Readable.from([data])
+  return decompressChunks(Readable.from([data]), extension)
+}
+
+/**
+ * Decompress data that is still being read, which is how a payload much larger than memory is read:
+ * the chunks are decompressed as they arrive instead of the whole payload being held.
+ */
+export function decompressChunks(chunks: AsyncIterable<Buffer>, extension: string): Readable {
+  const compressed = Readable.from(chunks)
   if (extension === '.gz') return compressed.pipe(createGunzip())
   if (extension === '.zst') return compressed.pipe(createZstdDecompress())
   if (extension !== '.xz') return compressed
