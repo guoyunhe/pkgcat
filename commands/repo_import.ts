@@ -80,8 +80,14 @@ export default class RepoImport extends BaseCommand {
     const progress = await eachObsRepository({
       project: this.project,
       onRepository: async (repository) => {
-        const served = releases.get(releaseKey(repository.release)) ?? []
-        if (served.length === 0) unknownReleases.add(releaseLabel(repository.release))
+        const served = repository.releases.flatMap(
+          (release) => releases.get(releaseKey(release)) ?? [],
+        )
+        if (served.length === 0) {
+          // Releases the catalog does not carry are reported once per repository, since only a
+          // release that is known at all can tell a missing one from an architecture that is
+          for (const release of repository.releases) unknownReleases.add(releaseLabel(release))
+        }
 
         // A repository is linked to the releases it publishes for; one that publishes nothing the
         // catalog carries (a 32-bit architecture, say) has no place in it
@@ -120,9 +126,15 @@ export default class RepoImport extends BaseCommand {
     for (const failure of failures) {
       this.logger.warning(`Unable to read ${failure}`)
     }
-    for (const release of unknownReleases) {
+    const missing = [...unknownReleases]
+    for (const release of missing.slice(0, 5)) {
       this.logger.warning(
         `${release} is not a release of the catalog, its repositories are left out`,
+      )
+    }
+    if (missing.length > 5) {
+      this.logger.warning(
+        chalk.dim(`${missing.slice(5).join(', ')} are not releases of the catalog either`),
       )
     }
     for (const name of takenNames) {

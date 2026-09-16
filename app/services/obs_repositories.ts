@@ -22,8 +22,8 @@ export type ObsRepository = {
   configUrl: string
   /** Who publishes the repository. */
   source: string
-  /** Release of the catalog the repository is built for. */
-  release: ObsRelease
+  /** Releases of the catalog the repository is built for, which more than one name may stand for. */
+  releases: ObsRelease[]
 }
 
 /** State of a walk through the download tree, which is reported while it runs. */
@@ -78,28 +78,39 @@ const architectureNames = [
 /** Directories of a published repository that hold no further repository. */
 const packageDirectoryNames = [...architectureNames, 'gpg', 'noarch', 'repodata', 'src']
 
-const sle15: ObsRelease = { name: 'SUSE Linux Enterprise', version: '15.7' }
-const leap16: ObsRelease = { name: 'openSUSE Leap', version: '16.0' }
-
 /**
- * Releases of the catalog, keyed by the repository name the build service gives them. The names are
- * read from the repository paths the build service shows for a project
- * (`https://build.opensuse.org/project/repositories/<project>`), where a plain version number is
- * what it uses for openSUSE Leap (`16.0`) and for the 15 series of SUSE Linux Enterprise (`15.7`,
- * which is the service pack 7, since openSUSE Leap ends at 15.6).
+ * Releases of the catalog a repository name of the build service stands for, read from the
+ * repository paths the build service shows for a project
+ * (`https://build.opensuse.org/project/repositories/<project>`). A bare version number is the name
+ * of a repository openSUSE Leap and SUSE Linux Enterprise of that version share, a service pack of
+ * SUSE Linux Enterprise names the release of its series (`SLE_15_SP1` is 15.1), and the releases
+ * the catalog does not carry are resolved to nothing rather than being linked to a release of
+ * another series.
  */
-const obsReleases: Record<string, ObsRelease> = {
-  openSUSE_Tumbleweed: { name: 'openSUSE Tumbleweed', version: null },
-  'openSUSE_Leap_16.0': leap16,
-  '16.0': leap16,
-  SLE_16: { name: 'SUSE Linux Enterprise', version: '16.0' },
-  SLE_15: sle15,
-  '15.7': sle15,
-  // A service pack of a series installs what the release of the series installs, which is the one
-  // the catalog carries
-  ...Object.fromEntries(
-    [1, 2, 3, 4, 5, 6, 7].map((servicePack) => [`SLE_15_SP${servicePack}`, sle15]),
-  ),
+function obsReleases(repository: string): ObsRelease[] {
+  if (repository === 'openSUSE_Tumbleweed') {
+    return [{ name: 'openSUSE Tumbleweed', version: null }]
+  }
+
+  const leap = repository.match(/^openSUSE_Leap_(\d+\.\d+)$/)
+  if (leap) return [{ name: 'openSUSE Leap', version: leap[1] }]
+
+  const servicePack = repository.match(/^SLE_(\d+)_SP(\d+)$/)
+  if (servicePack) return sleReleases(`${servicePack[1]}.${servicePack[2]}`)
+
+  const series = repository.match(/^SLE_(\d+)$/)
+  if (series) return sleReleases(`${series[1]}.0`)
+
+  const shared = repository.match(/^(\d+\.\d+)$/)
+  if (shared) {
+    return [{ name: 'openSUSE Leap', version: shared[1] }, ...sleReleases(shared[1])]
+  }
+
+  return []
+}
+
+function sleReleases(version: string): ObsRelease[] {
+  return [{ name: 'SUSE Linux Enterprise', version }]
 }
 
 type DirectoryEntry = { name: string; directory: boolean }
@@ -230,8 +241,8 @@ function subProjects(path: string[], entries: DirectoryEntry[]) {
 
 function readRepository(path: string[], entries: DirectoryEntry[]): ObsRepository | null {
   const repository = path[path.length - 1]
-  const release = obsReleases[repository]
-  if (!release) return null
+  const releases = obsReleases(repository)
+  if (releases.length === 0) return null
 
   const project = path.slice(0, -1).join('').replace(/:$/, '')
   const baseUrl = `${downloadRoot}${path.join('/')}/`
@@ -244,7 +255,7 @@ function readRepository(path: string[], entries: DirectoryEntry[]): ObsRepositor
       .map((entry) => entry.name),
     configUrl: `${baseUrl}${project}.repo`,
     source: obsSource(path[0]),
-    release,
+    releases,
   }
 }
 
