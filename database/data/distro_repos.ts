@@ -14,8 +14,11 @@ import type { RepoSeed } from '#database/data/types'
  * A deb repository is its source line: the line names the archive together with the suite and the
  * components, which is what tells two repositories of one distribution apart, and it is both the
  * base URL and the content of the configuration file. An rpm repository keeps the URL of its tree,
- * and the ones whose URL names the architecture carry it in their name (`AlmaLinux 9 BaseOS
- * (aarch64)`).
+ * and a pacman repository the URL of the directory its database is published in, which the
+ * configuration names as the server of the repository's own section. The repositories whose URL
+ * names the architecture carry it in their name (`AlmaLinux 9 BaseOS (aarch64)`), spelled the way
+ * the URL does when it names a machine level of a CachyOS architecture (`CachyOS Core
+ * (x86_64_v3)`).
  */
 export const distroRepos: RepoSeed[] = [
   {
@@ -209,6 +212,136 @@ export const distroRepos: RepoSeed[] = [
     baseUrl: 'https://repo.almalinux.org/almalinux/10/AppStream/s390x/os/',
     syncIntervalDays: 7,
     distros: [{ name: 'AlmaLinux', version: '10', arch: 's390x' }],
+  },
+  {
+    name: 'Arch Linux Core (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://geo.mirror.pkgbuild.com/core/os/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'x86_64' }],
+    configContent: `[core]
+Server = https://geo.mirror.pkgbuild.com/core/os/x86_64/`,
+  },
+  {
+    name: 'Arch Linux Extra (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://geo.mirror.pkgbuild.com/extra/os/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'x86_64' }],
+    configContent: `[extra]
+Server = https://geo.mirror.pkgbuild.com/extra/os/x86_64/`,
+  },
+  {
+    name: 'Arch Linux Multilib (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://geo.mirror.pkgbuild.com/multilib/os/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'x86_64' }],
+    configContent: `[multilib]
+Server = https://geo.mirror.pkgbuild.com/multilib/os/x86_64/`,
+  },
+  {
+    name: 'Arch Linux Core (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'http://mirror.archlinuxarm.org/aarch64/core/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'aarch64' }],
+    configContent: `[core]
+Server = http://mirror.archlinuxarm.org/aarch64/core/`,
+  },
+  {
+    name: 'Arch Linux Extra (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'http://mirror.archlinuxarm.org/aarch64/extra/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'aarch64' }],
+    configContent: `[extra]
+Server = http://mirror.archlinuxarm.org/aarch64/extra/`,
+  },
+  {
+    name: 'Arch Linux Alarm (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'http://mirror.archlinuxarm.org/aarch64/alarm/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Arch Linux', version: null, arch: 'aarch64' }],
+    configContent: `[alarm]
+Server = http://mirror.archlinuxarm.org/aarch64/alarm/`,
+  },
+  {
+    name: 'CachyOS (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64/cachyos/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos]
+Server = https://mirror.cachyos.org/repo/x86_64/cachyos/`,
+  },
+  {
+    name: 'CachyOS (x86_64_v3)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v3/cachyos-v3/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-v3]
+Server = https://mirror.cachyos.org/repo/x86_64_v3/cachyos-v3/`,
+  },
+  {
+    name: 'CachyOS Core (x86_64_v3)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v3/cachyos-core-v3/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-core-v3]
+Server = https://mirror.cachyos.org/repo/x86_64_v3/cachyos-core-v3/`,
+  },
+  {
+    name: 'CachyOS Extra (x86_64_v3)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v3/cachyos-extra-v3/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-extra-v3]
+Server = https://mirror.cachyos.org/repo/x86_64_v3/cachyos-extra-v3/`,
+  },
+  {
+    name: 'CachyOS (x86_64_v4)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v4/cachyos-v4/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-v4]
+Server = https://mirror.cachyos.org/repo/x86_64_v4/cachyos-v4/`,
+  },
+  {
+    name: 'CachyOS Core (x86_64_v4)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v4/cachyos-core-v4/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-core-v4]
+Server = https://mirror.cachyos.org/repo/x86_64_v4/cachyos-core-v4/`,
+  },
+  {
+    name: 'CachyOS Extra (x86_64_v4)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirror.cachyos.org/repo/x86_64_v4/cachyos-extra-v4/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'CachyOS', version: null, arch: 'x86_64' }],
+    configContent: `[cachyos-extra-v4]
+Server = https://mirror.cachyos.org/repo/x86_64_v4/cachyos-extra-v4/`,
   },
   {
     name: 'CentOS Stream 9 BaseOS (x86_64)',
@@ -566,6 +699,66 @@ export const distroRepos: RepoSeed[] = [
     syncIntervalDays: 7,
     distros: [{ name: 'Linux Mint', version: '22', arch: 'x86_64' }],
     configContent: 'deb http://packages.linuxmint.com wilma main upstream import backport',
+  },
+  {
+    name: 'Manjaro Linux Core (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/stable/core/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'x86_64' }],
+    configContent: `[core]
+Server = https://mirrors.manjaro.org/repo/stable/core/x86_64/`,
+  },
+  {
+    name: 'Manjaro Linux Extra (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/stable/extra/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'x86_64' }],
+    configContent: `[extra]
+Server = https://mirrors.manjaro.org/repo/stable/extra/x86_64/`,
+  },
+  {
+    name: 'Manjaro Linux Multilib (x86_64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/stable/multilib/x86_64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'x86_64' }],
+    configContent: `[multilib]
+Server = https://mirrors.manjaro.org/repo/stable/multilib/x86_64/`,
+  },
+  {
+    name: 'Manjaro Linux Core (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/arm-stable/core/aarch64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'aarch64' }],
+    configContent: `[core]
+Server = https://mirrors.manjaro.org/repo/arm-stable/core/aarch64/`,
+  },
+  {
+    name: 'Manjaro Linux Extra (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/arm-stable/extra/aarch64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'aarch64' }],
+    configContent: `[extra]
+Server = https://mirrors.manjaro.org/repo/arm-stable/extra/aarch64/`,
+  },
+  {
+    name: 'Manjaro Linux Community (aarch64)',
+    type: 'pacman',
+    source: 'distro',
+    baseUrl: 'https://mirrors.manjaro.org/repo/arm-stable/community/aarch64/',
+    syncIntervalDays: 7,
+    distros: [{ name: 'Manjaro Linux', version: null, arch: 'aarch64' }],
+    configContent: `[community]
+Server = https://mirrors.manjaro.org/repo/arm-stable/community/aarch64/`,
   },
   {
     name: 'MX Linux 23 Main',

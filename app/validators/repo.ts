@@ -4,9 +4,10 @@ import vine from '@vinejs/vine'
 import { firstValue, knownValue, pageNumber, pageSize, positiveInteger } from '#utils/query_params'
 
 /**
- * Supported repository types.
+ * Supported repository types. The pacman ones cannot be read into the catalog yet, since no
+ * extractor understands them, but they are published by the distributions that use pacman.
  */
-const repoTypes = ['deb', 'rpm', 'flatpak', 'snap'] as const
+const repoTypes = ['deb', 'rpm', 'pacman', 'flatpak', 'snap'] as const
 
 /**
  * Supported repository origins: the distributions themselves, their communities, the projects of a

@@ -13,7 +13,7 @@ import ListFilter, { filterWidth } from './ListFilter'
 
 import styles from './RepoTable.module.css'
 
-const packageTypesWithIcons = new Set(['deb', 'rpm'])
+const packageTypesWithIcons = new Set(['deb', 'rpm', 'pacman'])
 
 /** Counts run into the hundreds of thousands, so they are grouped the way the locale does it. */
 function formatCount(value: number, language: string) {

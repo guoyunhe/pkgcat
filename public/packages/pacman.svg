@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img">
+  <title>Pacman package</title>
+  <rect width="64" height="64" rx="14" fill="#1793D1" />
+  <g stroke="#fff" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M32 12 49 20.5 32 29 15 20.5Z" fill="#ffffff" fill-opacity=".92" />
+    <path d="M15 20.5 32 29v19L15 39.5Z" fill="#ffffff" fill-opacity=".5" />
+    <path d="M49 20.5 32 29v19l17-8.5Z" fill="#ffffff" fill-opacity=".7" />
+  </g>
+  <rect x="10" y="50" width="44" height="10" rx="5" fill="#fff" />
+  <text x="32" y="58" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8.5" font-weight="700" fill="#1793D1">pacman</text>
+</svg>

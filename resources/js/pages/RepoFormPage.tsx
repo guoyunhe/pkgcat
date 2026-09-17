@@ -140,6 +140,7 @@ export default function RepoFormPage() {
             data={[
               { value: 'deb', label: 'DEB (Debian/Ubuntu)' },
               { value: 'rpm', label: 'RPM (RHEL/openSUSE/Fedora)' },
+              { value: 'pacman', label: 'Pacman (Arch/CachyOS/Manjaro)' },
               { value: 'flatpak', label: 'Flatpak' },
               { value: 'snap', label: 'Snap' },
             ]}

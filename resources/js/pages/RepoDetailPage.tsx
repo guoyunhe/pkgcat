@@ -126,7 +126,7 @@ export default function RepoDetailPage() {
       </header>
 
       <section className={styles.intro}>
-        {repo.type === 'deb' || repo.type === 'rpm' ? (
+        {repo.type === 'deb' || repo.type === 'rpm' || repo.type === 'pacman' ? (
           <img alt='' className={styles.icon} src={`/packages/${repo.type}.svg`} />
         ) : (
           <div className={styles.icon} />
