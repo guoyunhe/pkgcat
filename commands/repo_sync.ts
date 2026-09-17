@@ -74,7 +74,15 @@ export default class RepoSync extends BaseCommand {
   async run() {
     const repos = this.repoName
       ? [await Repo.query().where('name', this.repoName).preload('distros').firstOrFail()]
-      : await Repo.query().whereIn('type', ['deb', 'rpm', 'pacman']).preload('distros')
+      : await Repo.query()
+          .whereIn('type', ['deb', 'rpm', 'pacman'])
+          // The repositories that change most often are synchronized first, so that a run that is
+          // long or stopped early reaches them, and the ones without an interval are last, since
+          // they are only read when they are forced
+          .orderByRaw('sync_interval_days is null')
+          .orderBy('syncIntervalDays')
+          .orderBy('name')
+          .preload('distros')
 
     if (repos.length === 0) {
       this.logger.warning('No deb/rpm/pacman repositories found')
@@ -460,14 +468,13 @@ export default class RepoSync extends BaseCommand {
   }
 
   /**
-   * Link the applications of a repository that publishes no AppStream metadata. The file list of
-   * the repository names the AppStream ID of every package that ships a metadata file, which is
-   * used to link those packages to a known application. An application the catalog does not know
-   * yet is created from the package metadata as a placeholder, so that the packages have a page and
-   * a later synchronization or an editor can complete its metadata.
-   *
-   * An application without AppStream content or without an icon is then completed from the package
-   * itself, because repositories without an AppStream catalog only carry that inside the packages.
+   * Link the applications of a repository that publishes no AppStream catalog. The file list of the
+   * repository names the AppStream ID of every package that ships a metadata file, which the
+   * packages are linked to a known application by. The metadata file itself is read from the
+   * package, and an application is created only once that read succeeded: a file list announces an
+   * ID and nothing else, and an application without AppStream content is not one the catalog can
+   * show. A component whose metadata cannot be read leaves its packages to the package name
+   * mappings.
    *
    * The package names the file list assigns to an application are collected in `claimedPkgNames`,
    * which keeps the package name mappings from claiming them again.
@@ -509,60 +516,54 @@ export default class RepoSync extends BaseCommand {
       byName.set(pkg.name, siblings)
     }
 
-    const pending: Array<{ app: App; component: InferredComponent }> = []
     let read = 0
 
     for (const component of candidates) {
-      let app = registry.find(component.appstreamId)
-      if (!app) {
-        const placeholder = placeholderAppMetadata(this.inferredFile(component, byName)?.pkg)
-        app = await App.create({
-          appstreamId: component.appstreamId,
-          license: placeholder.license,
-        })
-        await replaceTranslations(app, placeholder.name, placeholder.summary)
-        registry.register(app)
-        result.created += 1
-      }
-
       const files = component.files.filter((file) => pkgNames.has(file.pkgName))
-      if (files.length > 0) {
+      let app = registry.find(component.appstreamId)
+
+      // A known application is linked to the packages of the component even when nothing has to be
+      // read from them, so that a new package of it shows up on its page
+      if (app) {
+        result.linked += await this.linkInferredPackages(app, repo, files)
         for (const file of files) claimedPkgNames.add(file.pkgName)
-        const links = await Pkg.query()
-          .where('repoId', repo.id)
-          .whereIn(
-            'name',
-            files.map((file) => file.pkgName),
-          )
-          .select('id')
-        await app.related('packages').sync(
-          links.map((pkg) => pkg.id),
-          false,
-        )
-        result.linked += files.length
+        if (app.appstreamContent && app.icon) continue
       }
 
-      if (!app.appstreamContent || !app.icon) pending.push({ app, component })
-    }
-
-    for (const { app, component } of pending) {
-      const file = this.inferredFile(component, byName)
-      if (!file) continue
+      const metadata = this.inferredFile(component, byName)
+      if (!metadata) continue
 
       try {
         const packaged = await appstream.readPackagedApp(
           {
-            type: storedPackageType(file.pkg.type),
-            name: file.pkg.name,
-            downloadUrl: file.pkg.downloadUrl,
+            type: storedPackageType(metadata.pkg.type),
+            name: metadata.pkg.name,
+            downloadUrl: metadata.pkg.downloadUrl,
           },
-          file.path,
+          metadata.path,
           component.appstreamId,
         )
         if (!packaged) continue
 
         const extracted = packaged.app
-        if (!app.appstreamContent) {
+        if (!app) {
+          // Only metadata that was read creates an application, so its content, name and summary are
+          // stored in one go instead of as a placeholder a later synchronization would complete
+          app = await App.create({
+            appstreamId: component.appstreamId,
+            type: canonicalAppType(extracted.component.type),
+            version: appstreamVersion(extracted.component),
+            license: extracted.component.projectLicense ?? null,
+            homepage: appstreamHomepage(extracted.component),
+            appstreamContent: extracted.content,
+          })
+          await replaceTranslations(app, extracted.component.name, extracted.component.summary)
+          registry.register(app)
+          result.created += 1
+          result.extracted += 1
+          result.linked += await this.linkInferredPackages(app, repo, files)
+          for (const file of files) claimedPkgNames.add(file.pkgName)
+        } else if (!app.appstreamContent) {
           const name = Object.keys(extracted.component.name).length > 0
           const summary = Object.keys(extracted.component.summary).length > 0
           await app.merge({
@@ -573,7 +574,7 @@ export default class RepoSync extends BaseCommand {
             appstreamContent: extracted.content,
           })
           await app.save()
-          // The metadata of the package completes the placeholder, but a field the package does not
+          // The metadata of the package completes the application, but a field the package does not
           // translate keeps the translation it already had
           if (name || summary) {
             await attachTranslations([app], null)
@@ -608,6 +609,25 @@ export default class RepoSync extends BaseCommand {
     }
 
     return result
+  }
+
+  /** Link the packages of an inferred component to its application, and report how many they are. */
+  private async linkInferredPackages(app: App, repo: Repo, files: InferredComponent['files']) {
+    if (files.length === 0) return 0
+
+    const links = await Pkg.query()
+      .where('repoId', repo.id)
+      .whereIn(
+        'name',
+        files.map((file) => file.pkgName),
+      )
+      .select('id')
+    await app.related('packages').sync(
+      links.map((pkg) => pkg.id),
+      false,
+    )
+
+    return files.length
   }
 
   /**
@@ -665,21 +685,6 @@ function appstreamIconIsLarger(app: App, icon: AppstreamIcon) {
   return size > Math.min(app.icon.width, app.icon.height)
 }
 
-/**
- * Metadata of a placeholder application, taken from the package that ships its AppStream metadata
- * file. The package summary is the closest thing to a display name and its first description
- * paragraph becomes the summary, so that the application is usable until better metadata arrives.
- */
-function placeholderAppMetadata(pkg: StoredPackage | undefined) {
-  const summary = pkg?.summary?.trim() || null
-  const name = summary ?? pkg?.name ?? 'Unknown application'
-  return {
-    name: { en: name },
-    summary: { en: firstParagraph(pkg?.description) ?? summary ?? name },
-    license: pkg?.license?.trim().slice(0, 255) || null,
-  }
-}
-
 /** Number of packages that are written before the garbage collector is asked to run. */
 const packageCollectionInterval = 2000
 
@@ -691,15 +696,6 @@ function storedPackageType(type: string): RepoPackageType {
   if (type === 'deb') return 'deb'
   if (type === 'pacman') return 'pacman'
   return 'rpm'
-}
-
-/** First paragraph of a long description, collapsed into a single line. */
-function firstParagraph(text: string | null | undefined) {
-  const paragraph = text
-    ?.split(/\n\s*\n/)[0]
-    ?.replace(/\s+/g, ' ')
-    .trim()
-  return paragraph || null
 }
 
 /**
