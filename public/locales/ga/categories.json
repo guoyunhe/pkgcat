@@ -1,0 +1,22 @@
+{
+  "ArcadeGame": "Stuara Siamsa",
+  "AudioVideo": "Ilmheáin",
+  "BoardGame": "Cluichí Cláir",
+  "CardGame": "Cluichí Cártaí",
+  "Development": "Forbairt",
+  "Game": "Cluichí",
+  "Graphics": "Grafaic",
+  "KidsGame": "Cluichí do Pháistí",
+  "Languages": "Teangacha",
+  "LogicGame": "Cluichí Loighce",
+  "Math": "Matamaitic",
+  "Network": "Idirlíon",
+  "Office": "Oifig",
+  "Science": "Eolaíocht agus Matamaitic",
+  "Settings": "Socruithe",
+  "StrategyGame": "Beartaíocht agus Straitéisí",
+  "System": "Córas",
+  "Teaching": "Uirlisí Múinteoireachta",
+  "Translation": "Aistriúchán",
+  "WebDevelopment": "Forbairt Ghréasáin"
+}

@@ -26,6 +26,6 @@ function render() {
   )
 }
 
-// The translations of the interface are read over HTTP, so the page waits for the language it starts
-// in instead of flashing translation keys
+// The translations of the interface and the names of the categories are read over HTTP, so the page
+// waits for the language it starts in instead of flashing translation keys and category codes
 i18nReady.then(render, render)

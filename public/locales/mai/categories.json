@@ -1,0 +1,21 @@
+{
+  "ArcadeGame": "आर्केड",
+  "AudioVideo": "मल्टीमीडिया",
+  "BoardGame": "बिसात केर खेल",
+  "CardGame": "ताश केर खेल",
+  "Development": "विकास",
+  "Game": "खेल",
+  "Graphics": "आलेखी",
+  "KidsGame": "बच्चासभ क' लेल खेल",
+  "Languages": "भाषा",
+  "LogicGame": "तार्किक खेल",
+  "Math": "गणित",
+  "Network": "इंटरनेट",
+  "Office": "कार्यालय",
+  "Science": "विज्ञान आओर गणित",
+  "Settings": "जमावट",
+  "StrategyGame": "रणनीतिक आओर कौशल",
+  "Teaching": "शिक्षण अओजार",
+  "Translation": "अनुवाद",
+  "WebDevelopment": "वेब स्थल विकास"
+}

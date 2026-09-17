@@ -1,0 +1,20 @@
+{
+  "ArcadeGame": "ఆర్కేడ్",
+  "AudioVideo": "బహుళ మాద్యమం",
+  "BoardGame": "పలక ఆటలు",
+  "CardGame": "పేక ఆటలు",
+  "Development": "డెవలప్ మెంట్",
+  "Game": "ఆటలు",
+  "Graphics": "గ్రాఫిక్స్",
+  "KidsGame": "పిల్లల ఆటలు",
+  "Languages": "భాషలు",
+  "Math": "గణితశాస్త్రం",
+  "Network": "ఇంటర్నెట్",
+  "Office": "కార్యాలయము",
+  "Science": "విజ్ఞానం & గణితం",
+  "Settings": "అమరికలు",
+  "StrategyGame": "యుక్తి & తంత్రాలు",
+  "Teaching": "భోధనా సాధనములు",
+  "Translation": "అనువాదం",
+  "WebDevelopment": "వెబ్ డెవలప్ మెంట్"
+}

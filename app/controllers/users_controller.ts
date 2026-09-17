@@ -24,7 +24,7 @@ export default class UsersController {
       .join('favorites', 'favorites.app_id', 'apps.id')
       .where('favorites.user_id', params.id)
       .preload('icon')
-      .preload('categories', (categoriesQuery) => categoriesQuery.preload('translations'))
+      .preload('categories')
       .orderBy('favorites.created_at', 'desc')
       .select('apps.*')
 

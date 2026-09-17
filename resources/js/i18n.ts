@@ -3,6 +3,7 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import HttpBackend from 'i18next-http-backend'
 import { initReactI18next } from 'react-i18next'
 
+import { categoriesNamespace } from './utils/categoryNames'
 import { fallbackLanguage, supportedLocales } from './utils/languages'
 
 /**
@@ -32,8 +33,14 @@ export const i18nReady = i18n
     load: 'currentOnly',
     fallbackLng: fallbackLanguage() || 'en',
     interpolation: { escapeValue: false },
+    /**
+     * Every namespace is one file per language under `public/locales/<language>/`, which is the
+     * layout the backend reads by default: `translation.json` carries the interface, while
+     * `categories.json` carries the display names of the categories, written by `node ace
+     * category:names` out of the menu definitions of the desktop.
+     */
+    ns: ['translation', categoriesNamespace],
     backend: {
-      loadPath: '/locales/{{lng}}.json',
       /**
        * A language the interface is not translated into yet has no file, and the application shell
        * answers that request with itself. Reading no translations lets i18next serve the fallback

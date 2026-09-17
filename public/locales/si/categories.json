@@ -1,0 +1,21 @@
+{
+  "ArcadeGame": "ආකේඩ්",
+  "AudioVideo": "බහුමාධ්‍යය",
+  "BoardGame": "පුවරු ක්‍රීඩා",
+  "CardGame": "කාඩ් ක්‍රීඩා",
+  "Development": "සංවර්‍ධණය",
+  "Game": "ක්‍රීඩා",
+  "Graphics": "චිත්‍රක",
+  "KidsGame": "දරුවන් සඳහා ක්‍රීඩා",
+  "Languages": "භාෂා",
+  "LogicGame": "තාර්කීක ක්‍රීඩා",
+  "Math": "ගණිතය",
+  "Network": "අන්තර්ජාලය",
+  "Office": "කාර්‍යයාලීය",
+  "Science": "ගණිතය සහ විද්‍යාව",
+  "Settings": "සැකසුම්",
+  "StrategyGame": "උපක්‍රම හා කාලානුරූප",
+  "Teaching": "ඉගැන්වීමේ මෙවලම්",
+  "Translation": "පරිවර්තනය",
+  "WebDevelopment": "වෙබ් සංවර්‍ධණය"
+}

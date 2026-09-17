@@ -1,10 +1,11 @@
 import { Button, Group, Select } from '@mantine/core'
 import { XIcon } from '@phosphor-icons/react/X'
+import type { TFunction } from 'i18next'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { getCategories, type Category } from '../services/apps'
-import { localized } from '../utils/appstream'
+import { categoryName } from '../utils/categoryNames'
 import { filterWidth } from './ListFilter'
 
 type CategoryOption = {
@@ -21,7 +22,7 @@ type CategoryGroup = {
  * Groups the registry by its top level categories, so the select shows one section per main
  * category with its related categories nested inside, instead of a flat list of every code.
  */
-function categoryGroups(categories: Category[], language: string): CategoryGroup[] {
+function categoryGroups(categories: Category[], t: TFunction): CategoryGroup[] {
   const byId = new Map(categories.map((category) => [category.id, category]))
 
   function rootOf(category: Category) {
@@ -38,13 +39,13 @@ function categoryGroups(categories: Category[], language: string): CategoryGroup
   for (const category of categories) {
     const root = rootOf(category)
     const group = groups.get(root.id) ?? {
-      group: localized(root.name, language) ?? root.code,
+      group: categoryName(t, root.code),
       items: [],
     }
     groups.set(root.id, group)
     group.items.push({
       value: category.code,
-      label: localized(category.name, language) ?? category.code,
+      label: categoryName(t, category.code),
     })
   }
 
@@ -63,7 +64,7 @@ type CategoryFilterProps = {
  * listing that renders the filter, which may put further controls next to it.
  */
 export default function CategoryFilter({ value, onChange }: CategoryFilterProps) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
@@ -80,10 +81,7 @@ export default function CategoryFilter({ value, onChange }: CategoryFilterProps)
     }
   }, [])
 
-  const groups = useMemo(
-    () => categoryGroups(categories, i18n.language),
-    [categories, i18n.language],
-  )
+  const groups = useMemo(() => categoryGroups(categories, t), [categories, t])
 
   return (
     <Group align='flex-end' gap='sm'>

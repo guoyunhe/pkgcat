@@ -3,7 +3,7 @@ import { Badge, Group } from '@mantine/core'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
-import { localized } from '../utils/appstream'
+import { categoryName } from '../utils/categoryNames'
 
 type CategoryBadgesProps = {
   categories: Data.App['categories']
@@ -16,7 +16,7 @@ type CategoryBadgesProps = {
  * category, so a category shown on a card or on the detail page can be explored further.
  */
 export default function CategoryBadges({ categories, linkTo = '/apps' }: CategoryBadgesProps) {
-  const { i18n } = useTranslation()
+  const { t } = useTranslation()
   if (categories.length === 0) return null
 
   return (
@@ -28,7 +28,7 @@ export default function CategoryBadges({ categories, linkTo = '/apps' }: Categor
           key={category.id}
           variant='light'
         >
-          {localized(category.name, i18n.language) ?? category.code}
+          {categoryName(t, category.code)}
         </Badge>
       ))}
     </Group>

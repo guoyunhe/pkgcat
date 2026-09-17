@@ -159,23 +159,6 @@ export class CategorySchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
-export class CategoryTranslationSchema extends BaseModel {
-  static $columns = ['categoryId', 'createdAt', 'id', 'locale', 'name', 'updatedAt'] as const
-  $columns = CategoryTranslationSchema.$columns
-  @column()
-  declare categoryId: number
-  @column.dateTime({ autoCreate: true })
-  declare createdAt: DateTime
-  @column({ isPrimary: true })
-  declare id: number
-  @column()
-  declare locale: string
-  @column()
-  declare name: string
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
-  declare updatedAt: DateTime | null
-}
-
 export class DistroSchema extends BaseModel {
   static $columns = ['arch', 'compatibleDistroId', 'createdAt', 'eolDate', 'id', 'name', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
   $columns = DistroSchema.$columns

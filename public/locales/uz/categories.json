@@ -1,0 +1,20 @@
+{
+  "ArcadeGame": "Arkada",
+  "AudioVideo": "Multimedia",
+  "BoardGame": "Stol oʻyinlari",
+  "CardGame": "Qarta oʻyinlari",
+  "Development": "Tuzish",
+  "Game": "Oʻyinlar",
+  "Graphics": "Grafika",
+  "KidsGame": "Kichkintoylar uchun oʻyinlar",
+  "Languages": "Tillar",
+  "Math": "Matematika",
+  "Network": "Internet",
+  "Office": "Idora uchun dasturlar",
+  "Science": "Fan va Matematika",
+  "Settings": "Moslamalar",
+  "StrategyGame": "Taktika va strategiya",
+  "Teaching": "Dars berish vositalar",
+  "Translation": "Tarjima",
+  "WebDevelopment": "Veb uchun tuzish"
+}

@@ -1,0 +1,21 @@
+{
+  "ArcadeGame": "Аркад ойындары",
+  "AudioVideo": "Мультимедиа",
+  "BoardGame": "Үстел ойындары",
+  "CardGame": "Карта ойындары",
+  "Development": "Жетілдіру",
+  "Game": "Ойындар",
+  "Graphics": "Графика",
+  "KidsGame": "Балалар ойындары",
+  "Languages": "Тілдер",
+  "LogicGame": "Логикалық ойындар",
+  "Math": "Математика",
+  "Network": "Интернет",
+  "Office": "Офис",
+  "Science": "Ғылыми және математикалық",
+  "Settings": "Параметрлері",
+  "StrategyGame": "Тактика және стратегия",
+  "Teaching": "Оқыту-ағарту құралдары",
+  "Translation": "Аудару",
+  "WebDevelopment": "Веб жобалау"
+}

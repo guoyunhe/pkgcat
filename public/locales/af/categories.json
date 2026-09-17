@@ -1,0 +1,20 @@
+{
+  "ArcadeGame": "Arkade",
+  "AudioVideo": "Multimedia",
+  "BoardGame": "Bord Speletjies",
+  "CardGame": "Kaart Speletjies",
+  "Development": "Ontwikkeling",
+  "Game": "Speletjies",
+  "Graphics": "Grafieka",
+  "KidsGame": "Kinder Speletjies",
+  "Languages": "Tale",
+  "Math": "Wiskunde",
+  "Network": "Internet",
+  "Office": "Kantoor",
+  "Science": "Wetenskap & Wiskunde",
+  "Settings": "Instellings",
+  "StrategyGame": "Strategie & Taktiek",
+  "Teaching": "Onderrighulpbronne",
+  "Translation": "Vertaling",
+  "WebDevelopment": "Web Ontwikkeling"
+}

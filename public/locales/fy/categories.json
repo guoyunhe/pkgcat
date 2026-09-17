@@ -1,0 +1,21 @@
+{
+  "ArcadeGame": "Arkade",
+  "AudioVideo": "Multimedia",
+  "BoardGame": "Boardspultsjes",
+  "CardGame": "Kaartspultsjes",
+  "Development": "Untwikkelje",
+  "Game": "Amusemint",
+  "Graphics": "Grafysk",
+  "KidsGame": "Spultsjes foar bêrn",
+  "Languages": "Talen",
+  "LogicGame": "Logyske spultsjes",
+  "Math": "Wiskunde",
+  "Network": "Ynternet",
+  "Office": "Kantoartapassingen",
+  "Science": "Wittenskiplik en wiskunde",
+  "Settings": "Ynstellings",
+  "StrategyGame": "Taktysk en strategysk",
+  "Teaching": "Lear ark",
+  "Translation": "Oersetting",
+  "WebDevelopment": "Webûntwikkeling"
+}

@@ -1,0 +1,22 @@
+{
+  "ArcadeGame": "আৰ্কেড",
+  "AudioVideo": "মাল্টিমিডিয়া",
+  "BoardGame": "বোৰ্ড খেলা",
+  "CardGame": "তাছ খেলা",
+  "Development": "বিকাশ",
+  "Game": "খেলা",
+  "Graphics": "চিত্ৰাঙ্কন",
+  "KidsGame": "সৰু ল'ৰা ছোৱালিৰ খেলা",
+  "Languages": "ভাষা",
+  "LogicGame": "লজিক খেলা",
+  "Math": "গণিত",
+  "Network": "ইন্টাৰ্নে'ট",
+  "Office": "কাৰ্যালয়",
+  "Science": "বিজ্ঞান & গণিত",
+  "Settings": "বৈশিষ্ট্য",
+  "StrategyGame": "Tactics & Strategy",
+  "System": "ব্যৱস্থাপ্ৰণালী",
+  "Teaching": "শৈক্ষিক সৰঞ্জাম",
+  "Translation": "অনুবাদ",
+  "WebDevelopment": "ৱেব বিকাশ"
+}

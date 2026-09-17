@@ -1,0 +1,21 @@
+{
+  "ArcadeGame": "Аркадни игри",
+  "AudioVideo": "Мултимедија",
+  "BoardGame": "Игри на табла",
+  "CardGame": "Игри со карти",
+  "Development": "Развој",
+  "Game": "Игри",
+  "Graphics": "Графика",
+  "KidsGame": "Игри за деца",
+  "Languages": "Јазици",
+  "LogicGame": "Логички игри",
+  "Math": "Математика",
+  "Network": "Интернет",
+  "Office": "Канцеларија",
+  "Science": "Наука и математика",
+  "Settings": "Поставувања",
+  "StrategyGame": "Тактика и стратегија",
+  "Teaching": "Алатка за учење",
+  "Translation": "Превод",
+  "WebDevelopment": "Веб-развој"
+}
