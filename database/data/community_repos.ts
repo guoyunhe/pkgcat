@@ -657,7 +657,9 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/suse16/sbsa/3A8B
     name: 'Zoom for Debian and Ubuntu',
     type: 'deb',
     source: 'vendor',
-    baseUrl: 'deb https://repo.zoom.us/repo/deb/release/ any main',
+    // The suite of the repository is `release` and its component `main`, served from
+    // `https://repo.zoom.us/repo/deb/dists/release/main/binary-amd64/Packages.gz`
+    baseUrl: 'deb https://repo.zoom.us/repo/deb/ release main',
     syncIntervalDays: 7,
     distros: [
       { name: 'Debian', version: '12', arch: 'x86_64' },
@@ -665,7 +667,7 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/suse16/sbsa/3A8B
       { name: 'Ubuntu', version: '24.04', arch: 'x86_64' },
       { name: 'Ubuntu', version: '26.04', arch: 'x86_64' },
     ],
-    configContent: 'deb https://repo.zoom.us/repo/deb/release/ any main',
+    configContent: 'deb https://repo.zoom.us/repo/deb/ release main',
   },
   {
     name: 'Zoom for Fedora and Red Hat Enterprise Linux',

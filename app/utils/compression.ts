@@ -29,6 +29,15 @@ export function compressionOf(data: Buffer) {
 }
 
 /**
+ * Whether data is the compression its file name states. A server that answers a path it does not
+ * have with an HTML page (with status 200) is not publishing that file: read as the compression the
+ * name states, the page only fails inside the decompressor with a message about its header.
+ */
+export function isCompression(data: Buffer, extension: string) {
+  return extension === '' || compressionOf(data) === extension
+}
+
+/**
  * Decompress the metadata a repository publishes, which is gzipped, zstd or xz compressed. Metadata
  * that carries no compression is returned as it is, since not every file is compressed.
  */

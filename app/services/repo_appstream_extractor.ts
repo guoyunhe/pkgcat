@@ -26,6 +26,7 @@ import {
   decompress,
   decompressChunks,
   decompressStream,
+  isCompression,
 } from '#utils/compression'
 import { decodeJpegXl, isJpegXl } from '#utils/jxl'
 import { collectGarbage } from '#utils/memory'
@@ -908,7 +909,11 @@ export default class RepoAppstreamExtractor {
         responseType: 'arraybuffer',
         headers: requestHeaders,
       })
-      return Buffer.from(response.data)
+      const data = Buffer.from(response.data)
+      // A path a repository does not have may be answered with an HTML page instead of a 404, which
+      // is not the metadata this asked for and is read as the same as the file being absent
+      if (options.optional && !isCompression(data, compressionExtension(url))) return null
+      return data
     } catch (error) {
       const status = isXiorError(error) ? error.response?.status : undefined
       if (options.optional && (status === 404 || status === 410)) return null
