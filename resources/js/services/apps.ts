@@ -33,7 +33,6 @@ export type AppPayload = {
 export type Category = {
   id: number
   code: string
-  name: Record<string, string>
   parentId: number | null
 }
 

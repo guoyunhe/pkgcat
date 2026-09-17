@@ -1,5 +1,4 @@
-import { Button, Group, Select } from '@mantine/core'
-import { XIcon } from '@phosphor-icons/react/X'
+import { Cascader, type CascaderOption } from '@mantine/core'
 import type { TFunction } from 'i18next'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -8,60 +7,64 @@ import { getCategories, type Category } from '../services/apps'
 import { categoryName } from '../utils/categoryNames'
 import { filterWidth } from './ListFilter'
 
-type CategoryOption = {
-  value: string
-  label: string
-}
+/**
+ * The registry as the tree the filter offers it in: the main categories, with the sub-categories
+ * nested inside the main category they belong to, both named the way the interface translates
+ * them.
+ */
+function cascaderOptions(categories: Category[], t: TFunction): CascaderOption[] {
+  const children = new Map<number, Category[]>()
+  for (const category of categories) {
+    if (category.parentId === null) continue
+    const siblings = children.get(category.parentId) ?? []
+    siblings.push(category)
+    children.set(category.parentId, siblings)
+  }
 
-type CategoryGroup = {
-  group: string
-  items: CategoryOption[]
+  const optionOf = (category: Category): CascaderOption => {
+    const nested = (children.get(category.id) ?? []).map(optionOf)
+    return {
+      value: category.code,
+      label: categoryName(t, category.code),
+      // A category without sub-categories is a leaf, and offers no column beside it
+      ...(nested.length > 0 ? { children: nested } : {}),
+    }
+  }
+
+  return categories.filter((category) => category.parentId === null).map(optionOf)
 }
 
 /**
- * Groups the registry by its top level categories, so the select shows one section per main
- * category with its related categories nested inside, instead of a flat list of every code.
+ * Path from the main category down to the selected one, which is what the filter is set to: a main
+ * category is a path of its own, a sub-category is named below the main category it belongs to.
  */
-function categoryGroups(categories: Category[], t: TFunction): CategoryGroup[] {
+function cascaderPath(categories: Category[], code: string | null) {
+  if (code === null) return null
+
   const byId = new Map(categories.map((category) => [category.id, category]))
+  const selected = categories.find((category) => category.code === code)
+  if (!selected) return null
 
-  function rootOf(category: Category) {
-    let root = category
-    while (root.parentId !== null) {
-      const parent = byId.get(root.parentId)
-      if (!parent) break
-      root = parent
-    }
-    return root
+  const path = [selected.code]
+  let parent = selected.parentId === null ? null : byId.get(selected.parentId)
+  while (parent) {
+    path.unshift(parent.code)
+    parent = parent.parentId === null ? null : byId.get(parent.parentId)
   }
-
-  const groups = new Map<number, CategoryGroup>()
-  for (const category of categories) {
-    const root = rootOf(category)
-    const group = groups.get(root.id) ?? {
-      group: categoryName(t, root.code),
-      items: [],
-    }
-    groups.set(root.id, group)
-    group.items.push({
-      value: category.code,
-      label: categoryName(t, category.code),
-    })
-  }
-
-  return [...groups.values()]
+  return path
 }
 
 type CategoryFilterProps = {
-  /** Selected category code, or `null` for "any category". */
+  /** Selected category code, which names a main category or one of its sub-categories. */
   value: string | null
   onChange: (value: string | null) => void
 }
 
 /**
- * Category filter of the application listings. Selecting a category also matches the applications
- * filed under its nested categories, which is resolved by the API. The row spacing is left to the
- * listing that renders the filter, which may put further controls next to it.
+ * Filter of the application listings by category, which offers the registry as one tree: picking a
+ * main category narrows the listing to it and the applications filed under its sub-categories,
+ * which the API resolves, while picking a sub-category narrows it to that one alone. The row
+ * spacing is left to the listing that renders the filter.
  */
 export default function CategoryFilter({ value, onChange }: CategoryFilterProps) {
   const { t } = useTranslation()
@@ -74,32 +77,27 @@ export default function CategoryFilter({ value, onChange }: CategoryFilterProps)
         if (active) setCategories(result)
       })
       .catch(() => {
-        // Without the registry the select stays empty, which is the same as having no filter
+        // Without the registry the field stays empty, which is the same as having no filter
       })
     return () => {
       active = false
     }
   }, [])
 
-  const groups = useMemo(() => categoryGroups(categories, t), [categories, t])
+  const data = useMemo(() => cascaderOptions(categories, t), [categories, t])
+  const path = useMemo(() => cascaderPath(categories, value), [categories, value])
 
   return (
-    <Group align='flex-end' gap='sm'>
-      <Select
-        clearable
-        data={groups}
-        label={t('categories.filterLabel')}
-        onChange={onChange}
-        placeholder={t('categories.filterAny')}
-        searchable
-        value={value}
-        w={filterWidth}
-      />
-      {value !== null && (
-        <Button leftSection={<XIcon size={16} />} onClick={() => onChange(null)} variant='subtle'>
-          {t('common.clearFilters')}
-        </Button>
-      )}
-    </Group>
+    <Cascader
+      changeOnSelect
+      clearable
+      data={data}
+      label={t('categories.filterLabel')}
+      onChange={(next) => onChange(next?.length ? next[next.length - 1] : null)}
+      placeholder={t('categories.filterAny')}
+      searchable
+      value={path}
+      w={filterWidth}
+    />
   )
 }
