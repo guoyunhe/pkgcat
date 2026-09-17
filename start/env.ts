@@ -42,4 +42,12 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   DRIVE_DISK: Env.schema.enum(['fs'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for reading the openSUSE Build Service
+  |----------------------------------------------------------
+  */
+  OBS_USER: Env.schema.string.optional(),
+  OBS_PASSWORD: Env.schema.secret.optional(),
 })

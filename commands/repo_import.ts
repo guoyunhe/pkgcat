@@ -7,9 +7,9 @@ import Repo from '#models/repo'
 import {
   eachObsRepository,
   obsRepoConfig,
+  type ObsProgress,
   type ObsRelease,
   type ObsRepository,
-  type ObsWalkProgress,
 } from '#services/obs_repositories'
 
 /** Repositories the build service keeps rebuilding, so they carry the weekly interval. */
@@ -32,9 +32,12 @@ type ImportCounts = { created: number; updated: number; unchanged: number; skipp
 
 /**
  * Imports the repositories build.opensuse.org publishes for the openSUSE releases of the catalog.
- * The download tree of the build service is walked rather than its API, which needs a login, and a
- * repository is stored under the name of the project that publishes it together with the repository
- * name, since that is what tells the repositories of a project apart.
+ * The API of the build service is read rather than its download tree walked, which took an hour and
+ * more for the whole service: the search reports every repository name of the service at once, and
+ * the publish area tells which projects carry a repository under such a name. A repository is
+ * stored under the name of the project that publishes it together with the repository name, since
+ * that is what tells the repositories of a project apart. Reading the API needs the credentials of
+ * an account, which are taken from OBS_USER and OBS_PASSWORD.
  */
 export default class RepoImport extends BaseCommand {
   static commandName = 'repo:import'
@@ -46,7 +49,7 @@ export default class RepoImport extends BaseCommand {
   }
 
   @args.string({
-    description: 'Project to read, e.g. home:guoyunhe (defaults to every project)',
+    description: 'Project or namespace to read, e.g. home:guoyunhe or devel: (defaults to all)',
     required: false,
   })
   declare project?: string
@@ -56,6 +59,12 @@ export default class RepoImport extends BaseCommand {
   })
   declare dryRun: boolean
 
+  @flags.number({
+    description: 'Number of requests the API is read with at the same time',
+    default: 8,
+  })
+  declare concurrency: number
+
   async run() {
     const releases = new Map<string, Distro[]>()
     for (const distro of await Distro.all()) {
@@ -64,10 +73,17 @@ export default class RepoImport extends BaseCommand {
     }
 
     // The repositories of the catalog are read once, so that an import writes only what it changed
-    // and a second run over the same tree finds nothing to do
+    // and a second run over the same service finds nothing to do. The maps are keyed the way the
+    // unique indexes of the table compare: two repositories whose names or URLs differ only in case
+    // cannot both be stored
     const stored = await Repo.query().preload('distros')
-    const byUrl = new Map(stored.map((repo) => [repo.baseUrl, repo]))
-    const byName = new Map(stored.map((repo) => [repo.name, repo]))
+    const byUrl = new Map(stored.map((repo) => [repoKey(repo.baseUrl), repo]))
+    const byName = new Map(stored.map((repo) => [repoKey(repo.name), repo]))
+
+    // Keys this run has taken. Several repositories are stored at a time, and the table keeps only
+    // one of a pair whose names or URLs differ in case, so a key is claimed before anything is
+    // awaited
+    const claimed = new Set<string>()
 
     const counts: ImportCounts = { created: 0, updated: 0, unchanged: 0, skipped: 0 }
     const unknownReleases = new Set<string>()
@@ -79,15 +95,11 @@ export default class RepoImport extends BaseCommand {
     )
     const progress = await eachObsRepository({
       project: this.project,
+      concurrency: this.concurrency,
       onRepository: async (repository) => {
         const served = repository.releases.flatMap(
           (release) => releases.get(releaseKey(release)) ?? [],
         )
-        if (served.length === 0) {
-          // Releases the catalog does not carry are reported once per repository, since only a
-          // release that is known at all can tell a missing one from an architecture that is
-          for (const release of repository.releases) unknownReleases.add(releaseLabel(release))
-        }
 
         // A repository is linked to the releases it publishes for; one that publishes nothing the
         // catalog carries (a 32-bit architecture, say) has no place in it
@@ -99,11 +111,19 @@ export default class RepoImport extends BaseCommand {
           return
         }
 
-        await this.save(repository, distroIds, counts, byUrl, byName, takenNames)
+        await this.save(repository, distroIds, counts, byUrl, byName, claimed, takenNames)
       },
-      onDirectory: (path) => this.logger.info(chalk.dim(path)),
+      onReleases: (releasesOfName) => {
+        // Releases the catalog does not carry are reported once per repository name, since only a
+        // release that is known at all can tell a missing one from an architecture that is
+        if (releasesOfName.some((release) => releases.has(releaseKey(release)))) return
+        for (const release of releasesOfName) unknownReleases.add(releaseLabel(release))
+      },
+      takesReleases: (releasesOfName) =>
+        releasesOfName.some((release) => releases.has(releaseKey(release))),
+      onRead: (path) => this.logger.info(chalk.dim(path)),
       onProgress: (state) => {
-        if (state.directories % 500 === 0) this.logger.info(chalk.dim(walkLine(state)))
+        if (state.read % 500 === 0) this.logger.info(chalk.dim(progressLine(state)))
       },
       onFailure: (url, error) => {
         if (failures.length < 3) {
@@ -120,12 +140,16 @@ export default class RepoImport extends BaseCommand {
     )
     this.logger.info(
       chalk.dim(
-        `${progress.directories} directories read, ${progress.repositories} repositories found` +
+        `${progress.names} names looked up, ${progress.repositories} repositories published,` +
+          ` ${progress.read} read` +
           (progress.failures > 0 ? `, ${progress.failures} unreadable` : ''),
       ),
     )
     for (const failure of failures) {
-      this.logger.warning(`Unable to read ${failure}`)
+      this.logger.warning(`Failed to import ${failure}`)
+    }
+    if (this.project && Object.values(counts).every((count) => count === 0)) {
+      this.logger.warning(`${this.project} holds no repository the catalog could take`)
     }
     const missing = [...unknownReleases]
     for (const release of missing.slice(0, 5)) {
@@ -151,9 +175,11 @@ export default class RepoImport extends BaseCommand {
     counts: ImportCounts,
     byUrl: Map<string, Repo>,
     byName: Map<string, Repo>,
+    claimed: Set<string>,
     takenNames: Set<string>,
   ) {
     const name = importLabel(repository)
+    const keys = [repoKey(repository.baseUrl), repoKey(name)]
     const attributes = {
       name,
       type: 'rpm',
@@ -164,11 +190,20 @@ export default class RepoImport extends BaseCommand {
       syncIntervalDays,
     }
 
-    const existing = byUrl.get(repository.baseUrl)
-    if (!existing && byName.has(name)) {
+    const existing = byUrl.get(keys[0])
+    // The indexes of the table compare without case, so a repository whose URL is stored under
+    // another spelling is the one already there: it cannot be stored beside it, and its spelling is
+    // left as it is
+    if (existing && existing.baseUrl !== repository.baseUrl) {
       takenNames.add(name)
       return
     }
+    if (!existing && (keys.some((key) => claimed.has(key)) || byName.has(keys[1]))) {
+      takenNames.add(name)
+      return
+    }
+
+    for (const key of keys) claimed.add(key)
 
     const storedLinks = (existing?.distros ?? []).map((distro) => distro.id).sort()
     const servedLinks = [...distroIds].sort()
@@ -184,8 +219,8 @@ export default class RepoImport extends BaseCommand {
         configContent: await obsRepoConfig(repository.configUrl),
       })
       await repo.related('distros').sync(servedLinks)
-      byUrl.set(repo.baseUrl, repo)
-      byName.set(repo.name, repo)
+      byUrl.set(repoKey(repo.baseUrl), repo)
+      byName.set(repoKey(repo.name), repo)
       counts.created += 1
       return
     }
@@ -206,7 +241,11 @@ export default class RepoImport extends BaseCommand {
   }
 }
 
-function walkLine({ directories, repositories, failures }: ObsWalkProgress) {
+function repoKey(value: string) {
+  return value.toLowerCase()
+}
+
+function progressLine({ names, repositories, read, failures }: ObsProgress) {
   const unreadable = failures > 0 ? ` (${failures} unreadable)` : ''
-  return `${directories} directories${unreadable}, ${repositories} repositories`
+  return `${read} of ${repositories} repositories read, ${names} names looked up${unreadable}`
 }
