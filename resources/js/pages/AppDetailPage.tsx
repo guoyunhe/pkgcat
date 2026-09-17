@@ -180,7 +180,7 @@ export default function AppDetailPage() {
         <div>
           <Text className={styles.eyebrow}>{t('detail.eyebrow')}</Text>
           <Group align='center' gap='sm' wrap='nowrap'>
-            <Title order={1}>{name}</Title>
+            <Title order={1}>{name || app.appstreamId}</Title>
             <FavoriteButton appId={app.id} favorite={app.isFavorite} size='xl' />
           </Group>
           <AverageRating count={app.reviewCount} size='lg' value={app.avgRating} />

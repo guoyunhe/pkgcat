@@ -33,7 +33,7 @@ export default function AppListItem({ app, actions }: AppListItemProps) {
       <Stack gap={4} flex={1}>
         <Title order={4}>
           <Link className={styles.link} href={`/apps/${app.id}`}>
-            {name}{' '}
+            {name || app.appstreamId}{' '}
             {app.version && (
               <Text c='dimmed' component='span'>
                 {app.version}
