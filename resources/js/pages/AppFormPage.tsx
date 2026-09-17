@@ -20,7 +20,7 @@ import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
 import AppTypeSelect from '../components/AppTypeSelect'
-import IconUpload from '../components/IconUpload'
+import ImageUpload from '../components/ImageUpload'
 import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
 import { defaultLanguage, languageOptions } from '../utils/languages'
 import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
@@ -153,10 +153,18 @@ export default function AppFormPage() {
         </Alert>
       )}
       <Stack className={styles.form}>
-        <IconUpload
-          previewUrl={iconUrl}
-          value={form.iconId ?? null}
+        <ImageUpload
+          acceptLabel={t('form.iconAccept')}
+          dropLabel={t('form.iconDrop')}
+          errorLabel={t('form.iconUploadError')}
+          formats={['svg', 'png']}
+          hint={t('form.iconHint')}
+          label={t('form.icon')}
           onChange={(iconId) => setForm((current) => ({ ...current, iconId }))}
+          previewUrl={iconUrl}
+          rejectLabel={t('form.iconRejected')}
+          removeLabel={t('form.iconRemove')}
+          value={form.iconId ?? null}
         />
         <Select
           allowDeselect={false}

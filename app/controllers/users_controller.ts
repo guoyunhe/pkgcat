@@ -10,6 +10,7 @@ export default class UsersController {
   async show({ params, serialize }: HttpContext) {
     const user = await User.findOrFail(params.id)
     await user.load('distro')
+    await user.load('avatar')
     return serialize(UserTransformer.transform(user))
   }
 

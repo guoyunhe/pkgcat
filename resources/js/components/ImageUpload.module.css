@@ -1,4 +1,4 @@
-.dropzone {
+.box {
   align-items: center;
   display: flex;
   height: 128px;
@@ -7,11 +7,10 @@
   width: 128px;
 }
 
-.preview {
-  display: block;
-  height: 128px;
-  object-fit: contain;
-  width: 128px;
+/* An avatar is a circle, and its picture fills it instead of being contained like an icon */
+.round {
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .aside {

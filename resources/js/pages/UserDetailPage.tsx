@@ -10,6 +10,7 @@ import { useAuth } from '../auth'
 import DistroRelease from '../components/DistroRelease'
 import FavoriteButton from '../components/FavoriteButton'
 import ReviewList from '../components/ReviewList'
+import UserAvatar from '../components/UserAvatar'
 import { deleteReview, getUserReviews } from '../services/reviews'
 import { getUser, getUserFavorites } from '../services/users'
 import type { Paginated } from '../types/pagination'
@@ -139,9 +140,7 @@ export default function UserDetailPage() {
   return (
     <main className={styles.page}>
       <header className={styles.profileHeader}>
-        <div className={styles.avatar} aria-hidden='true'>
-          {profile.name.charAt(0).toUpperCase()}
-        </div>
+        <UserAvatar size={88} user={profile} />
         <div>
           <Text className={styles.eyebrow}>
             {isOwn ? t('profile.eyebrowOwn') : t('profile.eyebrow')}

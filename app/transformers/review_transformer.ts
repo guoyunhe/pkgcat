@@ -3,13 +3,22 @@ import { BaseTransformer } from '@adonisjs/core/transformers'
 import type Review from '#models/review'
 import { localizedTexts } from '#services/app_translations'
 import DistroTransformer from '#transformers/distro_transformer'
+import ImageTransformer from '#transformers/image_transformer'
+import { gravatarUrl } from '#utils/gravatar'
 
 export default class ReviewTransformer extends BaseTransformer<Review> {
   toObject() {
+    const user = this.resource.user
     return {
       ...this.pick(this.resource, ['id', 'rating', 'comment', 'createdAt', 'updatedAt']),
-      user: this.resource.user
-        ? { id: this.resource.user.id, name: this.resource.user.name }
+      user: user
+        ? {
+            id: user.id,
+            name: user.name,
+            avatar: user.avatar ? ImageTransformer.describe(user.avatar) : null,
+            /** What the author is shown by while they have uploaded no avatar. */
+            gravatarUrl: gravatarUrl(user.email),
+          }
         : null,
       app: this.resource.app
         ? { id: this.resource.app.id, name: localizedTexts(this.resource.app.translations, 'name') }

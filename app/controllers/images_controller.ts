@@ -6,7 +6,7 @@ import Image, { imageFormats, type ImageOptions } from '#models/image'
 import ImageTransformer from '#transformers/image_transformer'
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
-const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg']
+const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg', 'heic', 'heif']
 const fitModes = ['contain', 'cover', 'fill', 'inside', 'outside'] as const
 const outputFormats = ['jpeg', 'png', 'webp', 'avif'] as const
 

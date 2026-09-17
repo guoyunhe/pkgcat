@@ -348,8 +348,10 @@ export class ReviewSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'distroId', 'email', 'id', 'name', 'password', 'role', 'updatedAt'] as const
+  static $columns = ['avatarId', 'createdAt', 'distroId', 'email', 'id', 'name', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
+  @column()
+  declare avatarId: number | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
   @column()

@@ -6,6 +6,7 @@ import { Link } from 'wouter'
 
 import { localized } from '../utils/appstream'
 import DistroRelease from './DistroRelease'
+import UserAvatar from './UserAvatar'
 
 import styles from './ReviewListItem.module.css'
 
@@ -41,44 +42,49 @@ export default function ReviewListItem({
 
   return (
     <article className={styles.item}>
-      <Group justify='space-between' wrap='nowrap'>
-        <div className={styles.heading}>
-          {variant === 'app' ? (
-            review.user ? (
-              <Link className={styles.link} href={`/users/${review.user.id}`}>
-                {review.user.name}
-              </Link>
-            ) : (
-              <Text c='dimmed' size='sm'>
-                {t('reviews.deletedUser')}
-              </Text>
-            )
-          ) : review.app ? (
-            <Link className={styles.link} href={`/apps/${review.app.id}`}>
-              {localized(review.app.name, language)}
-            </Link>
-          ) : null}
-          {date && (
-            <Text c='dimmed' size='xs'>
-              {date}
-            </Text>
-          )}
-          {review.distro && (
-            <Text c='dimmed' component='span' size='xs'>
-              <DistroRelease distro={review.distro} showArch />
+      <div className={styles.row}>
+        {variant === 'app' && review.user && <UserAvatar size={40} user={review.user} />}
+        <div className={styles.body}>
+          <Group justify='space-between' wrap='nowrap'>
+            <div className={styles.heading}>
+              {variant === 'app' ? (
+                review.user ? (
+                  <Link className={styles.link} href={`/users/${review.user.id}`}>
+                    {review.user.name}
+                  </Link>
+                ) : (
+                  <Text c='dimmed' size='sm'>
+                    {t('reviews.deletedUser')}
+                  </Text>
+                )
+              ) : review.app ? (
+                <Link className={styles.link} href={`/apps/${review.app.id}`}>
+                  {localized(review.app.name, language)}
+                </Link>
+              ) : null}
+              {date && (
+                <Text c='dimmed' size='xs'>
+                  {date}
+                </Text>
+              )}
+              {review.distro && (
+                <Text c='dimmed' component='span' size='xs'>
+                  <DistroRelease distro={review.distro} showArch />
+                </Text>
+              )}
+            </div>
+            <Group gap='xs' wrap='nowrap'>
+              <Rating count={5} readOnly value={review.rating} />
+              {actions}
+            </Group>
+          </Group>
+          {review.comment && (
+            <Text className={styles.comment} size='sm'>
+              {review.comment}
             </Text>
           )}
         </div>
-        <Group gap='xs' wrap='nowrap'>
-          <Rating count={5} readOnly value={review.rating} />
-          {actions}
-        </Group>
-      </Group>
-      {review.comment && (
-        <Text className={styles.comment} size='sm'>
-          {review.comment}
-        </Text>
-      )}
+      </div>
     </article>
   )
 }

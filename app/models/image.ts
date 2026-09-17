@@ -98,7 +98,7 @@ export default class Image extends ImageSchema {
   /** Write the bytes of an image and describe them; the owner of a row is set where it is created. */
   private static async process(data: Buffer, options: ImageOptions) {
     const maxSize = options.maxSize ?? DEFAULT_MAX_SIZE
-    const sourceMetadata = await sharp(data).metadata()
+    const sourceMetadata = await this.readSharp(() => sharp(data).metadata())
     const preserveSvg =
       sourceMetadata.format === 'svg' && !options.width && !options.height && !options.format
     let outputData = data
@@ -115,8 +115,13 @@ export default class Image extends ImageSchema {
         })
       }
       if (options.format) processor = processor.toFormat(options.format)
+      // The library reads a picture a phone took — and an AVIF — as "heif" and would keep it as it
+      // came, which no browser shows and the catalog does not store: those are written as JPEG
+      else if (!sourceMetadata.format || !isImageFormat(sourceMetadata.format)) {
+        processor = processor.toFormat('jpeg')
+      }
 
-      const output = await processor.toBuffer({ resolveWithObject: true })
+      const output = await this.readSharp(() => processor.toBuffer({ resolveWithObject: true }))
       outputData = output.data
       format = output.info.format
       width = output.info.width
@@ -157,6 +162,19 @@ export default class Image extends ImageSchema {
       width,
       height,
       format,
+    }
+  }
+
+  /**
+   * Run a step of the library. A file it cannot read — a picture whose codec it was built without,
+   * such as a phone photograph on a libvips without HEVC, or something that is not an image at all
+   * — is a bad request and not a failure of the catalog.
+   */
+  private static async readSharp<Result>(step: () => Promise<Result>) {
+    try {
+      return await step()
+    } catch {
+      throw new Exception('Unable to read the image', { status: 422 })
     }
   }
 

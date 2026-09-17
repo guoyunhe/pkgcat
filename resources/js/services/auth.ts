@@ -20,6 +20,7 @@ export type ProfilePayload = {
   name: string
   email: string
   distroId: number | null
+  avatarId: number | null
 }
 
 export type PasswordPayload = {

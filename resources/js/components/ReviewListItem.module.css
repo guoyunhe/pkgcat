@@ -3,6 +3,17 @@
   padding: 16px 0;
 }
 
+/* The picture of the reviewer sits beside the review, which keeps the rest of the row together */
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
 .heading {
   align-items: center;
   display: flex;

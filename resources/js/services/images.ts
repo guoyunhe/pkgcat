@@ -11,8 +11,13 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+/** Formats the image endpoint stores, which are also the values `acceptedFormats` takes. */
+export const imageFormats = ['svg', 'png', 'jpeg', 'webp', 'avif', 'gif'] as const
+
+export type ImageFormat = (typeof imageFormats)[number]
+
 export type ImageUploadOptions = {
-  acceptedFormats?: string[]
+  acceptedFormats?: ImageFormat[]
 }
 
 export async function getImages() {

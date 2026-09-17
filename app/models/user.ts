@@ -15,7 +15,7 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   static accessTokens = DbAccessTokensProvider.forModel(User)
   declare currentAccessToken?: AccessToken
 
-  @belongsTo(() => Image)
+  @belongsTo(() => Image, { foreignKey: 'avatarId' })
   declare avatar: BelongsTo<typeof Image>
 
   @belongsTo(() => Distro)

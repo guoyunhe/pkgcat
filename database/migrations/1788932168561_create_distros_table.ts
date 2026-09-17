@@ -34,19 +34,9 @@ export default class extends BaseSchema {
       table.timestamp('created_at').notNullable().defaultTo(this.now())
       table.timestamp('updated_at').nullable()
     })
-
-    // The distribution a user is running points here, so the constraint belongs to the table it
-    // points at: `distros` is written after `users`, which only holds the column.
-    this.schema.alterTable('users', (table) => {
-      table.foreign('distro_id').references('id').inTable('distros').onDelete('SET NULL')
-    })
   }
 
   async down() {
-    // A table cannot be dropped while another one points at it, so the pointer goes first.
-    this.schema.alterTable('users', (table) => {
-      table.dropForeign('distro_id')
-    })
     this.schema.dropTable(this.tableName)
   }
 }

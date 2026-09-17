@@ -7,6 +7,7 @@ import { Redirect } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroSelect from '../components/DistroSelect'
+import ImageUpload from '../components/ImageUpload'
 import { updatePassword, updateProfile } from '../services/auth'
 
 import styles from './SettingsPage.module.css'
@@ -15,6 +16,7 @@ type ProfileValues = {
   name: string
   email: string
   distroId: string | null
+  avatarId: number | null
 }
 
 type PasswordValues = {
@@ -40,7 +42,7 @@ export default function SettingsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null)
 
   const profileForm = useForm<ProfileValues>({
-    initialValues: { email: '', name: '', distroId: null },
+    initialValues: { email: '', name: '', distroId: null, avatarId: null },
   })
   const passwordForm = useForm<PasswordValues>({
     initialValues: { currentPassword: '', password: '', passwordConfirmation: '' },
@@ -52,6 +54,7 @@ export default function SettingsPage() {
         email: user.email,
         name: user.name,
         distroId: user.distroId ? String(user.distroId) : null,
+        avatarId: user.avatar?.id ?? null,
       })
     }
   }, [user])
@@ -74,6 +77,7 @@ export default function SettingsPage() {
       setPasswordError(null)
       setUser(
         await updateProfile({
+          avatarId: values.avatarId,
           email: values.email,
           name: values.name,
           distroId: values.distroId ? Number(values.distroId) : null,
@@ -126,6 +130,21 @@ export default function SettingsPage() {
             {profileError && <Alert color='red'>{profileError}</Alert>}
             <form onSubmit={profileForm.onSubmit(saveProfile)}>
               <Stack>
+                <ImageUpload
+                  acceptLabel={t('settings.avatarAccept')}
+                  dropLabel={t('form.iconDrop')}
+                  errorLabel={t('settings.avatarUploadError')}
+                  extraMediaTypes={['image/heic', 'image/heif']}
+                  formats={['png', 'jpeg', 'webp']}
+                  hint={t('settings.avatarHint')}
+                  label={t('settings.avatar')}
+                  onChange={(avatarId) => profileForm.setFieldValue('avatarId', avatarId)}
+                  previewUrl={user.avatar?.url ?? null}
+                  rejectLabel={t('settings.avatarRejected')}
+                  removeLabel={t('settings.avatarRemove')}
+                  round
+                  value={profileForm.values.avatarId}
+                />
                 <TextInput
                   label={t('common.name')}
                   required

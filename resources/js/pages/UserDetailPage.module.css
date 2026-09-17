@@ -19,20 +19,6 @@
   padding-bottom: 32px;
 }
 
-.avatar {
-  align-items: center;
-  background: var(--ph-primary);
-  border-radius: 50%;
-  color: #fff;
-  display: flex;
-  font-size: 36px;
-  font-weight: 700;
-  height: 88px;
-  justify-content: center;
-  text-transform: uppercase;
-  width: 88px;
-}
-
 .eyebrow {
   color: var(--ph-primary);
   font-weight: 700;

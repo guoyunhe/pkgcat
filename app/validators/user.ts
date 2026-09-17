@@ -33,6 +33,8 @@ export const profileValidator = vine.create({
   }),
   // The distribution the account runs, which its reviews name by default. An account may name none.
   distroId: vine.number().exists({ table: 'distros', column: 'id' }).nullable(),
+  // The image the account uploaded as its avatar; an account without one is shown by its email.
+  avatarId: vine.number().exists({ table: 'images', column: 'id' }).nullable(),
 })
 
 /**

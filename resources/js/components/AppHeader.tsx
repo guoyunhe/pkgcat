@@ -29,6 +29,7 @@ import { Link, useLocation, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import LanguageMenu from './LanguageMenu'
+import UserAvatar from './UserAvatar'
 
 import styles from './AppHeader.module.css'
 
@@ -168,7 +169,7 @@ export default function AppHeader() {
                   title={t('common.account')}
                   variant='default'
                 >
-                  <UserCircleIcon size={20} />
+                  <UserAvatar size={20} user={user} />
                 </ActionIcon>
               </Menu.Target>
               <Menu.Dropdown>

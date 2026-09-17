@@ -28,6 +28,7 @@ export default class AuthController {
     const { email, password } = await request.validateUsing(loginValidator)
 
     const user = await User.verifyCredentials(email, password)
+    await user.load('avatar')
     const token = await User.accessTokens.create(user)
 
     return serialize({
@@ -52,7 +53,11 @@ export default class AuthController {
    * catalog pages read a user through `users/:id`, which leaves the account details out.
    */
   async user({ auth, serialize }: HttpContext) {
-    return serialize(ProfileTransformer.transform(auth.getUserOrFail()))
+    // The account the guard read is a user; the token it read it by is not part of the answer
+    const user: User = auth.getUserOrFail()
+    await user.load('avatar')
+
+    return serialize(ProfileTransformer.transform(user))
   }
 
   /**
@@ -60,10 +65,13 @@ export default class AuthController {
    * validator is told which account is being edited.
    */
   async updateProfile({ request, auth, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user: User = auth.getUserOrFail()
     const payload = await request.validateUsing(profileValidator, { meta: { userId: user.id } })
 
     await user.merge(payload).save()
+    // The answer names what the account is shown by, which the avatar it just set is part of
+    await user.load('avatar')
+
     return serialize(ProfileTransformer.transform(user))
   }
 
