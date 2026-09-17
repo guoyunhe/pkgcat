@@ -32,6 +32,9 @@ export const i18nReady = i18n
     supportedLngs: supportedLocales(),
     load: 'currentOnly',
     fallbackLng: fallbackLanguage() || 'en',
+    // A category a language does not translate is written as an empty value, which falls through to
+    // the fallback language and, at the end, to the key, which is the code of the category
+    returnEmptyString: false,
     interpolation: { escapeValue: false },
     /**
      * Every namespace is one file per language under `public/locales/<language>/`, which is the

@@ -45,3 +45,9 @@ export type RepoSeed = {
   configUrl?: string
   installScript?: string
 }
+
+/** One entry of the category registry: the code AppStream components carry and its parent. */
+export type CategorySeed = {
+  code: string
+  parent: string | null
+}

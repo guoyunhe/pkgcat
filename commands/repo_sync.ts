@@ -321,6 +321,8 @@ export default class RepoSync extends BaseCommand {
     // Package names the repository's own metadata already assigns to an application. The package
     // name mappings only fill in what is left over, so that curated metadata keeps winning.
     const claimedPkgNames = new Set<string>()
+    // Codes the components of the repository declare that no category of the registry carries
+    const unknownCategories = new Set<string>()
     const candidates = entries.filter(
       (entry) =>
         desktopAppTypes.includes(entry.component.type) &&
@@ -403,7 +405,21 @@ export default class RepoSync extends BaseCommand {
 
       // Categories are linked as well, so that a synchronization backfills applications that were
       // imported before categories were extracted
-      if (app.id) result.categories += await this.syncCategories(app, entry.component.categories)
+      if (app.id) {
+        result.categories += await this.syncCategories(
+          app,
+          entry.component.categories,
+          unknownCategories,
+        )
+      }
+    }
+
+    // The registry of `database/data/categories` is the only writer of the category tree, so a code
+    // it does not carry is reported instead of being written into the catalog
+    if (unknownCategories.size > 0) {
+      this.logger.warning(
+        `${repo.name}: categories unknown to the registry: ${[...unknownCategories].sort().join(', ')}`,
+      )
     }
 
     if (pendingIcons.length > 0) {
@@ -646,22 +662,19 @@ export default class RepoSync extends BaseCommand {
   }
 
   /**
-   * Attach the categories a component declares to its application. Codes that are not part of the
-   * registry are created with the code as their English name, so that repository metadata is never
-   * dropped, while known rows keep the translations and tree position the category seeder set up.
-   * Categories are only added, never removed, so curating an application by hand survives the next
-   * synchronization.
+   * Attach the categories a component declares to its application, and collect the codes no
+   * category carries in `unknown`: the registry of `database/data/categories` is the only writer of
+   * the category tree, so a code it does not hold is reported rather than created. Known rows keep
+   * the tree position the category seeder gave them, and categories are only added, never removed,
+   * so curating an application by hand survives the next synchronization.
    */
-  private async syncCategories(app: App, codes: string[]) {
+  private async syncCategories(app: App, codes: string[], unknown: Set<string>) {
     if (codes.length === 0) return 0
 
     const known = await Category.query().whereIn('code', codes)
     const byCode = new Map(known.map((category) => [category.code.toLowerCase(), category]))
-
     for (const code of codes) {
-      if (byCode.has(code.toLowerCase())) continue
-      const category = await Category.create({ code, parentId: null })
-      byCode.set(code.toLowerCase(), category)
+      if (!byCode.has(code.toLowerCase())) unknown.add(code)
     }
 
     await app.related('categories').sync(
