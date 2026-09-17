@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "本目录中的账户：对外显示的名称与邮箱，以及保护它的密码。",
     "profileHint": "目录中显示在你的评价与收藏旁边的名称。",
+    "distroHint": "你正在使用的发行版，写评价时默认用它标记。",
     "email": "邮箱",
     "saveProfile": "保存资料",
     "profileSaved": "资料已保存。",

@@ -16,6 +16,7 @@ export default class ReviewsController {
     const paginator = await Review.query()
       .where('appId', params.app_id)
       .preload('user')
+      .preload('distro')
       .orderBy('createdAt', 'desc')
       .paginate(page, perPage)
 
@@ -30,6 +31,7 @@ export default class ReviewsController {
     const paginator = await Review.query()
       .where('userId', params.id)
       .preload('app')
+      .preload('distro')
       .orderBy('createdAt', 'desc')
       .paginate(page, perPage)
 
@@ -48,11 +50,16 @@ export default class ReviewsController {
 
     const review = await Review.updateOrCreate(
       { userId: user.id, appId: app.id },
-      { rating: payload.rating, comment: payload.comment?.trim() || null },
+      {
+        rating: payload.rating,
+        comment: payload.comment?.trim() || null,
+        distroId: payload.distroId,
+      },
     )
     await review.load('user')
+    await review.load('distro')
 
-    response.created()
+    response.status(201)
     return serialize(ReviewTransformer.transform(review))
   }
 

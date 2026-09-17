@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Redirect } from 'wouter'
 
 import { useAuth } from '../auth'
+import DistroSelect from '../components/DistroSelect'
 import { updatePassword, updateProfile } from '../services/auth'
 
 import styles from './SettingsPage.module.css'
@@ -13,6 +14,7 @@ import styles from './SettingsPage.module.css'
 type ProfileValues = {
   name: string
   email: string
+  distroId: string | null
 }
 
 type PasswordValues = {
@@ -37,13 +39,21 @@ export default function SettingsPage() {
   const [passwordSaved, setPasswordSaved] = useState(false)
   const [passwordError, setPasswordError] = useState<string | null>(null)
 
-  const profileForm = useForm<ProfileValues>({ initialValues: { email: '', name: '' } })
+  const profileForm = useForm<ProfileValues>({
+    initialValues: { email: '', name: '', distroId: null },
+  })
   const passwordForm = useForm<PasswordValues>({
     initialValues: { currentPassword: '', password: '', passwordConfirmation: '' },
   })
 
   useEffect(() => {
-    if (user) profileForm.setValues({ email: user.email, name: user.name })
+    if (user) {
+      profileForm.setValues({
+        email: user.email,
+        name: user.name,
+        distroId: user.distroId ? String(user.distroId) : null,
+      })
+    }
   }, [user])
 
   if (!ready)
@@ -62,7 +72,13 @@ export default function SettingsPage() {
       // One section is saved at a time, so a confirmation left over from the other one is dropped
       setPasswordSaved(false)
       setPasswordError(null)
-      setUser(await updateProfile(values))
+      setUser(
+        await updateProfile({
+          email: values.email,
+          name: values.name,
+          distroId: values.distroId ? Number(values.distroId) : null,
+        }),
+      )
       setProfileSaved(true)
     } catch (reason) {
       setProfileError(reason instanceof Error ? reason.message : t('settings.saveError'))
@@ -120,6 +136,13 @@ export default function SettingsPage() {
                   required
                   type='email'
                   {...profileForm.getInputProps('email')}
+                />
+                <DistroSelect
+                  description={t('settings.distroHint')}
+                  label={t('common.distribution')}
+                  onChange={(value) => profileForm.setFieldValue('distroId', value)}
+                  searchable
+                  value={profileForm.values.distroId}
                 />
                 <Group justify='flex-end'>
                   <Button

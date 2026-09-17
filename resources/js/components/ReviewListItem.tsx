@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
 import { localized } from '../utils/appstream'
+import DistroRelease from './DistroRelease'
 
 import styles from './ReviewListItem.module.css'
 
@@ -60,6 +61,11 @@ export default function ReviewListItem({
           {date && (
             <Text c='dimmed' size='xs'>
               {date}
+            </Text>
+          )}
+          {review.distro && (
+            <Text c='dimmed' component='span' size='xs'>
+              <DistroRelease distro={review.distro} />
             </Text>
           )}
         </div>

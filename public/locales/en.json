@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "The account this catalog knows you by: its name and email, and the password that protects it.",
     "profileHint": "The name the catalog shows next to your reviews and favorites.",
+    "distroHint": "The distribution you are running, which your reviews are written for by default.",
     "email": "Email",
     "saveProfile": "Save profile",
     "profileSaved": "Your profile has been saved.",

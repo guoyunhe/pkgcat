@@ -9,6 +9,7 @@ import UserTransformer from '#transformers/user_transformer'
 export default class UsersController {
   async show({ params, serialize }: HttpContext) {
     const user = await User.findOrFail(params.id)
+    await user.load('distro')
     return serialize(UserTransformer.transform(user))
   }
 

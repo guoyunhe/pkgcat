@@ -11,6 +11,15 @@ export default class extends BaseSchema {
       table.string('password').notNullable()
       table.string('role').notNullable().defaultTo('user').index()
 
+      // The distribution the user is running, which their reviews name by default.
+      table
+        .integer('distro_id')
+        .unsigned()
+        .nullable()
+        .references('id')
+        .inTable('distros')
+        .onDelete('SET NULL')
+
       table.timestamp('created_at').notNullable().defaultTo(this.now())
       table.timestamp('updated_at').nullable()
     })

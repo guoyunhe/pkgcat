@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "La cuenta con la que este catálogo te conoce: su nombre y su correo, y la contraseña que la protege.",
     "profileHint": "El nombre que el catálogo muestra junto a tus reseñas y favoritos.",
+    "distroHint": "La distribución que usas; tus reseñas la indican de forma predeterminada.",
     "email": "Correo",
     "saveProfile": "Guardar perfil",
     "profileSaved": "Tu perfil se ha guardado.",

@@ -1,10 +1,11 @@
 import { Alert, Button, Group, Rating, Text, Textarea } from '@mantine/core'
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
 import { createReview } from '../services/reviews'
+import DistroSelect from './DistroSelect'
 
 import styles from './ReviewForm.module.css'
 
@@ -19,8 +20,14 @@ export default function ReviewForm({ appId, onSubmitted }: ReviewFormProps) {
   const [, navigate] = useLocation()
   const [rating, setRating] = useState(0)
   const [comment, setComment] = useState('')
+  const [distroId, setDistroId] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // The distribution of the account is the one the review names until the reviewer says otherwise
+  useEffect(() => {
+    setDistroId(user?.distroId ? String(user.distroId) : null)
+  }, [user])
 
   if (!ready || !user) {
     return (
@@ -37,7 +44,11 @@ export default function ReviewForm({ appId, onSubmitted }: ReviewFormProps) {
     setPending(true)
     setError(null)
     try {
-      await createReview(appId, { rating, comment: comment.trim() || undefined })
+      await createReview(appId, {
+        rating,
+        comment: comment.trim() || undefined,
+        distroId: distroId ? Number(distroId) : null,
+      })
       setRating(0)
       setComment('')
       onSubmitted()
@@ -59,6 +70,12 @@ export default function ReviewForm({ appId, onSubmitted }: ReviewFormProps) {
         onChange={setRating}
         size='lg'
         value={rating}
+      />
+      <DistroSelect
+        label={t('common.distribution')}
+        onChange={setDistroId}
+        searchable
+        value={distroId}
       />
       <Textarea
         autosize

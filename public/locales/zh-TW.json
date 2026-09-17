@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "本目錄中的帳號：對外顯示的名稱與電子郵件，以及保護它的密碼。",
     "profileHint": "目錄中顯示在你的評論與收藏旁邊的名稱。",
+    "distroHint": "你正在使用的發行版，寫評論時預設用它標記。",
     "email": "電子郵件",
     "saveProfile": "儲存資料",
     "profileSaved": "資料已儲存。",

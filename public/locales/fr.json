@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "Le compte sous lequel ce catalogue vous connaît : son nom et son adresse e-mail, et le mot de passe qui le protège.",
     "profileHint": "Le nom que le catalogue affiche à côté de vos avis et de vos favoris.",
+    "distroHint": "La distribution que vous utilisez ; vos avis la nomment par défaut.",
     "email": "Adresse e-mail",
     "saveProfile": "Enregistrer le profil",
     "profileSaved": "Votre profil a été enregistré.",

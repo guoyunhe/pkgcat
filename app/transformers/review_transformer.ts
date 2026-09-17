@@ -2,6 +2,7 @@ import { BaseTransformer } from '@adonisjs/core/transformers'
 
 import type Review from '#models/review'
 import { localizedTexts } from '#services/app_translations'
+import DistroTransformer from '#transformers/distro_transformer'
 
 export default class ReviewTransformer extends BaseTransformer<Review> {
   toObject() {
@@ -13,6 +14,8 @@ export default class ReviewTransformer extends BaseTransformer<Review> {
       app: this.resource.app
         ? { id: this.resource.app.id, name: localizedTexts(this.resource.app.translations, 'name') }
         : null,
+      /** The distribution the application was experienced on, when the review names one. */
+      distro: this.resource.distro ? DistroTransformer.transform(this.resource.distro) : null,
     }
   }
 }

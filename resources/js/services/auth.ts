@@ -19,6 +19,7 @@ export type RegisterPayload = LoginPayload & {
 export type ProfilePayload = {
   name: string
   email: string
+  distroId: number | null
 }
 
 export type PasswordPayload = {

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useRoute, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
+import DistroRelease from '../components/DistroRelease'
 import FavoriteButton from '../components/FavoriteButton'
 import ReviewList from '../components/ReviewList'
 import { deleteReview, getUserReviews } from '../services/reviews'
@@ -149,6 +150,11 @@ export default function UserDetailPage() {
           {memberSince && (
             <Text c='dimmed' size='sm'>
               {t('memberSince')} {memberSince}
+            </Text>
+          )}
+          {profile.distro && (
+            <Text c='dimmed' size='sm'>
+              {t('common.distribution')} <DistroRelease distro={profile.distro} />
             </Text>
           )}
         </div>

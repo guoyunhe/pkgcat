@@ -31,6 +31,8 @@ export const profileValidator = vine.create({
       if (userId) db.whereNot('id', userId)
     },
   }),
+  // The distribution the account runs, which its reviews name by default. An account may name none.
+  distroId: vine.number().exists({ table: 'distros', column: 'id' }).nullable(),
 })
 
 /**

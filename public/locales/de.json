@@ -298,6 +298,7 @@
   "settings": {
     "subtitle": "Das Konto, unter dem dieser Katalog Sie kennt: Name und E-Mail-Adresse und das Passwort, das es schützt.",
     "profileHint": "Der Name, den der Katalog neben Ihren Bewertungen und Favoriten anzeigt.",
+    "distroHint": "Die Distribution, die Sie verwenden; Ihre Bewertungen nennen sie standardmäßig.",
     "email": "E-Mail",
     "saveProfile": "Profil speichern",
     "profileSaved": "Ihr Profil wurde gespeichert.",

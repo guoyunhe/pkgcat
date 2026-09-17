@@ -2,11 +2,12 @@ import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { compose } from '@adonisjs/core/helpers'
 import hash from '@adonisjs/core/services/hash'
-import { hasMany, manyToMany } from '@adonisjs/lucid/orm'
-import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 
 import { UserSchema } from '#database/schema'
 import App from '#models/app'
+import Distro from '#models/distro'
 import Review from '#models/review'
 
 export default class User extends compose(UserSchema, withAuthFinder(hash)) {
@@ -18,4 +19,8 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
 
   @hasMany(() => Review)
   declare reviews: HasMany<typeof Review>
+
+  /** The distribution the user is running, which their reviews name by default. */
+  @belongsTo(() => Distro)
+  declare distro: BelongsTo<typeof Distro>
 }

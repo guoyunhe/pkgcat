@@ -327,7 +327,7 @@ export class RepoSchema extends BaseModel {
 }
 
 export class ReviewSchema extends BaseModel {
-  static $columns = ['appId', 'comment', 'createdAt', 'id', 'rating', 'updatedAt', 'userId'] as const
+  static $columns = ['appId', 'comment', 'createdAt', 'distroId', 'id', 'rating', 'updatedAt', 'userId'] as const
   $columns = ReviewSchema.$columns
   @column()
   declare appId: number
@@ -335,6 +335,8 @@ export class ReviewSchema extends BaseModel {
   declare comment: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column()
+  declare distroId: number | null
   @column({ isPrimary: true })
   declare id: number
   @column()
@@ -346,10 +348,12 @@ export class ReviewSchema extends BaseModel {
 }
 
 export class UserSchema extends BaseModel {
-  static $columns = ['createdAt', 'email', 'id', 'name', 'password', 'role', 'updatedAt'] as const
+  static $columns = ['createdAt', 'distroId', 'email', 'id', 'name', 'password', 'role', 'updatedAt'] as const
   $columns = UserSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column()
+  declare distroId: number | null
   @column()
   declare email: string
   @column({ isPrimary: true })

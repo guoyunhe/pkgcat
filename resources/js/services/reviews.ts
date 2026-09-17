@@ -14,6 +14,7 @@ function authHeaders() {
 export type ReviewPayload = {
   rating: number
   comment?: string
+  distroId: number | null
 }
 
 export async function getAppReviews(appId: number, page = 1, locale?: string) {
