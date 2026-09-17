@@ -27,6 +27,7 @@ import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ExtractedPackage, RepoPackageType } from '#services/repo_package_extractor'
 import { belongsToArch } from '#utils/arch'
 import { collectGarbage } from '#utils/memory'
+import { truncateText } from '#utils/text'
 import { compareVersions } from '#utils/version'
 
 type PackageIdentity = Pick<ExtractedPackage, 'name' | 'version' | 'release' | 'arch'>
@@ -263,8 +264,10 @@ export default class RepoSync extends BaseCommand {
         release: item.release,
         arch: item.arch,
         license: item.license,
-        summary: item.summary,
-        description: item.description,
+        // A description of a repository package is written by its maintainer and may run past what
+        // the columns of the catalog hold, which would fail the write of the whole package
+        summary: truncateText(item.summary),
+        description: truncateText(item.description),
         downloadUrl: item.downloadUrl,
         checksum: item.checksum,
         checksumType: item.checksumType,
