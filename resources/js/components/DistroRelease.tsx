@@ -11,6 +11,11 @@ type DistroReleaseProps = {
    * same release, and it is named when they differ.
    */
   arch?: string
+  /**
+   * Name the architecture even though nothing sits next to the release, which is how a release that
+   * stands on its own is named: the distribution a user runs, or the one a review was written on.
+   */
+  showArch?: boolean
 }
 
 /**
@@ -20,16 +25,16 @@ type DistroReleaseProps = {
  *
  * A rolling release carries no version, which is why it is named by its distribution alone.
  */
-export default function DistroRelease({ arch, distro }: DistroReleaseProps) {
+export default function DistroRelease({ arch, distro, showArch }: DistroReleaseProps) {
+  const namesArch = showArch || (arch !== undefined && arch !== distro.arch)
+
   return (
     <span className={styles.release}>
       <img alt='' className={styles.icon} src={`/distros/${encodeURIComponent(distro.name)}.svg`} />
       <span className={styles.name}>
         {distro.version ? `${distro.name} ${distro.version}` : distro.name}
       </span>
-      {arch !== undefined && arch !== distro.arch && (
-        <span className={styles.arch}>({distro.arch})</span>
-      )}
+      {namesArch && <span className={styles.arch}>({distro.arch})</span>}
     </span>
   )
 }

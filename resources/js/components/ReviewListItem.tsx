@@ -65,7 +65,7 @@ export default function ReviewListItem({
           )}
           {review.distro && (
             <Text c='dimmed' component='span' size='xs'>
-              <DistroRelease distro={review.distro} />
+              <DistroRelease distro={review.distro} showArch />
             </Text>
           )}
         </div>
