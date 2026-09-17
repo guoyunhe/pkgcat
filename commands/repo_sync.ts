@@ -561,6 +561,12 @@ export default class RepoSync extends BaseCommand {
         if (!packaged) continue
 
         const extracted = packaged.app
+        const name = Object.keys(extracted.component.name).length > 0
+        const summary = Object.keys(extracted.component.summary).length > 0
+        // A metadata file that names the application nowhere is not one the catalog can show, so no
+        // application is created for it: its packages stay with the package name mappings
+        if (!app && !name) continue
+
         if (!app) {
           // Only metadata that was read creates an application, so its content, name and summary are
           // stored in one go instead of as a placeholder a later synchronization would complete
@@ -579,8 +585,6 @@ export default class RepoSync extends BaseCommand {
           result.linked += await this.linkInferredPackages(app, repo, files)
           for (const file of files) claimedPkgNames.add(file.pkgName)
         } else if (!app.appstreamContent) {
-          const name = Object.keys(extracted.component.name).length > 0
-          const summary = Object.keys(extracted.component.summary).length > 0
           await app.merge({
             type: canonicalAppType(extracted.component.type),
             version: appstreamVersion(extracted.component) ?? app.version,
@@ -614,13 +618,13 @@ export default class RepoSync extends BaseCommand {
             error instanceof Error ? error.message : String(error)
           }`,
         )
+      } finally {
+        // A package is downloaded and decompressed in pieces that are only released once the garbage
+        // collector runs, and the memory of a package of a hundred megabytes has to be gone before
+        // the next one is read
+        read += 1
+        if (read % appCollectionInterval === 0) collectGarbage()
       }
-
-      // A package is downloaded and decompressed in pieces that are only released once the garbage
-      // collector runs, and the memory of a package of a hundred megabytes has to be gone before
-      // the next one is read
-      read += 1
-      if (read % appCollectionInterval === 0) collectGarbage()
     }
 
     return result
