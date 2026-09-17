@@ -6,7 +6,7 @@ export type PkgNameMapping = {
 }
 
 /** Package formats a mapping can be limited to; anything else is part of the package name. */
-const pkgTypes = ['deb', 'rpm', 'appimage']
+const pkgTypes = ['deb', 'rpm', 'pacman', 'appimage']
 
 /**
  * Tag a mapping is edited as in the form. The package format is written in front of the name

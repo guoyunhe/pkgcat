@@ -10,7 +10,7 @@ import { pkgDownloadUrl } from '../utils/pkgs'
 
 import styles from './PkgListItem.module.css'
 
-const packageTypesWithIcons = new Set(['rpm', 'deb', 'appimage'])
+const packageTypesWithIcons = new Set(['rpm', 'deb', 'pacman', 'appimage'])
 
 type PkgListItemProps = {
   pkg: Data.Pkg

@@ -6,7 +6,7 @@ import { firstValue, localeField, pageNumber, positiveInteger } from '#utils/que
  * Package formats that can be created or edited by hand. Uploaded files are recognized by their
  * archive magic instead.
  */
-export const pkgTypes = ['deb', 'rpm', 'appimage', 'flatpak', 'snap', 'tar.gz'] as const
+export const pkgTypes = ['deb', 'rpm', 'pacman', 'appimage', 'flatpak', 'snap', 'tar.gz'] as const
 
 /**
  * HTML forms send empty strings for unset values and JSON clients may omit the key entirely. Both

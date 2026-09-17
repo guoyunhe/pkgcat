@@ -7,16 +7,24 @@ import { pipeline } from 'node:stream/promises'
 import { Exception } from '@adonisjs/core/exceptions'
 
 import {
+  compressionOf,
   decompress as decompressMetadata,
   decompressChunks,
   decompressStream,
 } from '#utils/compression'
 import { splitDebDescription, splitDebVersion } from '#utils/deb'
-import { readTarEntries, type TarEntry } from '#utils/tar'
+import { ChunkReader, collectChunks } from '#utils/streams'
+import { eachTarEntry, readTarEntries, type TarEntry } from '#utils/tar'
 
 export const uploadedPackageTypes = ['deb', 'rpm', 'appimage'] as const
 
 export type UploadedPackageType = (typeof uploadedPackageTypes)[number]
+
+/**
+ * Package formats a repository publishes, which the synchronization reads the files of. Pacman is
+ * not among the formats a file can be uploaded as, only among the ones a repository publishes.
+ */
+export type PackageArchiveType = UploadedPackageType | 'pacman'
 
 export type ExtractedPackageFile = {
   type: UploadedPackageType
@@ -64,6 +72,9 @@ const arMagic = '!<arch>\n'
 const rpmMagic = Buffer.from([0xed, 0xab, 0xee, 0xdb])
 const elfMagic = Buffer.from([0x7f, 0x45, 0x4c, 0x46])
 const appImageMagic = Buffer.from([0x41, 0x49])
+
+/** Bytes of a pacman package that name its compression, the longest magic being the xz one. */
+const packageCompressionHeadSize = 6
 
 // Everything we read (ar entries, RPM headers, ELF header) lives at the beginning of the file.
 const maxHeadSize = 32 * 1024 * 1024
@@ -200,7 +211,7 @@ export default class PackageFileExtractor {
    * without being written to disk.
    */
   async readFiles(
-    type: UploadedPackageType,
+    type: PackageArchiveType,
     data: Buffer,
     wantedPaths: string[],
   ): Promise<Map<string, Buffer>> {
@@ -223,7 +234,7 @@ export default class PackageFileExtractor {
    * any number of them.
    */
   async readMatchingFiles(
-    type: UploadedPackageType,
+    type: PackageArchiveType,
     data: Buffer,
     patterns: string[],
   ): Promise<Map<string, Buffer>> {
@@ -242,7 +253,7 @@ export default class PackageFileExtractor {
    * of megabytes, so the archive is never held in memory as a whole.
    */
   async readMatchingFilesFromStream(
-    type: UploadedPackageType,
+    type: PackageArchiveType,
     chunks: AsyncIterable<Buffer>,
     patterns: string[],
   ): Promise<Map<string, Buffer>> {
@@ -250,12 +261,14 @@ export default class PackageFileExtractor {
     if (matchers.length === 0) return new Map()
     const match = (path: string) => matchers.some((matcher) => matcher.test(path))
 
-    // Only the rpm payload can be walked while it is read; the other formats are archives that
-    // have to be decompressed before their entries can be found
+    // The payload of an rpm and the tar of a pacman package can be walked while they are read; the
+    // other formats are archives that have to be decompressed before their entries can be found
     const entries =
       type === 'rpm'
         ? await this.readRpmStreamEntries(chunks, match)
-        : await this.readPackageEntries(type, await collectChunks(chunks), match)
+        : type === 'pacman'
+          ? await this.readPacmanStreamEntries(chunks, match)
+          : await this.readPackageEntries(type, await collectChunks(chunks), match)
 
     return new Map(entries.map((entry) => [normalizePackagePath(entry.name), entry.data]))
   }
@@ -343,7 +356,7 @@ export default class PackageFileExtractor {
   }
 
   private async readPackageEntries(
-    type: UploadedPackageType,
+    type: PackageArchiveType,
     data: Buffer,
     match: (path: string) => boolean,
   ): Promise<TarEntry[]> {
@@ -352,6 +365,8 @@ export default class PackageFileExtractor {
         return this.readRpmFileEntries(data, match)
       case 'deb':
         return this.readDebFileEntries(data, match)
+      case 'pacman':
+        return this.readPacmanFileEntries(data, match)
       default:
         throw new Exception('AppImage packages do not expose their files', { status: 422 })
     }
@@ -368,8 +383,8 @@ export default class PackageFileExtractor {
   }
 
   private async readDebFileEntries(data: Buffer, match: (path: string) => boolean) {
-    const entries = this.readArEntries(data)
-    const dataEntry = entries.find((entry) => /^data\.tar(\.(gz|xz|zst))?$/.test(entry.name))
+    const archiveEntries = this.readArEntries(data)
+    const dataEntry = archiveEntries.find((entry) => /^data\.tar(\.(gz|xz|zst))?$/.test(entry.name))
     if (!dataEntry) {
       throw new Exception('Not a valid Debian package: the data archive is missing', {
         status: 422,
@@ -377,7 +392,42 @@ export default class PackageFileExtractor {
     }
 
     const archive = await this.decompress(dataEntry.data, extname(dataEntry.name))
-    return readTarEntries(archive).filter((entry) => match(normalizePackagePath(entry.name)))
+    const entries = await readTarEntries(archive)
+    return entries.filter((entry) => match(normalizePackagePath(entry.name)))
+  }
+
+  /**
+   * A pacman package is a tar archive of the files it installs, compressed with zstd (older ones
+   * with xz or gzip), which the bytes it begins with state.
+   */
+  private async readPacmanFileEntries(data: Buffer, match: (path: string) => boolean) {
+    const archive = await this.decompress(data, compressionOf(data))
+    const entries = await readTarEntries(archive)
+    return entries.filter((entry) => match(normalizePackagePath(entry.name)))
+  }
+
+  /**
+   * Read the files of a pacman package that is still being downloaded. The package is one archive
+   * of a few hundred megabytes at most, but its compression is only known from what it begins with,
+   * so the head is sniffed and handed back to the stream before it is decompressed and walked.
+   */
+  private async readPacmanStreamEntries(
+    chunks: AsyncIterable<Buffer>,
+    match: (path: string) => boolean,
+  ): Promise<TarEntry[]> {
+    const reader = new ChunkReader(chunks[Symbol.asyncIterator]())
+    const head = await reader.collect(packageCompressionHeadSize)
+    if (!head) return []
+    reader.unread(head)
+
+    const entries: TarEntry[] = []
+    const archive = decompressChunks(reader.remaining(), compressionOf(head))
+    for await (const entry of eachTarEntry(archive)) {
+      if (!match(normalizePackagePath(entry.name))) continue
+      entries.push({ name: entry.name, data: await collectChunks(entry.data) })
+    }
+
+    return entries
   }
 
   private async readRpmFileEntries(
@@ -485,7 +535,8 @@ export default class PackageFileExtractor {
     }
 
     const controlArchive = await this.decompress(controlEntry.data, extname(controlEntry.name))
-    const controlFile = readTarEntries(controlArchive).find((entry) => entry.name === 'control')
+    const controlEntries = await readTarEntries(controlArchive)
+    const controlFile = controlEntries.find((entry) => entry.name === 'control')
     if (!controlFile) {
       throw new Exception('Not a valid Debian package: the control file is missing', {
         status: 422,
@@ -790,78 +841,6 @@ async function readCpioEntries(
 }
 
 /**
- * Reads a stream of chunks piece by piece, so that a payload that is larger than memory can be
- * walked through: an entry that is not wanted is skipped instead of being held.
- */
-class ChunkReader {
-  private chunk: Buffer = Buffer.alloc(0)
-  private offset = 0
-
-  constructor(private readonly chunks: AsyncIterator<Buffer>) {}
-
-  /** Exactly `size` bytes of the stream, or `null` when it ends before them. */
-  async collect(size: number): Promise<Buffer | null> {
-    const parts: Buffer[] = []
-    let missing = size
-
-    while (missing > 0) {
-      const piece = await this.read(missing)
-      if (!piece) return null
-      parts.push(piece)
-      missing -= piece.length
-    }
-
-    if (parts.length === 0) return Buffer.alloc(0)
-    return parts.length === 1 ? parts[0] : Buffer.concat(parts, size)
-  }
-
-  /** Advance the stream by `size` bytes, or report that it ends before them. */
-  async skip(size: number): Promise<boolean> {
-    let missing = size
-
-    while (missing > 0) {
-      const piece = await this.read(missing)
-      if (!piece) return false
-      missing -= piece.length
-    }
-
-    return true
-  }
-
-  /** Put bytes back at the front of the stream, which the caller did not need after all. */
-  unread(piece: Buffer) {
-    if (piece.length === 0) return
-
-    const rest = this.chunk.subarray(this.offset)
-    this.chunk = rest.length > 0 ? Buffer.concat([piece, rest]) : piece
-    this.offset = 0
-  }
-
-  /** The bytes that have not been read yet, as a stream. */
-  async *remaining(): AsyncGenerator<Buffer> {
-    while (true) {
-      const piece = await this.read(Number.MAX_SAFE_INTEGER)
-      if (!piece) return
-      yield piece
-    }
-  }
-
-  /** At most `size` bytes of the stream, or `null` when it has ended. */
-  private async read(size: number): Promise<Buffer | null> {
-    while (this.offset >= this.chunk.length) {
-      const next = await this.chunks.next()
-      if (next.done) return null
-      this.chunk = next.value
-      this.offset = 0
-    }
-
-    const piece = this.chunk.subarray(this.offset, this.offset + size)
-    this.offset += piece.length
-    return piece
-  }
-}
-
-/**
  * Whether the bytes given begin the payload, instead of being the padding of the RPM header. A
  * prefix shorter than the signature cannot be told apart, and counts as the payload.
  */
@@ -874,11 +853,4 @@ function payloadStartsAt(prefix: Buffer, compressor: string | null) {
   }
 
   return true
-}
-
-/** The whole stream as one buffer, for the archives that have to be read as a whole. */
-async function collectChunks(chunks: AsyncIterable<Buffer>): Promise<Buffer> {
-  const parts: Buffer[] = []
-  for await (const piece of chunks) parts.push(piece)
-  return Buffer.concat(parts)
 }

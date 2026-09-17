@@ -8,6 +8,26 @@ export function compressionExtension(url: string) {
   return /\.(gz|zst|xz)$/.exec(url)?.[0] ?? ''
 }
 
+/** First bytes of a compressed file, by which its compression is recognized. */
+const compressionMagics: Array<[string, number[]]> = [
+  ['.gz', [0x1f, 0x8b]],
+  ['.zst', [0x28, 0xb5, 0x2f, 0xfd]],
+  ['.xz', [0xfd, 0x37, 0x7a, 0x58, 0x5a, 0x00]],
+]
+
+/**
+ * Compression of data as the bytes it begins with state it, for the archives whose name does not
+ * carry one: a pacman repository publishes `<repo>.db` and `<repo>.files`, and compresses them with
+ * whatever it pleases — Arch Linux and Manjaro gzip them, CachyOS compresses them with zstd.
+ */
+export function compressionOf(data: Buffer) {
+  for (const [extension, magic] of compressionMagics) {
+    if (magic.every((byte, index) => data[index] === byte)) return extension
+  }
+
+  return ''
+}
+
 /**
  * Decompress the metadata a repository publishes, which is gzipped, zstd or xz compressed. Metadata
  * that carries no compression is returned as it is, since not every file is compressed.

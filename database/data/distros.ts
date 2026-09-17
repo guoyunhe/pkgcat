@@ -42,7 +42,7 @@ export const distros: DistroSeed[] = [
   {
     name: 'Arch Linux',
     version: null,
-    pkgType: null,
+    pkgType: 'pacman',
     arches: ['x86_64', 'aarch64'],
     releaseDate: null,
     eolDate: null,
@@ -50,7 +50,7 @@ export const distros: DistroSeed[] = [
   {
     name: 'CachyOS',
     version: null,
-    pkgType: null,
+    pkgType: 'pacman',
     arches: ['x86_64'],
     releaseDate: null,
     eolDate: null,
@@ -149,7 +149,7 @@ export const distros: DistroSeed[] = [
   {
     name: 'Manjaro Linux',
     version: null,
-    pkgType: null,
+    pkgType: 'pacman',
     arches: ['x86_64', 'aarch64'],
     releaseDate: null,
     eolDate: null,
@@ -252,7 +252,7 @@ export const distros: DistroSeed[] = [
   {
     name: 'SteamOS',
     version: '3',
-    pkgType: 'deb',
+    pkgType: 'pacman',
     arches: ['x86_64'],
     releaseDate: '2022-03-01',
     eolDate: null,

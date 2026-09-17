@@ -43,14 +43,15 @@ type StoredPackage = Pick<
 
 export default class RepoSync extends BaseCommand {
   static commandName = 'repo:sync'
-  static description = 'Extract packages from configured deb/rpm repositories into the catalog'
+  static description =
+    'Extract packages from configured deb/rpm/pacman repositories into the catalog'
 
   static options: CommandOptions = {
     startApp: true,
   }
 
   @args.string({
-    description: 'Repository name (defaults to all deb/rpm repositories)',
+    description: 'Repository name (defaults to all deb/rpm/pacman repositories)',
     required: false,
   })
   declare repoName?: string
@@ -73,10 +74,10 @@ export default class RepoSync extends BaseCommand {
   async run() {
     const repos = this.repoName
       ? [await Repo.query().where('name', this.repoName).preload('distros').firstOrFail()]
-      : await Repo.query().whereIn('type', ['deb', 'rpm']).preload('distros')
+      : await Repo.query().whereIn('type', ['deb', 'rpm', 'pacman']).preload('distros')
 
     if (repos.length === 0) {
-      this.logger.warning('No deb/rpm repositories found')
+      this.logger.warning('No deb/rpm/pacman repositories found')
       return
     }
 
@@ -162,8 +163,8 @@ export default class RepoSync extends BaseCommand {
   /**
    * Architectures a repository is synchronized for. Deb repositories serve every architecture from
    * the same URLs, so the ones of the distributions the repository belongs to are synchronized in
-   * turn; RPM repositories keep each architecture in its own directory, which the URL names. A
-   * repository without a distribution is synchronized without a target architecture.
+   * turn; RPM and pacman repositories keep each architecture in its own directory, which the URL
+   * names. A repository without a distribution is synchronized without a target architecture.
    */
   private syncArches(repo: Repo) {
     if (this.arch) return [this.arch]
@@ -320,6 +321,9 @@ export default class RepoSync extends BaseCommand {
         Object.keys(entry.component.summary).length > 0 &&
         entry.component.pkgNames.some((name) => pkgNames.has(name)),
     )
+    // A pacman catalog names its icons as JPEG XL files of the catalog package, which the extractor
+    // decodes, so the file list of such a repository is only read when it publishes no catalog at
+    // all — its packages are the only place the metadata of its applications lives in then.
     if (candidates.length === 0) {
       // Repositories that publish no AppStream metadata at all still name their applications in
       // the files their packages ship, which the file list of the repository reveals.
@@ -682,9 +686,11 @@ const packageCollectionInterval = 2000
 /** Number of packages that are read before the garbage collector is asked to run. */
 const appCollectionInterval = 5
 
-/** Format a stored package is read by, which the extractors only read rpm and deb packages by. */
+/** Format a stored package is read by, which the extractors read as rpm, deb or pacman packages. */
 function storedPackageType(type: string): RepoPackageType {
-  return type === 'deb' ? 'deb' : 'rpm'
+  if (type === 'deb') return 'deb'
+  if (type === 'pacman') return 'pacman'
+  return 'rpm'
 }
 
 /** First paragraph of a long description, collapsed into a single line. */

@@ -1,8 +1,9 @@
 /**
  * Architectures that carry no machine code, and therefore belong to every architecture of a
- * distribution. Debian and its derivatives call them `all`, RPM based distributions `noarch`.
+ * distribution. Debian and its derivatives call them `all`, RPM based distributions `noarch`, and
+ * pacman `any`.
  */
-export const archIndependentPackageArches = ['all', 'noarch']
+export const archIndependentPackageArches = ['all', 'noarch', 'any']
 
 /**
  * Whether a package of the given architecture is part of the packages of another one. Packages

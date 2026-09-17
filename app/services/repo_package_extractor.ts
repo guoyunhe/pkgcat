@@ -2,11 +2,19 @@ import { XMLParser } from 'fast-xml-parser'
 import xior, { isXiorError } from 'xior'
 
 import type Repo from '#models/repo'
-import { decompress, decompressStream, compressionExtension } from '#utils/compression'
+import {
+  compressionExtension,
+  compressionOf,
+  decompress,
+  decompressStream,
+} from '#utils/compression'
 import { splitDebDescription, splitDebVersion } from '#utils/deb'
+import { pacmanDescFields, splitPacmanVersion } from '#utils/pacman'
+import { collectChunks } from '#utils/streams'
+import { eachTarEntry } from '#utils/tar'
 import { eachXmlElement } from '#utils/xml'
 
-export type RepoPackageType = 'rpm' | 'deb'
+export type RepoPackageType = 'rpm' | 'deb' | 'pacman'
 
 export type ExtractedPackage = {
   type: RepoPackageType
@@ -32,6 +40,12 @@ export type DebSource = {
   suite: string
   components: string[]
   arch: string | null
+}
+
+/** A pacman repository as its configuration states it: its section and the server holding it. */
+export type PacmanSource = {
+  name: string
+  url: string
 }
 
 /** A deb source with its architecture resolved, ready to build metadata URLs from. */
@@ -77,6 +91,12 @@ function text(value: unknown): string | null {
 
 function joinUrl(base: string, path: string) {
   return `${base.replace(/\/+$/, '')}/${path.replace(/^\/+/, '')}`
+}
+
+/** Last segment of a URL, which names a repository that states no configuration of its own. */
+function lastPathSegment(url: string) {
+  const segments = url.replace(/\/+$/, '').split('/')
+  return decodeURIComponent(segments[segments.length - 1] ?? '')
 }
 
 /**
@@ -155,8 +175,12 @@ export default class RepoPackageExtractor {
       yield* this.extractDeb(repo, options.arch ?? null)
       return
     }
+    if (repo.type === 'pacman') {
+      yield* this.extractPacman(repo)
+      return
+    }
 
-    throw new Error(`Unsupported repository type "${repo.type}": expected "rpm" or "deb"`)
+    throw new Error(`Unsupported repository type "${repo.type}": expected "rpm", "deb" or "pacman"`)
   }
 
   private async *extractRpm(repo: Repo): AsyncGenerator<ExtractedPackage> {
@@ -204,6 +228,105 @@ export default class RepoPackageExtractor {
       checksumType: checksum.checksumType,
       size: this.readNumber(entry.size?.['@_package']),
     }
+  }
+
+  /**
+   * Read the packages of a pacman repository. Such a repository publishes one database of metadata
+   * (`<repo>.db`) instead of a document per package, which is a compressed tar holding the `desc`
+   * file of every package. The database of a large repository is a few megabytes, so it is read as
+   * one buffer and walked entry by entry.
+   */
+  private async *extractPacman(repo: Repo): AsyncGenerator<ExtractedPackage> {
+    const source = this.pacmanSource(repo)
+    const data = await this.download(joinUrl(source.url, `${source.name}.db`))
+    const archive = decompressStream(data, compressionOf(data))
+
+    for await (const entry of eachTarEntry(archive)) {
+      if (!entry.name.endsWith('/desc')) continue
+
+      const content = await collectChunks(entry.data)
+      const fields = pacmanDescFields(content.toString('utf8'))
+      const pkg = this.readPacmanPackage(source, fields)
+      if (pkg) yield pkg
+    }
+  }
+
+  /** The `desc` file of one package of a pacman database, as a catalog package. */
+  private readPacmanPackage(
+    source: PacmanSource,
+    fields: Record<string, string>,
+  ): ExtractedPackage | null {
+    const name = fields.NAME
+    const filename = fields.FILENAME
+    if (!name || !filename) return null
+
+    const version = splitPacmanVersion(fields.VERSION)
+    return {
+      type: 'pacman',
+      name,
+      version: version.version,
+      release: version.release,
+      arch: text(fields.ARCH),
+      // A package may be licensed under several terms, which the database lists one per line
+      license: text(fields.LICENSE?.replace(/\n/g, ', ')),
+      // A pacman database carries no long description, only the one line summary
+      summary: text(fields.DESC),
+      description: null,
+      downloadUrl: joinUrl(source.url, filename),
+      checksum: text(fields.SHA256SUM) ?? text(fields.MD5SUM),
+      checksumType: text(fields.SHA256SUM) ? 'sha256' : text(fields.MD5SUM) ? 'md5' : null,
+      size: this.readNumber(fields.CSIZE),
+    }
+  }
+
+  /**
+   * Pacman repository as its configuration states it: the section name and the server it is read
+   * from, which is what the database of the repository is looked up on. The configuration is a
+   * pacman.conf section (`[core]` followed by `Server = https://…`), and its server may name the
+   * repository and the architecture the way a mirrorlist does (`$repo`, `$arch`). A repository that
+   * states no section is read from its base URL, whose last segment names it.
+   */
+  pacmanSource(repo: Repo): PacmanSource {
+    const parsed = this.parsePacmanConfig(repo.configContent)
+    const name = parsed?.name ?? lastPathSegment(repo.baseUrl)
+    let url = (parsed?.url ?? repo.baseUrl).replace(/\$repo/g, name)
+
+    if (url.includes('$arch')) {
+      const arch = repo.distros?.[0]?.arch
+      if (!arch) {
+        throw new Error(
+          `The server of ${repo.name} names $arch, which no served distribution states`,
+        )
+      }
+      url = url.replace(/\$arch/g, arch)
+    }
+
+    return { name, url: url.replace(/\/+$/, '') }
+  }
+
+  /**
+   * The first section of a pacman configuration that names a server, since a repository is
+   * configured by one section of it.
+   */
+  private parsePacmanConfig(configContent: string | null): { name: string; url: string } | null {
+    if (!configContent) return null
+
+    let name: string | null = null
+    for (const rawLine of configContent.split('\n')) {
+      const line = rawLine.trim()
+      if (!line || line.startsWith('#')) continue
+
+      const section = /^\[([^\]]+)\]$/.exec(line)
+      if (section) {
+        name = section[1].trim()
+        continue
+      }
+
+      const server = /^Server\s*=\s*(\S+)/i.exec(line)
+      if (server && name) return { name, url: server[1] }
+    }
+
+    return null
   }
 
   private async *extractDeb(

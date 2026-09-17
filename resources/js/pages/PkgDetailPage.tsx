@@ -17,7 +17,7 @@ import { pkgDownloadUrl } from '../utils/pkgs'
 import styles from './DetailPage.module.css'
 
 /** The formats the catalog ships an icon for; a package of any other format shows no image. */
-const packageTypesWithIcons = new Set(['rpm', 'deb', 'appimage'])
+const packageTypesWithIcons = new Set(['rpm', 'deb', 'pacman', 'appimage'])
 
 /**
  * Details of one package: what it is, where it comes from, what it holds and which applications it

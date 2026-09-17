@@ -15,13 +15,23 @@ import sharp from 'sharp'
 import xior, { isXiorError } from 'xior'
 import { parse as parseYaml } from 'yaml'
 
+import Pkg from '#models/pkg'
 import type Repo from '#models/repo'
 import PackageFileExtractor, { normalizePackagePath } from '#services/package_file_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ResolvedDebSource, RepoPackageType } from '#services/repo_package_extractor'
-import { compressionExtension, decompress, decompressStream } from '#utils/compression'
+import {
+  compressionExtension,
+  compressionOf,
+  decompress,
+  decompressChunks,
+  decompressStream,
+} from '#utils/compression'
+import { decodeJpegXl, isJpegXl } from '#utils/jxl'
 import { collectGarbage } from '#utils/memory'
-import { readTarEntries } from '#utils/tar'
+import { pacmanFileListName, pacmanFileListSuffix } from '#utils/pacman'
+import { collectChunks } from '#utils/streams'
+import { eachTarEntry, readTarEntries } from '#utils/tar'
 import { eachXmlElement } from '#utils/xml'
 
 /** Icon of a component, named the way the AppStream icon archive stores it. */
@@ -118,6 +128,9 @@ export function appstreamHomepage(component: Component) {
 
 /** Directories packages store their AppStream metadata file in. */
 const appstreamFileDirectories = ['/usr/share/metainfo/', '/usr/share/appdata/']
+
+/** Directory both of them sit in, which a file list is narrowed down by before its paths are read. */
+const appstreamFileRoot = '/usr/share/'
 
 /** Suffixes of an AppStream metadata file; the rest of the file name is the AppStream ID. */
 const appstreamFileSuffixes = ['.metainfo.xml', '.appdata.xml']
@@ -323,13 +336,16 @@ export default class RepoAppstreamExtractor {
   async extract(repo: Repo, options: { arch?: string } = {}): Promise<ExtractedApp[]> {
     if (repo.type === 'rpm') return this.extractRpm(repo)
     if (repo.type === 'deb') return this.extractDeb(repo, options.arch ?? null)
+    if (repo.type === 'pacman') return this.extractPacman(repo)
+
     return []
   }
 
   /**
-   * Read the requested icons from the repository icon archive. Icons are matched on their file name
-   * and, when the archive stores several sizes in separate directories (rpm), on the declared
-   * size.
+   * Read the requested icons from the icon archive of the repository. Icons are matched on their
+   * file name and, when the archive stores several sizes in separate directories (an rpm icon
+   * archive, and the catalog package of a pacman repository), on the declared size. A pacman icon
+   * is a JPEG XL file, which is decoded into a PNG the catalog can store.
    */
   async readIcons(repo: Repo, icons: AppstreamIcon[]): Promise<Map<string, Buffer>> {
     const wanted = new Map(icons.map((icon) => [iconKey(icon), icon]))
@@ -340,11 +356,11 @@ export default class RepoAppstreamExtractor {
       const archive = await this.download(url, { optional: true })
       if (!archive) continue
 
-      const entries = readTarEntries(await decompress(archive, '.gz'))
+      const entries = await readTarEntries(await decompress(archive, compressionExtension(url)))
       for (const [key, icon] of wanted) {
         if (result.has(key)) continue
         const entry = this.findIconEntry(entries, key, icon)
-        if (entry) result.set(key, entry)
+        if (entry) result.set(key, isJpegXl(entry) ? await decodeJpegXl(entry) : entry)
       }
 
       if (result.size === wanted.size) break
@@ -364,12 +380,66 @@ export default class RepoAppstreamExtractor {
     const candidates = entries.filter((entry) => basename(entry.name) === icon.name)
     if (candidates.length === 0) return null
 
-    const sized = candidates.find((entry) => entry.name.startsWith(`${icon.width}x${icon.height}/`))
+    const size = `${icon.width}x${icon.height}`
+    const sized = candidates.find(
+      (entry) => entry.name.startsWith(`${size}/`) || entry.name.includes(`/${size}/`),
+    )
     if (sized) return sized.data
 
     return candidates.reduce((largest, entry) =>
       entry.data.length > largest.data.length ? entry : largest,
     ).data
+  }
+
+  /**
+   * Read the AppStream catalog of a pacman repository. The catalog of one repository is
+   * `/usr/share/swcatalog/xml/<repository>.xml.gz` inside the catalog package of the repository,
+   * next to the icons of the components.
+   */
+  private async extractPacman(repo: Repo): Promise<ExtractedApp[]> {
+    const name = new RepoPackageExtractor().pacmanSource(repo).name
+    const url = await this.pacmanCatalogPackageUrl(repo)
+    if (!url) return []
+
+    const apps: ExtractedApp[] = []
+    const stream = await this.downloadStream(url)
+    try {
+      const archive = decompressChunks(stream, compressionExtension(url))
+      for await (const entry of eachTarEntry(archive)) {
+        if (!isPacmanCatalog(entry.name, name)) continue
+
+        const content = await collectChunks(entry.data)
+        // The catalog holds every component of the repository in one document, so the components are
+        // read one at a time, keeping the XML each was read from
+        const xml = decompressStream(content, compressionOf(content))
+        for await (const element of eachXmlElement(xml, 'component')) {
+          const component = parseAppStreamComponent(element)
+          if (component) apps.push(toExtractedApp(component, element))
+        }
+      }
+    } finally {
+      stream.destroy()
+    }
+
+    return apps
+  }
+
+  /**
+   * Package a pacman repository publishes its AppStream catalog in: `archlinux-appstream-data` (and
+   * its counterparts), which is rebuilt with every catalog, so its file name carries the date of
+   * the rebuild. That is why the package is looked up among the packages the synchronization stored
+   * of the repository instead of being built from a name; a repository that publishes no such
+   * package carries no catalog at all.
+   */
+  private async pacmanCatalogPackageUrl(repo: Repo) {
+    const dataPackage = await Pkg.query()
+      .where('repoId', repo.id)
+      .whereILike('name', '%appstream-data')
+      .orderBy('id', 'desc')
+      .select('id', 'downloadUrl')
+      .first()
+
+    return dataPackage?.downloadUrl ?? null
   }
 
   private async extractRpm(repo: Repo): Promise<ExtractedApp[]> {
@@ -397,6 +467,7 @@ export default class RepoAppstreamExtractor {
    * enough to link the packages to an application.
    */
   async inferredComponents(repo: Repo): Promise<InferredComponent[]> {
+    if (repo.type === 'pacman') return this.inferredPacmanComponents(repo)
     if (repo.type !== 'rpm') return []
 
     const hrefs = await this.repomdHrefs(repo)
@@ -412,6 +483,51 @@ export default class RepoAppstreamExtractor {
       const byPkg = components.get(appstreamId) ?? new Map<string, string>()
       byPkg.set(file.pkgName, file.path)
       components.set(appstreamId, byPkg)
+    }
+
+    return [...components].map(([appstreamId, paths]) => ({
+      appstreamId,
+      files: [...paths].map(([pkgName, path]) => ({ pkgName, path })),
+    }))
+  }
+
+  /**
+   * AppStream components inferred from the file list of a pacman repository. The file list
+   * (`<repo>.files`) is one compressed tar holding the files of every package of the repository,
+   * one entry per package, which names its metadata files the same way an RPM file list does. The
+   * entries of one package are small, so each of them is read as it is reached instead of being
+   * scanned byte by byte.
+   */
+  private async inferredPacmanComponents(repo: Repo): Promise<InferredComponent[]> {
+    const source = new RepoPackageExtractor().pacmanSource(repo)
+    const data = await this.download(joinUrl(source.url, `${source.name}.files`), {
+      optional: true,
+    })
+    if (!data) return []
+
+    const components = new Map<string, Map<string, string>>()
+    const archive = decompressStream(data, compressionOf(data))
+    for await (const entry of eachTarEntry(archive)) {
+      if (!entry.name.endsWith(pacmanFileListSuffix)) continue
+
+      const pkgName = pacmanFileListName(entry.name.slice(0, -pacmanFileListSuffix.length))
+      const content = await collectChunks(entry.data)
+      for (const line of content.toString('utf8').split('\n')) {
+        const named = line.trim()
+        // The document names the files of a package under a `%FILES%` header, one path per line,
+        // without the leading separator an rpm file list carries
+        if (!named || named.startsWith('%')) continue
+
+        const path = named.startsWith('/') ? named : `/${named}`
+        if (!path.startsWith(appstreamFileRoot)) continue
+
+        const appstreamId = appstreamFileId(path)
+        if (!appstreamId) continue
+
+        const byPkg = components.get(appstreamId) ?? new Map<string, string>()
+        byPkg.set(pkgName, path)
+        components.set(appstreamId, byPkg)
+      }
     }
 
     return [...components].map(([appstreamId, paths]) => ({
@@ -639,6 +755,13 @@ export default class RepoAppstreamExtractor {
   }
 
   private async iconArchiveUrls(repo: Repo) {
+    // A pacman repository publishes the icons of its catalog as JPEG XL files of the catalog
+    // package, next to the catalog itself
+    if (repo.type === 'pacman') {
+      const url = await this.pacmanCatalogPackageUrl(repo)
+      return url ? [url] : []
+    }
+
     if (repo.type === 'rpm') {
       const hrefs = await this.repomdHrefs(repo)
       const href = hrefs.get('appdata-icons')
@@ -774,6 +897,12 @@ export default class RepoAppstreamExtractor {
 
 function iconSize(icon: AppstreamIcon) {
   return Math.min(icon.width ?? 0, icon.height ?? 0)
+}
+
+/** Whether a path inside a pacman package is the AppStream catalog of a repository. */
+function isPacmanCatalog(path: string, name: string) {
+  const catalog = `usr/share/swcatalog/xml/${name}.xml`
+  return path === catalog || path === `${catalog}.gz`
 }
 
 /** Extensions of icons that can be stored as an image, tried when the metadata names a themed icon. */
