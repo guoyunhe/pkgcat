@@ -8,19 +8,22 @@ import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relat
 import { UserSchema } from '#database/schema'
 import App from '#models/app'
 import Distro from '#models/distro'
+import Image from '#models/image'
 import Review from '#models/review'
 
 export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   static accessTokens = DbAccessTokensProvider.forModel(User)
   declare currentAccessToken?: AccessToken
 
+  @belongsTo(() => Image)
+  declare avatar: BelongsTo<typeof Image>
+
+  @belongsTo(() => Distro)
+  declare distro: BelongsTo<typeof Distro>
+
   @manyToMany(() => App, { pivotTable: 'favorites' })
   declare favoriteApps: ManyToMany<typeof App>
 
   @hasMany(() => Review)
   declare reviews: HasMany<typeof Review>
-
-  /** The distribution the user is running, which their reviews name by default. */
-  @belongsTo(() => Distro)
-  declare distro: BelongsTo<typeof Distro>
 }
