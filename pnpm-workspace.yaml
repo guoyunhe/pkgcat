@@ -3,4 +3,4 @@ allowBuilds:
   better-sqlite3: false
   esbuild: true
 minimumReleaseAgeExclude:
-  - '@guoyunhe/appstream@1.0.0'
+  - '@guoyunhe/appstream@1.0.0 || 1.1.0'
