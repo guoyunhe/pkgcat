@@ -223,11 +223,14 @@ const debIconArchives = [
 
 const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
-/** Icon of a DEP-11 component, as the YAML documents of deb repositories declare it. */
+/**
+ * Icon of a DEP-11 component, as the YAML documents of deb repositories declare it. The sizes are
+ * `unknown` because YAML has no types of its own: they are read as numbers where they are used.
+ */
 type Dep11Icon = {
-  name?: string
-  width?: number
-  height?: number
+  name?: unknown
+  width?: unknown
+  height?: unknown
 }
 
 /**
@@ -245,7 +248,31 @@ type Dep11Record = {
   Icon?: { cached?: Dep11Icon | Dep11Icon[] }
   Categories?: string | string[]
   Url?: Partial<Record<UrlType, string>>
-  Releases?: { version?: string } | Array<{ version?: string }>
+  /**
+   * Releases of the component. DEP-11 is YAML, so a version is only text when the document writes
+   * it as text: `49.0` written unquoted is the number `49` to a YAML parser.
+   */
+  Releases?: { version?: unknown } | Array<{ version?: unknown }>
+}
+
+/**
+ * DEP-11 value as the text the format declares it to be. A document that writes a value the YAML
+ * parser reads as another type (see `parseDep11`) is coerced rather than dropped, and a value that
+ * carries no text at all is left out by returning an empty string.
+ */
+function dep11Text(value: unknown): string {
+  if (typeof value === 'string') return value.trim()
+  if (typeof value === 'number' || typeof value === 'bigint') return String(value)
+  return ''
+}
+
+/** DEP-11 value as the number the format declares it to be, or `null` when it holds none. */
+function dep11Number(value: unknown): number | null {
+  const text = dep11Text(value)
+  if (!text) return null
+
+  const parsed = Number(text)
+  return Number.isFinite(parsed) ? parsed : null
 }
 
 /**
@@ -255,7 +282,7 @@ type Dep11Record = {
 function dep11Localized(values: Localized<string> | undefined): Localized<string> {
   const localized: Localized<string> = {}
   for (const [locale, value] of Object.entries(values ?? {})) {
-    const trimmed = value.trim()
+    const trimmed = dep11Text(value)
     if (trimmed) localized[locale === 'C' ? DEFAULT_LOCALE : locale] = trimmed
   }
   return localized
@@ -273,15 +300,20 @@ function dep11Categories(value: string | string[] | undefined): string[] {
 /** Version of the release DEP-11 announces first, or `null` when it announces none. */
 function dep11Version(record: Dep11Record) {
   const releases = record.Releases
-  return (Array.isArray(releases) ? releases[0]?.version : releases?.version)?.trim() || null
+  const release = Array.isArray(releases) ? releases[0] : releases
+  return dep11Text(release?.version) || null
 }
 
 /** Icons DEP-11 declares as cached, which name a file in the AppStream icon archive. */
 function dep11Icons(record: Dep11Record): Array<Dep11Icon & { name: string }> {
   const cached = record.Icon?.cached
-  return (Array.isArray(cached) ? cached : [cached]).filter(
-    (icon): icon is Dep11Icon & { name: string } => Boolean(icon?.name),
-  )
+  return (Array.isArray(cached) ? cached : [cached])
+    .filter((icon) => dep11Text(icon?.name) !== '')
+    .map((icon) => ({
+      name: dep11Text(icon?.name),
+      width: dep11Number(icon?.width),
+      height: dep11Number(icon?.height),
+    }))
 }
 
 /**
@@ -780,6 +812,10 @@ export default class RepoAppstreamExtractor {
    * DEP-11 documents are separated by `---`, so each component is parsed on its own. DEP-11 is
    * YAML, so the record is written back into AppStream XML and parsed with `@guoyunhe/appstream`,
    * which keeps the stored `appstreamContent` and the extracted metadata in sync.
+   *
+   * The documents are read with the `failsafe` schema, which reads every scalar as the text the
+   * format declares it to be: the default schema turns a version upstream announces as `49.0` into
+   * the number `49`, losing the rest of it.
    */
   private parseDep11(content: string): ExtractedApp[] {
     const apps: ExtractedApp[] = []
@@ -787,7 +823,7 @@ export default class RepoAppstreamExtractor {
     for (const document of content.split(/\n---\n/)) {
       if (!document.includes('ID:') || document.includes('File: DEP-11')) continue
 
-      const record = parseYaml(document) as Dep11Record | null
+      const record = parseYaml(document, { schema: 'failsafe' }) as Dep11Record | null
       if (!record?.ID) continue
 
       const xml = this.dep11Xml(record)
