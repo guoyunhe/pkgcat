@@ -97,9 +97,10 @@ export default function RepoFormPage() {
     try {
       setSaving(true)
       setError(null)
-      if (repoId) await updateRepo(repoId, values)
-      else await createRepo(values)
-      navigate('/repos')
+      // The repository is read back from the answer, so that the form and the page it came from end
+      // up on the entry that was written whether it was created or updated
+      const repo = repoId ? await updateRepo(repoId, values) : await createRepo(values)
+      navigate(`/repos/${repo.id}`)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('repos.saveError'))
     } finally {
