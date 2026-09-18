@@ -1,5 +1,4 @@
 import { basename } from 'node:path'
-import type { Readable } from 'node:stream'
 
 import {
   DEFAULT_LOCALE,
@@ -12,7 +11,6 @@ import {
 } from '@guoyunhe/appstream'
 import { XMLBuilder, XMLParser } from 'fast-xml-parser'
 import sharp from 'sharp'
-import xior, { isXiorError } from 'xior'
 import { parse as parseYaml } from 'yaml'
 
 import Pkg from '#models/pkg'
@@ -28,6 +26,7 @@ import {
   decompressStream,
   isCompression,
 } from '#utils/compression'
+import { download as downloadFile, downloadStream } from '#utils/download'
 import { decodeJpegXl, isJpegXl } from '#utils/jxl'
 import { collectGarbage } from '#utils/memory'
 import { pacmanFileListName, pacmanFileListSuffix } from '#utils/pacman'
@@ -221,8 +220,6 @@ const debIconArchives = [
   'icons-48x48@2.tar.gz',
   'icons-48x48.tar.gz',
 ]
-
-const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
 /**
  * Icon of a DEP-11 component, as the YAML documents of deb repositories declare it. The sizes are
@@ -435,7 +432,7 @@ export default class RepoAppstreamExtractor {
     if (!url) return []
 
     const apps: ExtractedApp[] = []
-    const stream = await this.downloadStream(url)
+    const stream = await downloadStream(url)
     try {
       const archive = decompressChunks(stream, compressionExtension(url))
       for await (const entry of eachTarEntry(archive)) {
@@ -711,7 +708,7 @@ export default class RepoAppstreamExtractor {
 
     // The package is read while it is still being downloaded, because a package of a repository is
     // up to hundreds of megabytes against the few kilobytes of metadata it is read for
-    const archive = await this.downloadStream(pkg.downloadUrl)
+    const archive = await downloadStream(pkg.downloadUrl)
     let files: Map<string, Buffer>
     try {
       files = await new PackageFileExtractor().readMatchingFilesFromStream(pkg.type, archive, [
@@ -904,35 +901,15 @@ export default class RepoAppstreamExtractor {
     url: string,
     options: { optional?: boolean } = {},
   ): Promise<Buffer | null> {
-    try {
-      const response = await xior.get<ArrayBuffer>(url, {
-        responseType: 'arraybuffer',
-        headers: requestHeaders,
-      })
-      const data = Buffer.from(response.data)
-      // A path a repository does not have may be answered with an HTML page instead of a 404, which
-      // is not the metadata this asked for and is read as the same as the file being absent
-      if (options.optional && !isCompression(data, compressionExtension(url))) return null
-      return data
-    } catch (error) {
-      const status = isXiorError(error) ? error.response?.status : undefined
-      if (options.optional && (status === 404 || status === 410)) return null
-      throw new Error(`Unable to download ${url}${status ? ` (${status})` : ''}`, { cause: error })
-    }
-  }
+    const data = options.optional
+      ? await downloadFile(url, { optional: true })
+      : await downloadFile(url)
+    if (!data) return null
 
-  /** Read a file of a repository without holding it in memory, which packages are read through. */
-  private async downloadStream(url: string): Promise<Readable> {
-    try {
-      const response = await xior.get<Readable>(url, {
-        responseType: 'stream',
-        headers: requestHeaders,
-      })
-      return response.data
-    } catch (error) {
-      const status = isXiorError(error) ? error.response?.status : undefined
-      throw new Error(`Unable to download ${url}${status ? ` (${status})` : ''}`, { cause: error })
-    }
+    // A path a repository does not have may be answered with an HTML page instead of a 404, which
+    // is not the metadata this asked for and is read as the same as the file being absent
+    if (options.optional && !isCompression(data, compressionExtension(url))) return null
+    return data
   }
 }
 

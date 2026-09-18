@@ -1,5 +1,4 @@
 import { XMLParser } from 'fast-xml-parser'
-import xior, { isXiorError } from 'xior'
 
 import type Repo from '#models/repo'
 import {
@@ -10,6 +9,7 @@ import {
   isCompression,
 } from '#utils/compression'
 import { splitDebDescription, splitDebVersion } from '#utils/deb'
+import { download as downloadFile } from '#utils/download'
 import { pacmanDescFields, splitPacmanVersion } from '#utils/pacman'
 import { collectChunks } from '#utils/streams'
 import { eachTarEntry } from '#utils/tar'
@@ -81,8 +81,6 @@ type XmlRpmPackage = {
   size?: { '@_package'?: string }
   format?: Record<string, unknown>
 }
-
-const requestHeaders = { Accept: '*/*', 'User-Agent': 'curl/8.0' }
 
 function text(value: unknown): string | null {
   if (value === null || value === undefined) return null
@@ -538,22 +536,14 @@ export default class RepoPackageExtractor {
     url: string,
     options: { optional?: boolean } = {},
   ): Promise<Buffer | null> {
-    try {
-      const response = await xior.get<ArrayBuffer>(url, {
-        responseType: 'arraybuffer',
-        headers: requestHeaders,
-      })
-      const data = Buffer.from(response.data)
-      // A path a repository does not have may be answered with an HTML page instead of a 404, which
-      // is not the metadata this asked for and is read as the same as the file being absent
-      if (options.optional && !isCompression(data, compressionExtension(url))) return null
-      return data
-    } catch (error) {
-      const status = isXiorError(error) ? error.response?.status : undefined
-      if (options.optional && (status === 404 || status === 410)) return null
-      throw new Error(`Unable to download ${url}${status ? ` (${status})` : ''}`, {
-        cause: error,
-      })
-    }
+    const data = options.optional
+      ? await downloadFile(url, { optional: true })
+      : await downloadFile(url)
+    if (!data) return null
+
+    // A path a repository does not have may be answered with an HTML page instead of a 404, which
+    // is not the metadata this asked for and is read as the same as the file being absent
+    if (options.optional && !isCompression(data, compressionExtension(url))) return null
+    return data
   }
 }
