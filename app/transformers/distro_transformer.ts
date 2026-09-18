@@ -21,9 +21,8 @@ export default class DistroTransformer extends BaseTransformer<Distro> {
         ? DistroTransformer.transform(this.resource.compatibleDistro)
         : null,
       /**
-       * Packages the distribution serves through its repositories (the ones built for its own
-       * architecture, which includes the architecture independent ones), and the applications those
-       * packages provide.
+       * Packages the distribution is served — the packages of the repositories serving it — and the
+       * applications those packages provide.
        */
       pkgCount: this.resource.$extras.pkgCount ?? 0,
       appCount: this.resource.$extras.appCount ?? 0,

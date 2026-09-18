@@ -1,8 +1,10 @@
-import { belongsTo, manyToMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, hasManyThrough, manyToMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasManyThrough, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
+import DistroRepo from '#models/distro_repo'
+import Pkg from '#models/pkg'
 import Repo from '#models/repo'
 
 type OsReleaseValues = Record<string, string>
@@ -50,6 +52,18 @@ export default class Distro extends DistroSchema {
     pivotRelatedForeignKey: 'repo_id',
   })
   declare repos: ManyToMany<typeof Repo>
+
+  /**
+   * Packages the release is served, which are the packages of the repositories serving it. A
+   * package belongs to one repository, so a repository shared by several releases holds the
+   * packages of each of them.
+   */
+  @hasManyThrough([() => Pkg, () => DistroRepo], {
+    foreignKey: 'distroId',
+    throughLocalKey: 'repoId',
+    throughForeignKey: 'repoId',
+  })
+  declare pkgs: HasManyThrough<typeof Pkg>
 
   static fromOsRelease(contents: string) {
     const values = parseOsRelease(contents)

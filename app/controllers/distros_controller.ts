@@ -1,8 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import type { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import { DateTime } from 'luxon'
 
 import Distro from '#models/distro'
-import { attachCounts, distroCounts } from '#services/catalog_counts'
 import DistroTransformer from '#transformers/distro_transformer'
 import { pageOf } from '#utils/pagination'
 import { distroListValidator, distroValidator } from '#validators/distro'
@@ -12,16 +12,41 @@ function toDateTime(value: string | null) {
   return value ? DateTime.fromISO(value) : null
 }
 
+/**
+ * The counts a release shows of itself, read by the database with the entries it lists: the
+ * packages it is served, and the applications those packages provide — counted apart, so that an
+ * application provided by the packages of several repositories is counted once. An aggregate
+ * reports one number, so the two are read apart as well, and the applications are counted through
+ * the packages that provide them, which is the one step of the chain the catalog keeps no relation
+ * for.
+ */
+function withCounts(query: ModelQueryBuilderContract<typeof Distro>) {
+  return query
+    .withAggregate('pkgs', (subQuery) => subQuery.count('*').as('pkgCount'))
+    .withAggregate('pkgs', (subQuery) =>
+      subQuery
+        .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
+        .countDistinct('app_pkgs.app_id')
+        .as('appCount'),
+    )
+}
+
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
     const { page, perPage, sort, q, arch } = await request.validateUsing(distroListValidator)
+    // The counts of a release are aggregates of the listing itself, so the entries a page holds and
+    // the counts they show are read together, and the order by a count is asked of the database the
+    // way the order by a name is
+    const query = withCounts(Distro.query().preload('compatibleDistro'))
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
     // keep the order stable for releases published on the same day and for the architectures of one
-    // entry
-    const query = Distro.query()
-      .preload('compatibleDistro')
+    // entry — and, read after a count, they are the order the entries that share it follow each
+    // other in, so a page of such a listing holds the same entries every time it is read
+    const countColumns = { packages: 'pkgCount', apps: 'appCount' } as const
+    if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
+    query
       .orderBy('name')
       .orderByRaw('release_date is null desc')
       .orderBy('releaseDate', 'desc')
@@ -42,22 +67,23 @@ export default class DistrosController {
     }
     if (arch) query.where('arch', arch)
 
-    // The order by a count is the order of the whole listing — the counts say how the entries
-    // follow each other — so the page is cut out of the ordered releases instead of being asked of
-    // the database. The catalog is small enough to be read whole for it, and the counts are read
-    // for every release anyway
-    const distros = await query
-    attachCounts(distros, await distroCounts(), sort)
-    const { entries, meta } = pageOf(distros, page, perPage)
-    return serialize(DistroTransformer.paginate(entries, meta))
+    // A listing that asked for no page size receives every release, which the pagination of the
+    // database cannot express; the others are paged by it
+    if (perPage === 0) {
+      const { entries, meta } = pageOf(await query, page, perPage)
+      return serialize(DistroTransformer.paginate(entries, meta))
+    }
+
+    const paginator = await query.paginate(page, perPage)
+    return serialize(DistroTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
   async show({ params, serialize }: HttpContext) {
-    const distro = await Distro.query()
+    // The detail page shows the same counts as the listing, of the one release it opens
+    const distro = await withCounts(Distro.query())
       .where('id', params.id)
       .preload('compatibleDistro')
       .firstOrFail()
-    attachCounts([distro], await distroCounts(), 'name')
     return serialize(DistroTransformer.transform(distro))
   }
 
