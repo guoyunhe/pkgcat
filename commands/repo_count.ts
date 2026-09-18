@@ -13,6 +13,6 @@ export default class RepoCount extends BaseCommand {
 
   async run() {
     await Repo.refreshCounts()
-    this.logger.info(`Refreshed counts for repositories and distributions`)
+    this.logger.info(`Refreshed counts for repositories`)
   }
 }
