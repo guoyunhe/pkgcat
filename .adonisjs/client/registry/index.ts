@@ -270,6 +270,12 @@ const routes = {
     tokens: [{"old":"/api/categories","type":0,"val":"api","end":""},{"old":"/api/categories","type":0,"val":"categories","end":""}],
     types: placeholder as Registry['categories.index']['types'],
   },
+  'search.counts': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/search/counts',
+    tokens: [{"old":"/api/search/counts","type":0,"val":"api","end":""},{"old":"/api/search/counts","type":0,"val":"search","end":""},{"old":"/api/search/counts","type":0,"val":"counts","end":""}],
+    types: placeholder as Registry['search.counts']['types'],
+  },
 } as const satisfies Record<string, AdonisEndpoint>
 
 export { routes }

@@ -16,6 +16,7 @@ import App from '#models/app'
 import Distro from '#models/distro'
 import Pkg from '#models/pkg'
 import { attachTranslations } from '#services/app_translations'
+import { searchPkgs } from '#services/catalog_search'
 import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
 import { archIndependentPackageArches } from '#utils/arch'
@@ -39,14 +40,7 @@ export default class PkgsController {
       await App.findOrFail(params.app_id)
       pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
     } else if (q) {
-      const pattern = `%${q.replace(/[\\%_]/g, '\\$&')}%`
-      pkgsQuery.where((subquery) => {
-        subquery
-          .whereILike('name', pattern)
-          .orWhereILike('type', pattern)
-          .orWhereILike('arch', pattern)
-          .orWhereILike('version', pattern)
-      })
+      searchPkgs(pkgsQuery, q)
     }
 
     // The filters apply both to the package list and to the packages of a single application

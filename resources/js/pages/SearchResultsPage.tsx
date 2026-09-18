@@ -13,13 +13,13 @@ import { useLocation } from 'wouter'
 import AppList, { type AppFilters } from '../components/AppList'
 import CountBadge from '../components/CountBadge'
 import DistroTable from '../components/DistroTable'
-import { emptyPkgFilters } from '../components/PkgFilters'
 import PkgList from '../components/PkgList'
 import RepoTable from '../components/RepoTable'
 import { getApps } from '../services/apps'
-import { emptyDistroFilters, getDistros, type DistroFilters } from '../services/distros'
+import { getDistros, type DistroFilters } from '../services/distros'
 import { getPkgs, type PkgFilters } from '../services/pkgs'
-import { emptyRepoFilters, getRepos, type RepoFilters } from '../services/repos'
+import { getRepos, type RepoFilters } from '../services/repos'
+import { getSearchCounts } from '../services/search'
 
 import styles from './AppsPage.module.css'
 
@@ -48,7 +48,7 @@ const listingParams = {
   type: parseAsString,
 }
 
-/** What every tab holds, which is nothing until its listing has been read. */
+/** What every tab of the search holds, which is nothing until the counts have been read. */
 const noCounts: Record<SearchTab, number | null> = {
   apps: null,
   pkgs: null,
@@ -90,27 +90,16 @@ export default function SearchResultsPage() {
     [terms],
   )
 
-  // Every tab counts what it holds, and the one that is not shown is not read by its own listing:
-  // the four counts are read together, and the listing of the tab that is shown tells its own again
-  // once it is narrowed
+  // What every tab of the search holds, which is read in one request for all of them: a tab whose
+  // listing is not mounted shows its count all the same, and it is the count of the terms the
+  // search was made with — a tab that is narrowed reads another page, not another count
   useEffect(() => {
     let active = true
 
     setCounts(noCounts)
-    Promise.all([
-      getApps(terms, 1, 1, null, null, 'newest', i18n.language),
-      getPkgs(terms, 1, emptyPkgFilters, i18n.language),
-      getRepos('name', { ...emptyRepoFilters, q: terms }, 1),
-      getDistros('name', { ...emptyDistroFilters, q: terms }, 1),
-    ])
-      .then(([apps, pkgs, repos, distros]) => {
-        if (!active) return
-        setCounts({
-          apps: apps.meta.total,
-          pkgs: pkgs.meta.total,
-          repos: repos.meta.total,
-          distros: distros.meta.total,
-        })
+    getSearchCounts(terms)
+      .then((next) => {
+        if (active) setCounts(next)
       })
       .catch(() => {
         // A count that could not be read keeps the tab waiting, which the listing it opens says
@@ -119,11 +108,7 @@ export default function SearchResultsPage() {
     return () => {
       active = false
     }
-  }, [i18n.language, terms])
-
-  function setCount(nextTab: SearchTab, count: number) {
-    setCounts((current) => ({ ...current, [nextTab]: count }))
-  }
+  }, [terms])
 
   // The tab the reader opened is the one shown: what the listing it names was narrowed by, and the
   // page of it the reader was on, belong to the tab they were set on, so opening a tab starts the
@@ -181,14 +166,13 @@ export default function SearchResultsPage() {
           </Tabs.Tab>
         </Tabs.List>
 
-        {/* Only the listing of the tab that is shown is read, and the count of each tab is what the
-            listing reports once it has been opened */}
+        {/* Only the listing of the tab that is shown is mounted, and what each tab holds is the
+            count the page reads for it */}
         <Tabs.Panel pt='lg' value='apps'>
           <AppList
             emptyMessage={t('common.appsNotFound')}
             errorMessage={t('search.loadError')}
             load={readApps}
-            onCountChange={(count) => setCount('apps', count)}
           />
         </Tabs.Panel>
 
@@ -197,7 +181,6 @@ export default function SearchResultsPage() {
             emptyMessage={t('common.packagesNotFound')}
             errorMessage={t('search.loadPackagesError')}
             load={readPkgs}
-            onCountChange={(count) => setCount('pkgs', count)}
           />
         </Tabs.Panel>
 
@@ -207,7 +190,6 @@ export default function SearchResultsPage() {
             errorMessage={t('search.loadReposError')}
             hideFilters
             load={readRepos}
-            onCountChange={(count) => setCount('repos', count)}
             onRowClick={(repo) => navigate(`/repos/${repo.id}`)}
           />
         </Tabs.Panel>
@@ -218,7 +200,6 @@ export default function SearchResultsPage() {
             errorMessage={t('search.loadDistrosError')}
             hideFilters
             load={readDistros}
-            onCountChange={(count) => setCount('distros', count)}
             onRowClick={(distro) => navigate(`/distros/${distro.id}`)}
           />
         </Tabs.Panel>

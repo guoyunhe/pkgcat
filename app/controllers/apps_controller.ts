@@ -8,6 +8,7 @@ import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { attachTranslations, replaceTranslations } from '#services/app_translations'
+import { searchApps } from '#services/catalog_search'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
 import {
@@ -72,25 +73,7 @@ export default class AppsController {
     }
 
     if (query) {
-      const pattern = `%${query.replace(/[\\%_]/g, '\\$&')}%`
-      appsQuery.where((searchQuery) => {
-        searchQuery
-          // The name and the summary are translated per locale in their own table, so the search
-          // covers every language an application carries. The text columns are compared through
-          // `lower()` as well, because the pattern is lower-cased and their collation is the only
-          // thing that would make the comparison case-insensitive otherwise.
-          .whereRaw('lower(version) like ?', [pattern])
-          .orWhereRaw('lower(license) like ?', [pattern])
-          .orWhereRaw('lower(appstream_id) like ?', [pattern])
-          .orWhereHas('aliases', (aliasQuery) =>
-            aliasQuery.whereRaw('lower(appstream_id) like ?', [pattern]),
-          )
-          .orWhereHas('translations', (translationQuery) =>
-            translationQuery
-              .whereRaw('lower(name) like ?', [pattern])
-              .orWhereRaw('lower(summary) like ?', [pattern]),
-          )
-      })
+      searchApps(appsQuery, query)
     }
 
     if (category.length > 0) {

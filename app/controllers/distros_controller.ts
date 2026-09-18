@@ -2,6 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { DateTime } from 'luxon'
 
 import Distro from '#models/distro'
+import { searchDistros } from '#services/catalog_search'
 import DistroTransformer from '#transformers/distro_transformer'
 import { pageOf } from '#utils/pagination'
 import { distroListValidator, distroValidator } from '#validators/distro'
@@ -28,19 +29,7 @@ export default class DistrosController {
     const countColumns = { packages: 'pkgCount', apps: 'appCount' } as const
     if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
     query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
-    if (q) {
-      // A release is found by what names it — the distribution, the version and the architecture it
-      // is published for, and the format it packages — rather than by the repositories serving it,
-      // which a reader reaches through the repositories themselves
-      const pattern = `%${q.replace(/[\\%_]/g, '\\$&')}%`
-      query.where((subquery) => {
-        subquery
-          .whereILike('name', pattern)
-          .orWhereILike('version', pattern)
-          .orWhereILike('arch', pattern)
-          .orWhereILike('pkgType', pattern)
-      })
-    }
+    if (q) searchDistros(query, q)
     if (arch) query.where('arch', arch)
 
     // A listing that asked for no page size receives every release, which the pagination of the

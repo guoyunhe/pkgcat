@@ -14,5 +14,6 @@ export const controllers = {
   Pkgs: () => import('#controllers/pkgs_controller'),
   Repos: () => import('#controllers/repos_controller'),
   Reviews: () => import('#controllers/reviews_controller'),
+  Search: () => import('#controllers/search_controller'),
   Users: () => import('#controllers/users_controller'),
 }

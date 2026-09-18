@@ -535,4 +535,16 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/categories_controller').default['index']>>>
     }
   }
+  'search.counts': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/search/counts'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/search').searchCountsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/search_controller').default['counts']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/search_controller').default['counts']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
 }
