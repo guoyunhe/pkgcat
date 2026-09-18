@@ -43,6 +43,27 @@ export function localeKey(locale: string) {
 }
 
 /**
+ * Whether a tag names the language itself or a spelling of it in another alphabet. One language is
+ * written under several tags at once — `en` next to `en-GB` and `en-Shaw`, `sr-Cyrl` next to
+ * `sr@latin` — and all of them resolve to the same locale of the catalog, which keeps one text per
+ * language. A tag in another alphabet, a script subtag or the glibc modifier that names one, is the
+ * language written differently rather than another translation of it, so it ranks below the
+ * language itself and a collector that folds the tags together must not let it replace the text of
+ * the language — which is what left the Shavian name of `org.gnome.SoundJuicer` in the English
+ * translation. A region tag (`en-GB`) is not weakened that way, because it names how the language
+ * is written for that region, so it keeps the rank of the plain tag and the order the tags are read
+ * in decides between them.
+ */
+export function localeRank(tag: string) {
+  // `sr@latin` is Serbian, written in the Latin alphabet, the way a script subtag says it as well
+  if (tag.includes('@')) return 0
+
+  const subtags = tag.trim().replace(/_/g, '-').split('-').filter(Boolean)
+  if (subtags.some((subtag) => /^[A-Za-z]{4}$/.test(subtag))) return 0
+  return 1
+}
+
+/**
  * Chinese is the one language of the list that is written in two scripts, and the catalog keeps the
  * two scripts as two translations rather than keeping the language itself: a script or a region
  * subtag decides which one a tag names (`zh-Hant-HK` is `zh-TW`), and a tag that names neither is

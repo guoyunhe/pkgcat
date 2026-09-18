@@ -1,7 +1,7 @@
 import type { ComponentType } from '@guoyunhe/appstream'
 import vine from '@vinejs/vine'
 
-import { canonicalLocale } from '#services/app_locales'
+import { canonicalLocale, localeRank } from '#services/app_locales'
 import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
@@ -43,13 +43,18 @@ const emptyToNull = (value: unknown) => (value === '' || value === undefined ? n
 /**
  * Localized text is a JSON object of locale => text. At least one translation is required; blank
  * and non-string translations are dropped, while a locale is kept under the spelling the catalog
- * uses (`zh-CN` for `zh_cn`) and only when the catalog keeps that language at all.
+ * uses (`zh-CN` for `zh_cn`) and only when the catalog keeps that language at all. Several tags of
+ * one language (`en`, `en-GB`) fold into one entry, and the language's own text wins over a
+ * spelling of it in another alphabet, the same way the importer resolves them.
  */
 const localizedTextRule = vine.createRule((value, _options, field) => {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return
 
   const localized: LocalizedText = {}
-  for (const [tag, text] of Object.entries(value as Record<string, unknown>)) {
+  const entries = Object.entries(value as Record<string, unknown>).sort(
+    ([left], [right]) => localeRank(left) - localeRank(right),
+  )
+  for (const [tag, text] of entries) {
     if (typeof text !== 'string') continue
 
     const trimmed = text.trim()

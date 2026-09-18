@@ -1,6 +1,6 @@
 import type App from '#models/app'
 import AppTranslation from '#models/app_translation'
-import { canonicalLocale, fallbackLocale, localeKey } from '#services/app_locales'
+import { canonicalLocale, fallbackLocale, localeKey, localeRank } from '#services/app_locales'
 
 /**
  * Localized text of an application. Applications carry a name and a summary per locale, which used
@@ -96,7 +96,12 @@ export async function replaceTranslations(
 ) {
   const wanted = new Map<string, { locale: string; name: string | null; summary: string | null }>()
   const collect = (texts: LocalizedTexts, field: TranslatedField) => {
-    for (const [tag, text] of Object.entries(texts)) {
+    // Several tags of one language (`en`, `en-GB`, `en-Shaw`) fold into one locale of the catalog,
+    // so the weaker spellings are read first and the language's own text overwrites them
+    const entries = Object.entries(texts).sort(
+      ([left], [right]) => localeRank(left) - localeRank(right),
+    )
+    for (const [tag, text] of entries) {
       const trimmed = typeof text === 'string' ? text.trim() : ''
       if (!trimmed) continue
 
