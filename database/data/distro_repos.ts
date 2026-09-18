@@ -575,42 +575,6 @@ Server = https://mirror.cachyos.org/repo/x86_64_v4/cachyos-extra-v4/`,
     configContent: 'deb http://ppa.launchpad.net/elementary-os/stable/ubuntu noble main',
   },
   {
-    name: 'Fedora Linux 42 Release (x86_64)',
-    type: 'rpm',
-    source: 'distro',
-    baseUrl:
-      'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Everything/x86_64/os/',
-    syncIntervalDays: null,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'x86_64' }],
-  },
-  {
-    name: 'Fedora Linux 42 Updates (x86_64)',
-    type: 'rpm',
-    source: 'distro',
-    baseUrl:
-      'https://archives.fedoraproject.org/pub/archive/fedora/linux/updates/42/Everything/x86_64/',
-    syncIntervalDays: null,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'x86_64' }],
-  },
-  {
-    name: 'Fedora Linux 42 Release (aarch64)',
-    type: 'rpm',
-    source: 'distro',
-    baseUrl:
-      'https://download.fedoraproject.org/pub/fedora/linux/releases/42/Everything/aarch64/os/',
-    syncIntervalDays: null,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'aarch64' }],
-  },
-  {
-    name: 'Fedora Linux 42 Updates (aarch64)',
-    type: 'rpm',
-    source: 'distro',
-    baseUrl:
-      'https://archives.fedoraproject.org/pub/archive/fedora/linux/updates/42/Everything/aarch64/',
-    syncIntervalDays: null,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'aarch64' }],
-  },
-  {
     name: 'Fedora Linux 43 Release (x86_64)',
     type: 'rpm',
     source: 'distro',

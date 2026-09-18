@@ -48,49 +48,6 @@ enabled=1
     installScript: 'pkexec zypper addrepo -y https://download.videolan.org/SuSE/16.0/SuSE.repo',
   },
   {
-    name: 'RPM Fusion for Fedora 42 - Free',
-    type: 'rpm',
-    source: 'community',
-    baseUrl: 'http://download1.rpmfusion.org/free/fedora/releases/42/Everything/x86_64/os/',
-    syncIntervalDays: null,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'x86_64' }],
-    configContent: `[rpmfusion-free]
-name=RPM Fusion for Fedora $releasever - Free
-#baseurl=http://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/
-metalink=https://mirrors.rpmfusion.org/metalink?repo=free-fedora-$releasever&arch=$basearch
-enabled=0
-metadata_expire=14d
-type=rpm-md
-gpgcheck=1
-repo_gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
-
-[rpmfusion-free-debuginfo]
-name=RPM Fusion for Fedora $releasever - Free - Debug
-#baseurl=http://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/debug/
-metalink=https://mirrors.rpmfusion.org/metalink?repo=free-fedora-debug-$releasever&arch=$basearch
-enabled=0
-metadata_expire=7d
-type=rpm-md
-gpgcheck=1
-repo_gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
-
-[rpmfusion-free-source]
-name=RPM Fusion for Fedora $releasever - Free - Source
-#baseurl=http://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/source/SRPMS/
-metalink=https://mirrors.rpmfusion.org/metalink?repo=free-fedora-source-$releasever&arch=$basearch
-enabled=0
-metadata_expire=7d
-type=rpm-md
-gpgcheck=1
-repo_gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-$releasever
-`,
-    installScript:
-      'pkexec dnf install -y https://download1.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm',
-  },
-  {
     name: 'RPM Fusion for Fedora 43 - Free',
     type: 'rpm',
     source: 'community',
@@ -445,44 +402,6 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel10/sbsa/CDF6
       'sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel10/sbsa/cuda-rhel10.repo',
   },
   {
-    name: 'NVIDIA CUDA for Fedora Linux 42 (x86_64)',
-    type: 'rpm',
-    source: 'community',
-    baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64',
-    syncIntervalDays: 7,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'x86_64' }],
-    configContent: `[cuda-fedora42-x86_64]
-name=cuda-fedora42-x86_64
-baseurl=https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64
-enabled=1
-gpgcheck=1
-gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64/D42D0685.pub
-`,
-    configUrl:
-      'https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64/cuda-fedora42.repo',
-    installScript:
-      'sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora42/x86_64/cuda-fedora42.repo',
-  },
-  {
-    name: 'NVIDIA CUDA for Fedora Linux 42 (aarch64)',
-    type: 'rpm',
-    source: 'community',
-    baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/fedora42/sbsa',
-    syncIntervalDays: 7,
-    distros: [{ name: 'Fedora Linux', version: '42', arch: 'aarch64' }],
-    configContent: `[cuda-fedora42-sbsa]
-name=cuda-fedora42-sbsa
-baseurl=https://developer.download.nvidia.com/compute/cuda/repos/fedora42/sbsa
-enabled=1
-gpgcheck=1
-gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/fedora42/sbsa/D42D0685.pub
-`,
-    configUrl:
-      'https://developer.download.nvidia.com/compute/cuda/repos/fedora42/sbsa/cuda-fedora42.repo',
-    installScript:
-      'sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora42/sbsa/cuda-fedora42.repo',
-  },
-  {
     name: 'NVIDIA CUDA for Fedora Linux 43 (x86_64)',
     type: 'rpm',
     source: 'community',
@@ -678,7 +597,6 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/suse16/sbsa/3A8B
     distros: [
       { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
-      { name: 'Fedora Linux', version: '42', arch: 'x86_64' },
       { name: 'Fedora Linux', version: '43', arch: 'x86_64' },
       { name: 'Fedora Linux', version: '44', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },

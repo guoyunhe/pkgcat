@@ -99,14 +99,6 @@ export const distros: DistroSeed[] = [
   },
   {
     name: 'Fedora Linux',
-    version: '42',
-    pkgType: 'rpm',
-    arches: ['x86_64', 'aarch64'],
-    releaseDate: '2025-04-15',
-    eolDate: '2026-05-27',
-  },
-  {
-    name: 'Fedora Linux',
     version: '43',
     pkgType: 'rpm',
     arches: ['x86_64', 'aarch64'],
