@@ -157,7 +157,7 @@ export default function AppDetailPage() {
               leftSection={<PencilSimpleIcon size={18} />}
               variant='default'
             >
-              {t('common.editApp')}
+              {t('common.edit')}
             </Button>
             <Button
               color='red'
@@ -312,7 +312,7 @@ export default function AppDetailPage() {
                 leftSection={<PlusIcon size={16} weight='bold' />}
                 size='xs'
               >
-                {t('common.addPackage')}
+                {t('common.add')}
               </Button>
             </Group>
           )}

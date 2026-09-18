@@ -40,7 +40,7 @@ export default function AppsPage() {
             href='/apps/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('common.addApp')}
+            {t('common.add')}
           </Button>
         )}
       </header>

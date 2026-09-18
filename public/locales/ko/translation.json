@@ -50,9 +50,8 @@
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID 별칭",
     "desktopEntry": "데스크톱 항목",
-    "addApp": "앱 추가",
-    "editApp": "앱 편집",
-    "addPackage": "패키지 추가",
+    "add": "추가",
+    "save": "저장",
     "edit": "편집",
     "delete": "삭제",
     "merge": "병합",
@@ -128,10 +127,6 @@
     "uploadHint": "이름, 버전, 릴리스, 아키텍처는 업로드한 파일에서 읽습니다.",
     "uploadError": "패키지 파일을 업로드할 수 없습니다",
     "uploadSuccess": "“{{name}}”을(를) 이 애플리케이션에 추가했습니다",
-    "editPackage": "패키지 편집",
-    "newEntry": "새 패키지",
-    "editEntry": "패키지",
-    "save": "패키지 저장",
     "saveError": "패키지를 저장할 수 없습니다",
     "deleteConfirm": "패키지 {{name}}을(를) 삭제할까요?",
     "deleteError": "패키지를 삭제할 수 없습니다",
@@ -178,8 +173,6 @@
     "noPackages": "사용할 수 있는 패키지가 없습니다."
   },
   "form": {
-    "newEntry": "새 카탈로그 항목",
-    "editEntry": "카탈로그 항목",
     "saveError": "앱을 저장할 수 없습니다",
     "icon": "아이콘",
     "iconDrop": "놓거나 클릭해서 업로드",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "원본 AppStream 메타데이터이며, 보통 AppStream URL에서 가져옵니다.",
     "desktopUrl": "데스크톱 URL",
-    "desktopContentHint": ".desktop 파일의 내용이며, 보통 데스크톱 URL에서 가져옵니다.",
-    "save": "앱 저장"
+    "desktopContentHint": ".desktop 파일의 내용이며, 보통 데스크톱 URL에서 가져옵니다."
   },
   "merge": {
     "title": "다른 애플리케이션을 이 항목으로 병합",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "패키지를 추출하는 데 쓰는 Debian, RPM 등의 패키지 저장소입니다.",
-    "addRepo": "저장소 추가",
-    "editRepo": "저장소 편집",
-    "newEntry": "새 저장소",
-    "save": "저장소 저장",
     "confirmDelete": "저장소 “{{name}}”을(를) 삭제할까요?",
     "manual": "수동만",
     "neverSynced": "없음",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "패키지 형식과 아키텍처, 수명 주기를 포함한 Linux 배포판 릴리스입니다.",
-    "addDistro": "배포판 추가",
-    "editDistro": "배포판 편집",
-    "newEntry": "새 배포판",
-    "save": "배포판 저장",
     "confirmDelete": "배포판 “{{name}}”을(를) 삭제할까요?",
     "notFound": "아직 등록된 배포판이 없습니다.",
     "filterAny": "모든 아키텍처",
@@ -305,14 +289,14 @@
     "avatarRemove": "아바타 삭제",
     "avatarUploadError": "아바타를 업로드할 수 없습니다",
     "email": "이메일",
-    "saveProfile": "프로필 저장",
+    "updateProfile": "프로필 수정",
     "profileSaved": "프로필을 저장했습니다.",
     "passwordHint": "이 계정의 비밀번호만 바뀝니다. 로그인되어 있는 기기는 그대로 로그인 상태로 남습니다.",
     "currentPassword": "현재 비밀번호",
     "newPassword": "새 비밀번호",
     "newPasswordHint": "8자 이상.",
     "passwordConfirmation": "새 비밀번호 확인",
-    "savePassword": "비밀번호 변경",
+    "updatePassword": "비밀번호 변경",
     "passwordSaved": "비밀번호를 변경했습니다.",
     "saveError": "계정을 저장할 수 없습니다"
   }

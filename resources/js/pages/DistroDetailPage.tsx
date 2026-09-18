@@ -115,7 +115,7 @@ export default function DistroDetailPage() {
               leftSection={<PencilSimpleIcon size={18} />}
               variant='default'
             >
-              {t('distros.editDistro')}
+              {t('common.edit')}
             </Button>
             <Button
               color='red'

@@ -111,7 +111,7 @@ export default function RepoDetailPage() {
               leftSection={<PencilSimpleIcon size={18} />}
               variant='default'
             >
-              {t('repos.editRepo')}
+              {t('common.edit')}
             </Button>
             <Button
               color='red'

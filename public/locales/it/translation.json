@@ -50,9 +50,8 @@
     "appstreamId": "ID AppStream",
     "appstreamIdAliases": "Alias dell’ID AppStream",
     "desktopEntry": "Voce .desktop",
-    "addApp": "Aggiungi applicazione",
-    "editApp": "Modifica applicazione",
-    "addPackage": "Aggiungi pacchetto",
+    "add": "Aggiungi",
+    "save": "Salva",
     "edit": "Modifica",
     "delete": "Elimina",
     "merge": "Unisci",
@@ -128,10 +127,6 @@
     "uploadHint": "Nome, versione, release e architettura vengono letti dal file caricato.",
     "uploadError": "Impossibile caricare il file di pacchetto",
     "uploadSuccess": "“{{name}}” è stato aggiunto a questa applicazione",
-    "editPackage": "Modifica pacchetto",
-    "newEntry": "Nuovo pacchetto",
-    "editEntry": "Pacchetto",
-    "save": "Salva pacchetto",
     "saveError": "Impossibile salvare il pacchetto",
     "deleteConfirm": "Eliminare il pacchetto {{name}}?",
     "deleteError": "Impossibile eliminare il pacchetto",
@@ -178,8 +173,6 @@
     "noPackages": "Nessun pacchetto disponibile."
   },
   "form": {
-    "newEntry": "Nuova scheda",
-    "editEntry": "Scheda del catalogo",
     "saveError": "Impossibile salvare l’applicazione",
     "icon": "Icona",
     "iconDrop": "Trascina o fai clic per caricare",
@@ -196,8 +189,7 @@
     "appstreamContent": "XML AppStream",
     "appstreamContentHint": "Metadati AppStream grezzi, di solito importati dall’URL AppStream.",
     "desktopUrl": "URL .desktop",
-    "desktopContentHint": "Contenuto del file .desktop, di solito importato dall’URL .desktop.",
-    "save": "Salva applicazione"
+    "desktopContentHint": "Contenuto del file .desktop, di solito importato dall’URL .desktop."
   },
   "merge": {
     "title": "Unisci un’altra applicazione a questa",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Repository Debian, RPM e altri, usati per estrarre i pacchetti.",
-    "addRepo": "Aggiungi repository",
-    "editRepo": "Modifica repository",
-    "newEntry": "Nuovo repository",
-    "save": "Salva repository",
     "confirmDelete": "Eliminare il repository “{{name}}”?",
     "manual": "Solo manuale",
     "neverSynced": "Mai",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Release di distribuzioni Linux con formato dei pacchetti, architettura e ciclo di vita.",
-    "addDistro": "Aggiungi distribuzione",
-    "editDistro": "Modifica distribuzione",
-    "newEntry": "Nuova distribuzione",
-    "save": "Salva distribuzione",
     "confirmDelete": "Eliminare la distribuzione “{{name}}”?",
     "notFound": "Nessuna distribuzione configurata.",
     "filterAny": "Tutte le architetture",
@@ -305,14 +289,14 @@
     "avatarRemove": "Rimuovi immagine del profilo",
     "avatarUploadError": "Impossibile caricare l’immagine del profilo",
     "email": "Email",
-    "saveProfile": "Salva profilo",
+    "updateProfile": "Aggiorna profilo",
     "profileSaved": "Il tuo profilo è stato salvato.",
     "passwordHint": "Cambia solo la password di questo account; i dispositivi già connessi restano connessi.",
     "currentPassword": "Password attuale",
     "newPassword": "Nuova password",
     "newPasswordHint": "Almeno 8 caratteri.",
     "passwordConfirmation": "Ripeti la nuova password",
-    "savePassword": "Cambia password",
+    "updatePassword": "Cambia password",
     "passwordSaved": "La tua password è stata cambiata.",
     "saveError": "Impossibile salvare l’account"
   }

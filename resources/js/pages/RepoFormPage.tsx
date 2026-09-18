@@ -112,10 +112,8 @@ export default function RepoFormPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>
-            {repoId ? t('common.repository') : t('repos.newEntry')}
-          </Text>
-          <Title order={1}>{repoId ? t('repos.editRepo') : t('repos.addRepo')}</Title>
+          <Text className={styles.eyebrow}>{t('common.repository')}</Text>
+          <Title order={1}>{repoId ? t('common.edit') : t('common.add')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -216,7 +214,7 @@ export default function RepoFormPage() {
 
           <Group justify='flex-end'>
             <Button type='submit' leftSection={<FloppyDiskIcon size={18} />} loading={saving}>
-              {t('repos.save')}
+              {t('common.save')}
             </Button>
           </Group>
         </Stack>

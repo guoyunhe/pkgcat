@@ -50,9 +50,8 @@
     "appstreamId": "ID do AppStream",
     "appstreamIdAliases": "Aliases do ID do AppStream",
     "desktopEntry": "Entrada .desktop",
-    "addApp": "Adicionar aplicação",
-    "editApp": "Editar aplicação",
-    "addPackage": "Adicionar pacote",
+    "add": "Adicionar",
+    "save": "Guardar",
     "edit": "Editar",
     "delete": "Eliminar",
     "merge": "Fundir",
@@ -128,10 +127,6 @@
     "uploadHint": "O nome, a versão, a revisão e a arquitetura são lidos do ficheiro carregado.",
     "uploadError": "Não foi possível carregar o ficheiro de pacote",
     "uploadSuccess": "“{{name}}” foi adicionado a esta aplicação",
-    "editPackage": "Editar pacote",
-    "newEntry": "Novo pacote",
-    "editEntry": "Pacote",
-    "save": "Guardar pacote",
     "saveError": "Não foi possível guardar o pacote",
     "deleteConfirm": "Eliminar o pacote {{name}}?",
     "deleteError": "Não foi possível eliminar o pacote",
@@ -178,8 +173,6 @@
     "noPackages": "Nenhum pacote disponível."
   },
   "form": {
-    "newEntry": "Nova ficha",
-    "editEntry": "Ficha do catálogo",
     "saveError": "Não foi possível guardar a aplicação",
     "icon": "Ícone",
     "iconDrop": "Arraste ou clique para carregar",
@@ -196,8 +189,7 @@
     "appstreamContent": "XML do AppStream",
     "appstreamContentHint": "Metadados brutos do AppStream, normalmente importados do URL do AppStream.",
     "desktopUrl": "URL do .desktop",
-    "desktopContentHint": "Conteúdo do ficheiro .desktop, normalmente importado do URL do .desktop.",
-    "save": "Guardar aplicação"
+    "desktopContentHint": "Conteúdo do ficheiro .desktop, normalmente importado do URL do .desktop."
   },
   "merge": {
     "title": "Fundir outra aplicação nesta",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Repositórios Debian, RPM e outros, usados para extrair pacotes.",
-    "addRepo": "Adicionar repositório",
-    "editRepo": "Editar repositório",
-    "newEntry": "Novo repositório",
-    "save": "Guardar repositório",
     "confirmDelete": "Eliminar o repositório “{{name}}”?",
     "manual": "Apenas manual",
     "neverSynced": "Nunca",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Versões de distribuições Linux com o formato de pacote, a arquitetura e o ciclo de vida.",
-    "addDistro": "Adicionar distribuição",
-    "editDistro": "Editar distribuição",
-    "newEntry": "Nova distribuição",
-    "save": "Guardar distribuição",
     "confirmDelete": "Eliminar a distribuição “{{name}}”?",
     "notFound": "Ainda não há distribuições configuradas.",
     "filterAny": "Todas as arquiteturas",
@@ -305,14 +289,14 @@
     "avatarRemove": "Remover imagem de perfil",
     "avatarUploadError": "Não foi possível carregar a imagem de perfil",
     "email": "E-mail",
-    "saveProfile": "Guardar perfil",
+    "updateProfile": "Atualizar perfil",
     "profileSaved": "O seu perfil foi guardado.",
     "passwordHint": "Só muda a palavra-passe desta conta; os dispositivos com sessão iniciada continuam com sessão iniciada.",
     "currentPassword": "Palavra-passe atual",
     "newPassword": "Nova palavra-passe",
     "newPasswordHint": "Pelo menos 8 caracteres.",
     "passwordConfirmation": "Repita a nova palavra-passe",
-    "savePassword": "Alterar palavra-passe",
+    "updatePassword": "Alterar palavra-passe",
     "passwordSaved": "A sua palavra-passe foi alterada.",
     "saveError": "Não foi possível guardar a conta"
   }

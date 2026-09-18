@@ -50,9 +50,8 @@
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID の別名",
     "desktopEntry": "デスクトップエントリ",
-    "addApp": "アプリを追加",
-    "editApp": "アプリを編集",
-    "addPackage": "パッケージを追加",
+    "add": "追加",
+    "save": "保存",
     "edit": "編集",
     "delete": "削除",
     "merge": "統合",
@@ -128,10 +127,6 @@
     "uploadHint": "名前・バージョン・リリース・アーキテクチャはアップロードしたファイルから読み取ります。",
     "uploadError": "パッケージファイルをアップロードできません",
     "uploadSuccess": "“{{name}}” をこのアプリケーションに追加しました",
-    "editPackage": "パッケージを編集",
-    "newEntry": "新しいパッケージ",
-    "editEntry": "パッケージ",
-    "save": "パッケージを保存",
     "saveError": "パッケージを保存できません",
     "deleteConfirm": "パッケージ {{name}} を削除しますか？",
     "deleteError": "パッケージを削除できません",
@@ -178,8 +173,6 @@
     "noPackages": "利用できるパッケージがありません。"
   },
   "form": {
-    "newEntry": "新しいカタログ項目",
-    "editEntry": "カタログ項目",
     "saveError": "アプリを保存できません",
     "icon": "アイコン",
     "iconDrop": "ドロップまたはクリックしてアップロード",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "生の AppStream メタデータ。通常は AppStream URL から取り込みます。",
     "desktopUrl": "デスクトップ URL",
-    "desktopContentHint": ".desktop ファイルの内容。通常はデスクトップ URL から取り込みます。",
-    "save": "アプリを保存"
+    "desktopContentHint": ".desktop ファイルの内容。通常はデスクトップ URL から取り込みます。"
   },
   "merge": {
     "title": "別のアプリケーションをこの項目に統合",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "パッケージの取り込みに使う Debian・RPM などのリポジトリです。",
-    "addRepo": "リポジトリを追加",
-    "editRepo": "リポジトリを編集",
-    "newEntry": "新しいリポジトリ",
-    "save": "リポジトリを保存",
     "confirmDelete": "リポジトリ “{{name}}” を削除しますか？",
     "manual": "手動のみ",
     "neverSynced": "未同期",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "パッケージ形式・アーキテクチャ・ライフサイクルを含む、Linux ディストリビューションのリリース。",
-    "addDistro": "ディストリビューションを追加",
-    "editDistro": "ディストリビューションを編集",
-    "newEntry": "新しいディストリビューション",
-    "save": "ディストリビューションを保存",
     "confirmDelete": "ディストリビューション “{{name}}” を削除しますか？",
     "notFound": "まだディストリビューションが登録されていません。",
     "filterAny": "すべてのアーキテクチャ",
@@ -305,14 +289,14 @@
     "avatarRemove": "アバターを削除",
     "avatarUploadError": "アバターをアップロードできません",
     "email": "メールアドレス",
-    "saveProfile": "プロフィールを保存",
+    "updateProfile": "プロフィールを更新",
     "profileSaved": "プロフィールを保存しました。",
     "passwordHint": "変更されるのはこのアカウントのパスワードだけです。ログイン済みの端末はログインしたままになります。",
     "currentPassword": "現在のパスワード",
     "newPassword": "新しいパスワード",
     "newPasswordHint": "8 文字以上。",
     "passwordConfirmation": "新しいパスワード（確認）",
-    "savePassword": "パスワードを変更",
+    "updatePassword": "パスワードを変更",
     "passwordSaved": "パスワードを変更しました。",
     "saveError": "アカウントを保存できません"
   }

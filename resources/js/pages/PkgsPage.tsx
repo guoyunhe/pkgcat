@@ -34,7 +34,7 @@ export default function PkgsPage() {
             href='/pkgs/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('common.addPackage')}
+            {t('common.add')}
           </Button>
         )}
       </header>

@@ -121,7 +121,7 @@ export default function SettingsPage() {
         <Card padding='lg' radius='sm' withBorder>
           <Stack>
             <div>
-              <Text fw={700}>{t('common.profile')}</Text>
+              <Text fw={700}>{t('settings.updateProfile')}</Text>
               <Text c='dimmed' size='sm'>
                 {t('settings.profileHint')}
               </Text>
@@ -169,7 +169,7 @@ export default function SettingsPage() {
                     loading={savingProfile}
                     type='submit'
                   >
-                    {t('settings.saveProfile')}
+                    {t('common.save')}
                   </Button>
                 </Group>
               </Stack>
@@ -180,7 +180,7 @@ export default function SettingsPage() {
         <Card padding='lg' radius='sm' withBorder>
           <Stack>
             <div>
-              <Text fw={700}>{t('common.password')}</Text>
+              <Text fw={700}>{t('settings.updatePassword')}</Text>
               <Text c='dimmed' size='sm'>
                 {t('settings.passwordHint')}
               </Text>
@@ -214,7 +214,7 @@ export default function SettingsPage() {
                     loading={savingPassword}
                     type='submit'
                   >
-                    {t('settings.savePassword')}
+                    {t('common.save')}
                   </Button>
                 </Group>
               </Stack>

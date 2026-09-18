@@ -50,9 +50,8 @@
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID aliases",
     "desktopEntry": "Desktop entry",
-    "addApp": "Add application",
-    "editApp": "Edit application",
-    "addPackage": "Add package",
+    "add": "Add",
+    "save": "Save",
     "edit": "Edit",
     "delete": "Delete",
     "merge": "Merge",
@@ -128,10 +127,6 @@
     "uploadHint": "The name, version, release and architecture are read from the uploaded file.",
     "uploadError": "Unable to upload the package file",
     "uploadSuccess": "“{{name}}” was added to this application",
-    "editPackage": "Edit package",
-    "newEntry": "New package",
-    "editEntry": "Package",
-    "save": "Save package",
     "saveError": "Unable to save package",
     "deleteConfirm": "Delete package {{name}}?",
     "deleteError": "Unable to delete package",
@@ -178,8 +173,6 @@
     "noPackages": "No packages available."
   },
   "form": {
-    "newEntry": "New catalog entry",
-    "editEntry": "Catalog entry",
     "saveError": "Unable to save application",
     "icon": "Icon",
     "iconDrop": "Drop or click to upload",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "Raw AppStream metadata, usually imported from the AppStream URL.",
     "desktopUrl": "Desktop URL",
-    "desktopContentHint": "Contents of the .desktop file, usually imported from the desktop URL.",
-    "save": "Save application"
+    "desktopContentHint": "Contents of the .desktop file, usually imported from the desktop URL."
   },
   "merge": {
     "title": "Merge another application into this one",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Debian, RPM and other package repositories used to extract packages.",
-    "addRepo": "Add repository",
-    "editRepo": "Edit repository",
-    "newEntry": "New repository",
-    "save": "Save repository",
     "confirmDelete": "Delete repository “{{name}}”?",
     "manual": "Manual only",
     "neverSynced": "Never",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Linux distribution releases with their package format, architecture and life cycle.",
-    "addDistro": "Add distribution",
-    "editDistro": "Edit distribution",
-    "newEntry": "New distribution",
-    "save": "Save distribution",
     "confirmDelete": "Delete distribution “{{name}}”?",
     "notFound": "No distributions configured yet.",
     "filterAny": "All architectures",
@@ -305,14 +289,14 @@
     "avatarRemove": "Remove avatar",
     "avatarUploadError": "Unable to upload the avatar",
     "email": "Email",
-    "saveProfile": "Save profile",
+    "updateProfile": "Update profile",
     "profileSaved": "Your profile has been saved.",
     "passwordHint": "Only this account's password changes; the devices you are signed in on stay signed in.",
     "currentPassword": "Current password",
     "newPassword": "New password",
     "newPasswordHint": "At least 8 characters.",
     "passwordConfirmation": "Repeat the new password",
-    "savePassword": "Change password",
+    "updatePassword": "Change password",
     "passwordSaved": "Your password has been changed.",
     "saveError": "Unable to save the account"
   }

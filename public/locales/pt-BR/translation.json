@@ -50,9 +50,8 @@
     "appstreamId": "ID do AppStream",
     "appstreamIdAliases": "Aliases do ID do AppStream",
     "desktopEntry": "Entrada .desktop",
-    "addApp": "Adicionar aplicativo",
-    "editApp": "Editar aplicativo",
-    "addPackage": "Adicionar pacote",
+    "add": "Adicionar",
+    "save": "Salvar",
     "edit": "Editar",
     "delete": "Excluir",
     "merge": "Mesclar",
@@ -128,10 +127,6 @@
     "uploadHint": "O nome, a versão, a revisão e a arquitetura são lidos do arquivo enviado.",
     "uploadError": "Não foi possível enviar o arquivo de pacote",
     "uploadSuccess": "“{{name}}” foi adicionado a este aplicativo",
-    "editPackage": "Editar pacote",
-    "newEntry": "Novo pacote",
-    "editEntry": "Pacote",
-    "save": "Salvar pacote",
     "saveError": "Não foi possível salvar o pacote",
     "deleteConfirm": "Excluir o pacote {{name}}?",
     "deleteError": "Não foi possível excluir o pacote",
@@ -178,8 +173,6 @@
     "noPackages": "Nenhum pacote disponível."
   },
   "form": {
-    "newEntry": "Nova ficha",
-    "editEntry": "Ficha do catálogo",
     "saveError": "Não foi possível salvar o aplicativo",
     "icon": "Ícone",
     "iconDrop": "Solte ou clique para enviar",
@@ -196,8 +189,7 @@
     "appstreamContent": "XML do AppStream",
     "appstreamContentHint": "Metadados brutos do AppStream, geralmente importados da URL do AppStream.",
     "desktopUrl": "URL do .desktop",
-    "desktopContentHint": "Conteúdo do arquivo .desktop, geralmente importado da URL do .desktop.",
-    "save": "Salvar aplicativo"
+    "desktopContentHint": "Conteúdo do arquivo .desktop, geralmente importado da URL do .desktop."
   },
   "merge": {
     "title": "Mesclar outro aplicativo neste",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Repositórios Debian, RPM e outros, usados para extrair pacotes.",
-    "addRepo": "Adicionar repositório",
-    "editRepo": "Editar repositório",
-    "newEntry": "Novo repositório",
-    "save": "Salvar repositório",
     "confirmDelete": "Excluir o repositório “{{name}}”?",
     "manual": "Somente manual",
     "neverSynced": "Nunca",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Versões de distribuições Linux com o formato de pacote, a arquitetura e o ciclo de vida.",
-    "addDistro": "Adicionar distribuição",
-    "editDistro": "Editar distribuição",
-    "newEntry": "Nova distribuição",
-    "save": "Salvar distribuição",
     "confirmDelete": "Excluir a distribuição “{{name}}”?",
     "notFound": "Ainda não há distribuições configuradas.",
     "filterAny": "Todas as arquiteturas",
@@ -305,14 +289,14 @@
     "avatarRemove": "Remover imagem de perfil",
     "avatarUploadError": "Não foi possível enviar a imagem de perfil",
     "email": "E-mail",
-    "saveProfile": "Salvar perfil",
+    "updateProfile": "Atualizar perfil",
     "profileSaved": "Seu perfil foi salvo.",
     "passwordHint": "Só a senha desta conta muda; os dispositivos conectados continuam conectados.",
     "currentPassword": "Senha atual",
     "newPassword": "Nova senha",
     "newPasswordHint": "Pelo menos 8 caracteres.",
     "passwordConfirmation": "Repita a nova senha",
-    "savePassword": "Alterar senha",
+    "updatePassword": "Alterar senha",
     "passwordSaved": "Sua senha foi alterada.",
     "saveError": "Não foi possível salvar a conta"
   }

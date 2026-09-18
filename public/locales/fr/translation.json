@@ -50,9 +50,8 @@
     "appstreamId": "ID AppStream",
     "appstreamIdAliases": "Alias d’ID AppStream",
     "desktopEntry": "Entrée .desktop",
-    "addApp": "Ajouter une application",
-    "editApp": "Modifier l’application",
-    "addPackage": "Ajouter un paquet",
+    "add": "Ajouter",
+    "save": "Enregistrer",
     "edit": "Modifier",
     "delete": "Supprimer",
     "merge": "Fusionner",
@@ -128,10 +127,6 @@
     "uploadHint": "Le nom, la version, la révision et l’architecture sont lus dans le fichier téléversé.",
     "uploadError": "Impossible de téléverser le fichier de paquet",
     "uploadSuccess": "« {{name}} » a été ajouté à cette application",
-    "editPackage": "Modifier le paquet",
-    "newEntry": "Nouveau paquet",
-    "editEntry": "Paquet",
-    "save": "Enregistrer le paquet",
     "saveError": "Impossible d’enregistrer le paquet",
     "deleteConfirm": "Supprimer le paquet {{name}} ?",
     "deleteError": "Impossible de supprimer le paquet",
@@ -178,8 +173,6 @@
     "noPackages": "Aucun paquet disponible."
   },
   "form": {
-    "newEntry": "Nouvelle fiche",
-    "editEntry": "Fiche du catalogue",
     "saveError": "Impossible d’enregistrer l’application",
     "icon": "Icône",
     "iconDrop": "Déposez ou cliquez pour téléverser",
@@ -196,8 +189,7 @@
     "appstreamContent": "XML AppStream",
     "appstreamContentHint": "Métadonnées AppStream brutes, généralement importées depuis l’URL AppStream.",
     "desktopUrl": "URL .desktop",
-    "desktopContentHint": "Contenu du fichier .desktop, généralement importé depuis l’URL .desktop.",
-    "save": "Enregistrer l’application"
+    "desktopContentHint": "Contenu du fichier .desktop, généralement importé depuis l’URL .desktop."
   },
   "merge": {
     "title": "Fusionner une autre application dans celle-ci",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Dépôts Debian, RPM et autres, utilisés pour extraire les paquets.",
-    "addRepo": "Ajouter un dépôt",
-    "editRepo": "Modifier le dépôt",
-    "newEntry": "Nouveau dépôt",
-    "save": "Enregistrer le dépôt",
     "confirmDelete": "Supprimer le dépôt « {{name}} » ?",
     "manual": "Manuel uniquement",
     "neverSynced": "Jamais",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Versions de distributions Linux avec leur format de paquet, leur architecture et leur cycle de vie.",
-    "addDistro": "Ajouter une distribution",
-    "editDistro": "Modifier la distribution",
-    "newEntry": "Nouvelle distribution",
-    "save": "Enregistrer la distribution",
     "confirmDelete": "Supprimer la distribution « {{name}} » ?",
     "notFound": "Aucune distribution configurée pour le moment.",
     "filterAny": "Toutes les architectures",
@@ -305,14 +289,14 @@
     "avatarRemove": "Retirer la photo de profil",
     "avatarUploadError": "Impossible de téléverser la photo de profil",
     "email": "Adresse e-mail",
-    "saveProfile": "Enregistrer le profil",
+    "updateProfile": "Mettre à jour le profil",
     "profileSaved": "Votre profil a été enregistré.",
     "passwordHint": "Seul le mot de passe de ce compte change ; les appareils connectés le restent.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
     "newPasswordHint": "Au moins 8 caractères.",
     "passwordConfirmation": "Répétez le nouveau mot de passe",
-    "savePassword": "Changer le mot de passe",
+    "updatePassword": "Changer le mot de passe",
     "passwordSaved": "Votre mot de passe a été changé.",
     "saveError": "Impossible d’enregistrer le compte"
   }

@@ -150,10 +150,8 @@ export default function PkgFormPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>
-            {pkgId ? t('packages.editEntry') : t('packages.newEntry')}
-          </Text>
-          <Title order={1}>{pkgId ? t('packages.editPackage') : t('common.addPackage')}</Title>
+          <Text className={styles.eyebrow}>{t('common.packages')}</Text>
+          <Title order={1}>{pkgId ? t('common.edit') : t('common.add')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -224,7 +222,7 @@ export default function PkgFormPage() {
           />
           <Group justify='flex-end'>
             <Button type='submit' leftSection={<FloppyDiskIcon size={18} />} loading={saving}>
-              {t('packages.save')}
+              {t('common.save')}
             </Button>
           </Group>
         </Stack>

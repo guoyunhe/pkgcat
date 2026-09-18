@@ -50,9 +50,8 @@
     "appstreamId": "AppStream-ID",
     "appstreamIdAliases": "AppStream-ID-Aliase",
     "desktopEntry": "Desktop-Eintrag",
-    "addApp": "Anwendung hinzufügen",
-    "editApp": "Anwendung bearbeiten",
-    "addPackage": "Paket hinzufügen",
+    "add": "Hinzufügen",
+    "save": "Speichern",
     "edit": "Bearbeiten",
     "delete": "Löschen",
     "merge": "Zusammenführen",
@@ -128,10 +127,6 @@
     "uploadHint": "Name, Version, Release und Architektur werden aus der hochgeladenen Datei gelesen.",
     "uploadError": "Die Paketdatei konnte nicht hochgeladen werden",
     "uploadSuccess": "„{{name}}“ wurde dieser Anwendung hinzugefügt",
-    "editPackage": "Paket bearbeiten",
-    "newEntry": "Neues Paket",
-    "editEntry": "Paket",
-    "save": "Paket speichern",
     "saveError": "Das Paket konnte nicht gespeichert werden",
     "deleteConfirm": "Paket {{name}} löschen?",
     "deleteError": "Das Paket konnte nicht gelöscht werden",
@@ -178,8 +173,6 @@
     "noPackages": "Keine Pakete verfügbar."
   },
   "form": {
-    "newEntry": "Neuer Katalogeintrag",
-    "editEntry": "Katalogeintrag",
     "saveError": "Die Anwendung konnte nicht gespeichert werden",
     "icon": "Symbol",
     "iconDrop": "Zum Hochladen ablegen oder klicken",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream-XML",
     "appstreamContentHint": "Rohe AppStream-Metadaten, üblicherweise von der AppStream-URL importiert.",
     "desktopUrl": "Desktop-URL",
-    "desktopContentHint": "Inhalt der .desktop-Datei, üblicherweise von der Desktop-URL importiert.",
-    "save": "Anwendung speichern"
+    "desktopContentHint": "Inhalt der .desktop-Datei, üblicherweise von der Desktop-URL importiert."
   },
   "merge": {
     "title": "Eine andere Anwendung in diese zusammenführen",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "Debian-, RPM- und andere Paket-Repositories, aus denen Pakete gelesen werden.",
-    "addRepo": "Repository hinzufügen",
-    "editRepo": "Repository bearbeiten",
-    "newEntry": "Neues Repository",
-    "save": "Repository speichern",
     "confirmDelete": "Repository „{{name}}“ löschen?",
     "manual": "Nur manuell",
     "neverSynced": "Nie",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "Linux-Distribution-Releases mit Paketformat, Architektur und Lebenszyklus.",
-    "addDistro": "Distribution hinzufügen",
-    "editDistro": "Distribution bearbeiten",
-    "newEntry": "Neue Distribution",
-    "save": "Distribution speichern",
     "confirmDelete": "Distribution „{{name}}“ löschen?",
     "notFound": "Noch keine Distributionen eingerichtet.",
     "filterAny": "Alle Architekturen",
@@ -305,14 +289,14 @@
     "avatarRemove": "Profilbild entfernen",
     "avatarUploadError": "Das Profilbild konnte nicht hochgeladen werden",
     "email": "E-Mail",
-    "saveProfile": "Profil speichern",
+    "updateProfile": "Profil aktualisieren",
     "profileSaved": "Ihr Profil wurde gespeichert.",
     "passwordHint": "Nur das Passwort dieses Kontos ändert sich; angemeldete Geräte bleiben angemeldet.",
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "newPasswordHint": "Mindestens 8 Zeichen.",
     "passwordConfirmation": "Neues Passwort wiederholen",
-    "savePassword": "Passwort ändern",
+    "updatePassword": "Passwort ändern",
     "passwordSaved": "Ihr Passwort wurde geändert.",
     "saveError": "Das Konto konnte nicht gespeichert werden"
   }

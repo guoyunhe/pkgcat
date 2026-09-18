@@ -109,7 +109,7 @@ export default function PkgDetailPage() {
                 leftSection={<PencilSimpleIcon size={18} />}
                 variant='default'
               >
-                {t('packages.editPackage')}
+                {t('common.edit')}
               </Button>
               <Button
                 color='red'

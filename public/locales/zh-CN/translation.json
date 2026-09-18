@@ -50,9 +50,8 @@
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID 别名",
     "desktopEntry": "桌面条目",
-    "addApp": "添加应用",
-    "editApp": "编辑应用",
-    "addPackage": "添加软件包",
+    "add": "添加",
+    "save": "保存",
     "edit": "编辑",
     "delete": "删除",
     "merge": "合并应用",
@@ -128,10 +127,6 @@
     "uploadHint": "名称、版本、发布版本与架构等元数据会从上传的文件中自动解析。",
     "uploadError": "无法上传软件包文件",
     "uploadSuccess": "已将“{{name}}”添加到该应用",
-    "editPackage": "编辑软件包",
-    "newEntry": "新建软件包",
-    "editEntry": "软件包",
-    "save": "保存软件包",
     "saveError": "无法保存软件包",
     "deleteConfirm": "确定删除软件包 {{name}} 吗？",
     "deleteError": "无法删除软件包",
@@ -178,8 +173,6 @@
     "noPackages": "暂无可用软件包。"
   },
   "form": {
-    "newEntry": "新建目录条目",
-    "editEntry": "目录条目",
     "saveError": "无法保存应用",
     "icon": "图标",
     "iconDrop": "拖入或点击上传",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "AppStream 原始元数据，通常从 AppStream URL 导入。",
     "desktopUrl": "Desktop URL",
-    "desktopContentHint": ".desktop 文件内容，通常从 Desktop URL 导入。",
-    "save": "保存应用"
+    "desktopContentHint": ".desktop 文件内容，通常从 Desktop URL 导入。"
   },
   "merge": {
     "title": "将另一个应用合并到当前应用",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "用于提取软件包的 Debian、RPM 等包仓库。",
-    "addRepo": "添加仓库",
-    "editRepo": "编辑仓库",
-    "newEntry": "新建仓库",
-    "save": "保存仓库",
     "confirmDelete": "确定删除仓库“{{name}}”吗？",
     "manual": "仅手动同步",
     "neverSynced": "从未",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "各 Linux 发行版版本的包格式、架构与生命周期。",
-    "addDistro": "添加发行版",
-    "editDistro": "编辑发行版",
-    "newEntry": "新建发行版",
-    "save": "保存发行版",
     "confirmDelete": "确定删除发行版“{{name}}”吗？",
     "notFound": "尚未添加任何发行版。",
     "filterAny": "全部架构",
@@ -305,14 +289,14 @@
     "avatarRemove": "移除头像",
     "avatarUploadError": "无法上传头像",
     "email": "邮箱",
-    "saveProfile": "保存资料",
+    "updateProfile": "更新个人资料",
     "profileSaved": "资料已保存。",
     "passwordHint": "只修改本账户的密码，已登录的设备不会被退出。",
     "currentPassword": "当前密码",
     "newPassword": "新密码",
     "newPasswordHint": "至少 8 位。",
     "passwordConfirmation": "重复新密码",
-    "savePassword": "修改密码",
+    "updatePassword": "修改密码",
     "passwordSaved": "密码已修改。",
     "saveError": "无法保存账户"
   }

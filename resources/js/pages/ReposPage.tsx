@@ -77,7 +77,7 @@ export default function ReposPage() {
             href='/repos/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('repos.addRepo')}
+            {t('common.add')}
           </Button>
         )}
       </header>

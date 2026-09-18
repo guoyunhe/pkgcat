@@ -61,7 +61,7 @@ export default function DistrosPage() {
             href='/distros/new'
             leftSection={<PlusIcon size={18} weight='bold' />}
           >
-            {t('distros.addDistro')}
+            {t('common.add')}
           </Button>
         )}
       </header>

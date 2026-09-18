@@ -50,9 +50,8 @@
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID 別名",
     "desktopEntry": "桌面項目",
-    "addApp": "新增應用程式",
-    "editApp": "編輯應用程式",
-    "addPackage": "新增軟體套件",
+    "add": "新增",
+    "save": "儲存",
     "edit": "編輯",
     "delete": "刪除",
     "merge": "合併應用程式",
@@ -128,10 +127,6 @@
     "uploadHint": "名稱、版本、發行版本與架構等中繼資料會從上傳的檔案自動解析。",
     "uploadError": "無法上傳軟體套件檔案",
     "uploadSuccess": "已將「{{name}}」新增至該應用程式",
-    "editPackage": "編輯軟體套件",
-    "newEntry": "新增軟體套件",
-    "editEntry": "軟體套件",
-    "save": "儲存軟體套件",
     "saveError": "無法儲存軟體套件",
     "deleteConfirm": "確定要刪除軟體套件 {{name}} 嗎？",
     "deleteError": "無法刪除軟體套件",
@@ -178,8 +173,6 @@
     "noPackages": "尚無可用的軟體套件。"
   },
   "form": {
-    "newEntry": "新增目錄項目",
-    "editEntry": "目錄項目",
     "saveError": "無法儲存應用程式",
     "icon": "圖示",
     "iconDrop": "拖入或點擊上傳",
@@ -196,8 +189,7 @@
     "appstreamContent": "AppStream XML",
     "appstreamContentHint": "AppStream 原始中繼資料，通常從 AppStream URL 匯入。",
     "desktopUrl": "Desktop URL",
-    "desktopContentHint": ".desktop 檔案內容，通常從 Desktop URL 匯入。",
-    "save": "儲存應用程式"
+    "desktopContentHint": ".desktop 檔案內容，通常從 Desktop URL 匯入。"
   },
   "merge": {
     "title": "將另一個應用程式合併到目前應用程式",
@@ -210,10 +202,6 @@
   },
   "repos": {
     "subtitle": "用於擷取軟體套件的 Debian、RPM 等套件倉庫。",
-    "addRepo": "新增倉庫",
-    "editRepo": "編輯倉庫",
-    "newEntry": "新增倉庫",
-    "save": "儲存倉庫",
     "confirmDelete": "確定要刪除倉庫「{{name}}」嗎？",
     "manual": "僅手動同步",
     "neverSynced": "從未",
@@ -259,10 +247,6 @@
   },
   "distros": {
     "subtitle": "各 Linux 發行版版本的套件格式、架構與生命週期。",
-    "addDistro": "新增發行版",
-    "editDistro": "編輯發行版",
-    "newEntry": "新增發行版",
-    "save": "儲存發行版",
     "confirmDelete": "確定要刪除發行版「{{name}}」嗎？",
     "notFound": "尚未新增任何發行版。",
     "filterAny": "全部架構",
@@ -305,14 +289,14 @@
     "avatarRemove": "移除頭像",
     "avatarUploadError": "無法上傳頭像",
     "email": "電子郵件",
-    "saveProfile": "儲存資料",
+    "updateProfile": "更新個人資料",
     "profileSaved": "資料已儲存。",
     "passwordHint": "只修改本帳號的密碼，已登入的裝置不會被登出。",
     "currentPassword": "目前密碼",
     "newPassword": "新密碼",
     "newPasswordHint": "至少 8 個字元。",
     "passwordConfirmation": "重複新密碼",
-    "savePassword": "修改密碼",
+    "updatePassword": "修改密碼",
     "passwordSaved": "密碼已修改。",
     "saveError": "無法儲存帳號"
   }

@@ -136,8 +136,8 @@ export default function AppFormPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>{appId ? t('form.editEntry') : t('form.newEntry')}</Text>
-          <Title order={1}>{appId ? t('common.editApp') : t('common.addApp')}</Title>
+          <Text className={styles.eyebrow}>{t('common.apps')}</Text>
+          <Title order={1}>{appId ? t('common.edit') : t('common.add')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -268,7 +268,7 @@ export default function AppFormPage() {
             loading={saving}
             onClick={() => void save()}
           >
-            {t('form.save')}
+            {t('common.save')}
           </Button>
         </Group>
       </Stack>

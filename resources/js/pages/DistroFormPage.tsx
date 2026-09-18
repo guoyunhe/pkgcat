@@ -128,10 +128,8 @@ export default function DistroFormPage() {
     <main className={styles.page}>
       <header className={styles.header}>
         <div>
-          <Text className={styles.eyebrow}>
-            {distroId ? t('common.distribution') : t('distros.newEntry')}
-          </Text>
-          <Title order={1}>{distroId ? t('distros.editDistro') : t('distros.addDistro')}</Title>
+          <Text className={styles.eyebrow}>{t('common.distribution')}</Text>
+          <Title order={1}>{distroId ? t('common.edit') : t('common.add')}</Title>
         </div>
         <Button
           leftSection={<XIcon size={18} />}
@@ -206,7 +204,7 @@ export default function DistroFormPage() {
 
           <Group justify='flex-end'>
             <Button type='submit' leftSection={<FloppyDiskIcon size={18} />} loading={saving}>
-              {t('distros.save')}
+              {t('common.save')}
             </Button>
           </Group>
         </Stack>
