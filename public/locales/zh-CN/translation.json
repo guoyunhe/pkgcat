@@ -20,7 +20,6 @@
   "loginFailed": "无法登录，请检查邮箱和密码。",
   "registerFailed": "无法创建账号。",
   "header": {
-    "searchCatalog": "搜索目录",
     "theme": "主题",
     "themeAuto": "跟随系统",
     "themeLight": "浅色模式",
@@ -30,6 +29,7 @@
     "cancel": "取消",
     "close": "关闭",
     "download": "下载",
+    "search": "搜索",
     "notSpecified": "未指定",
     "name": "名称",
     "type": "类型",
@@ -223,7 +223,6 @@
     "installScriptHint": "用户在自己系统上启用该仓库时执行的命令。",
     "notFound": "尚未配置任何仓库。",
     "filterAny": "全部发行版",
-    "filterSearch": "搜索仓库",
     "filterAnySource": "全部来源",
     "filterEmpty": "没有服务该版本的仓库。",
     "sourceEmpty": "没有来自该来源的仓库。",

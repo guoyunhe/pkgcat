@@ -20,7 +20,6 @@
   "loginFailed": "Connexion impossible. Vérifiez votre adresse e-mail et votre mot de passe.",
   "registerFailed": "Le compte n’a pas pu être créé.",
   "header": {
-    "searchCatalog": "Rechercher dans le catalogue",
     "theme": "Thème",
     "themeAuto": "Système",
     "themeLight": "Clair",
@@ -30,6 +29,7 @@
     "cancel": "Annuler",
     "close": "Fermer",
     "download": "Télécharger",
+    "search": "Rechercher",
     "notSpecified": "Non spécifié",
     "name": "Nom",
     "type": "Type",
@@ -223,7 +223,6 @@
     "installScriptHint": "Commande à exécuter par les utilisateurs pour activer ce dépôt sur leur système.",
     "notFound": "Aucun dépôt configuré pour le moment.",
     "filterAny": "Toutes les distributions",
-    "filterSearch": "Rechercher des dépôts",
     "filterAnySource": "Toutes les sources",
     "filterEmpty": "Aucun dépôt ne dessert cette version.",
     "sourceEmpty": "Aucun dépôt de cette source.",

@@ -20,7 +20,6 @@
   "loginFailed": "Anmeldung nicht möglich. Prüfen Sie E-Mail-Adresse und Passwort.",
   "registerFailed": "Das Konto konnte nicht erstellt werden.",
   "header": {
-    "searchCatalog": "Katalog durchsuchen",
     "theme": "Design",
     "themeAuto": "System",
     "themeLight": "Hell",
@@ -30,6 +29,7 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "download": "Herunterladen",
+    "search": "Suche",
     "notSpecified": "Nicht angegeben",
     "name": "Name",
     "type": "Typ",
@@ -223,7 +223,6 @@
     "installScriptHint": "Befehl, mit dem Nutzer dieses Repository auf ihrem System aktivieren.",
     "notFound": "Noch keine Repositories eingerichtet.",
     "filterAny": "Alle Distributionen",
-    "filterSearch": "Repositories durchsuchen",
     "filterAnySource": "Alle Quellen",
     "filterEmpty": "Kein Repository bedient dieses Release.",
     "sourceEmpty": "Keine Repositories aus dieser Quelle.",

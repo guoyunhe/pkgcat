@@ -20,7 +20,6 @@
   "loginFailed": "Unable to log in. Check your email and password.",
   "registerFailed": "Unable to create the account.",
   "header": {
-    "searchCatalog": "Search the catalog",
     "theme": "Theme",
     "themeAuto": "System",
     "themeLight": "Light",
@@ -30,6 +29,7 @@
     "cancel": "Cancel",
     "close": "Close",
     "download": "Download",
+    "search": "Search",
     "notSpecified": "Not specified",
     "name": "Name",
     "type": "Type",
@@ -223,7 +223,6 @@
     "installScriptHint": "Command users run to enable this repository on their system.",
     "notFound": "No repositories configured yet.",
     "filterAny": "All distributions",
-    "filterSearch": "Search repositories",
     "filterAnySource": "All sources",
     "filterEmpty": "No repositories serve this release.",
     "sourceEmpty": "No repositories from this source.",

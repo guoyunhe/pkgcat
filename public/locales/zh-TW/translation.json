@@ -20,7 +20,6 @@
   "loginFailed": "無法登入，請檢查電子郵件與密碼。",
   "registerFailed": "無法建立帳號。",
   "header": {
-    "searchCatalog": "搜尋目錄",
     "theme": "佈景主題",
     "themeAuto": "跟隨系統",
     "themeLight": "淺色模式",
@@ -30,6 +29,7 @@
     "cancel": "取消",
     "close": "關閉",
     "download": "下載",
+    "search": "搜尋",
     "notSpecified": "未指定",
     "name": "名稱",
     "type": "類型",
@@ -223,7 +223,6 @@
     "installScriptHint": "使用者在自己系統上啟用該倉庫時執行的指令。",
     "notFound": "尚未設定任何倉庫。",
     "filterAny": "全部發行版",
-    "filterSearch": "搜尋軟體來源",
     "filterAnySource": "全部來源",
     "filterEmpty": "沒有服務該版本的倉庫。",
     "sourceEmpty": "沒有來自該來源的軟體來源。",

@@ -114,10 +114,10 @@ export default function AppHeader() {
             }}
           >
             <TextInput
-              aria-label={t('header.searchCatalog')}
+              aria-label={t('common.search')}
               className={styles.search}
               leftSection={<MagnifyingGlassIcon size={18} />}
-              placeholder={t('header.searchCatalog')}
+              placeholder={t('common.search')}
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.currentTarget.value)}
             />

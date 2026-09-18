@@ -20,7 +20,6 @@
   "loginFailed": "ログインできません。メールアドレスとパスワードを確認してください。",
   "registerFailed": "アカウントを作成できませんでした。",
   "header": {
-    "searchCatalog": "カタログを検索",
     "theme": "テーマ",
     "themeAuto": "システム",
     "themeLight": "ライト",
@@ -30,6 +29,7 @@
     "cancel": "キャンセル",
     "close": "閉じる",
     "download": "ダウンロード",
+    "search": "検索",
     "notSpecified": "指定なし",
     "name": "名前",
     "type": "種類",
@@ -223,7 +223,6 @@
     "installScriptHint": "ユーザーが自分のシステムでこのリポジトリを有効にするときに実行するコマンド。",
     "notFound": "まだリポジトリが登録されていません。",
     "filterAny": "すべてのディストリビューション",
-    "filterSearch": "リポジトリを検索",
     "filterAnySource": "すべてのソース",
     "filterEmpty": "このリリースに対応するリポジトリはありません。",
     "sourceEmpty": "このソースのリポジトリはありません。",

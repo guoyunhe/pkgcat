@@ -20,7 +20,6 @@
   "loginFailed": "로그인할 수 없습니다. 이메일 주소와 비밀번호를 확인하세요.",
   "registerFailed": "계정을 만들 수 없습니다.",
   "header": {
-    "searchCatalog": "카탈로그 검색",
     "theme": "테마",
     "themeAuto": "시스템",
     "themeLight": "라이트",
@@ -30,6 +29,7 @@
     "cancel": "취소",
     "close": "닫기",
     "download": "다운로드",
+    "search": "검색",
     "notSpecified": "지정되지 않음",
     "name": "이름",
     "type": "유형",
@@ -223,7 +223,6 @@
     "installScriptHint": "사용자가 자기 시스템에서 이 저장소를 활성화할 때 실행하는 명령입니다.",
     "notFound": "아직 등록된 저장소가 없습니다.",
     "filterAny": "모든 배포판",
-    "filterSearch": "저장소 검색",
     "filterAnySource": "모든 소스",
     "filterEmpty": "이 릴리스를 제공하는 저장소가 없습니다.",
     "sourceEmpty": "이 소스의 저장소가 없습니다.",

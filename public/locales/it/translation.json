@@ -20,7 +20,6 @@
   "loginFailed": "Accesso non riuscito. Controlla indirizzo email e password.",
   "registerFailed": "Impossibile creare l’account.",
   "header": {
-    "searchCatalog": "Cerca nel catalogo",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Chiaro",
@@ -30,6 +29,7 @@
     "cancel": "Annulla",
     "close": "Chiudi",
     "download": "Scarica",
+    "search": "Cerca",
     "notSpecified": "Non specificato",
     "name": "Nome",
     "type": "Tipo",
@@ -223,7 +223,6 @@
     "installScriptHint": "Comando che gli utenti eseguono per attivare questo repository sul proprio sistema.",
     "notFound": "Nessun repository configurato.",
     "filterAny": "Tutte le distribuzioni",
-    "filterSearch": "Cerca repository",
     "filterAnySource": "Tutte le sorgenti",
     "filterEmpty": "Nessun repository serve questa release.",
     "sourceEmpty": "Nessun repository da questa sorgente.",

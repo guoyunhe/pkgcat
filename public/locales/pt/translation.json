@@ -20,7 +20,6 @@
   "loginFailed": "Não foi possível iniciar sessão. Verifique o endereço de e-mail e a palavra-passe.",
   "registerFailed": "Não foi possível criar a conta.",
   "header": {
-    "searchCatalog": "Pesquisar no catálogo",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Claro",
@@ -30,6 +29,7 @@
     "cancel": "Cancelar",
     "close": "Fechar",
     "download": "Descarregar",
+    "search": "Pesquisar",
     "notSpecified": "Não especificado",
     "name": "Nome",
     "type": "Tipo",
@@ -223,7 +223,6 @@
     "installScriptHint": "Comando que os utilizadores executam para ativar este repositório no seu sistema.",
     "notFound": "Ainda não há repositórios configurados.",
     "filterAny": "Todas as distribuições",
-    "filterSearch": "Pesquisar repositórios",
     "filterAnySource": "Todas as origens",
     "filterEmpty": "Nenhum repositório serve esta versão.",
     "sourceEmpty": "Nenhum repositório desta origem.",

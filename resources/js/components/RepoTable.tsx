@@ -207,9 +207,9 @@ export default function RepoTable({
         // bottom edge, where the inputs themselves are
         <Group align='flex-end' gap='sm' mb='lg'>
           <TextInput
-            aria-label={t('repos.filterSearch')}
+            aria-label={t('common.search')}
             leftSection={<MagnifyingGlassIcon size={18} />}
-            placeholder={t('repos.filterSearch')}
+            placeholder={t('common.search')}
             value={search}
             w={filterWidth}
             onChange={(event) => setSearch(event.currentTarget.value)}
