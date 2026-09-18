@@ -84,6 +84,10 @@ export default class Distro extends DistroSchema {
    * the applications those packages provide — counted apart, because an application may be provided
    * by the packages of several repositories and belongs to the distribution once.
    *
+   * Several repositories serve the same distribution — the release and its updates are published
+   * apart — and hold packages of the same name, so packages are counted by name and each package
+   * the distribution carries counts once, however many of its repositories publish it.
+   *
    * A distribution is counted from what its repositories hold now, so one whose packages were all
    * removed ends up at zero. Every entry is counted again, and the counts are written statement by
    * statement instead of in a transaction, like the counts of a repository (`Repo.refreshCounts`).
@@ -94,7 +98,7 @@ export default class Distro extends DistroSchema {
         .from('distro_repos')
         .join('pkgs', 'pkgs.repo_id', 'distro_repos.repo_id')
         .select('distro_repos.distro_id')
-        .count('* as pkgCount')
+        .countDistinct('pkgs.name as pkgCount')
         .groupBy('distro_repos.distro_id'),
       db
         .from('distro_repos')
