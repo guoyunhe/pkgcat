@@ -45,6 +45,10 @@ export default class Repo extends RepoSchema {
    * packages provide — counted apart, because an application may be provided by the packages of
    * several repositories and belongs to each of them once.
    *
+   * A repository holds the packages of every architecture and release it serves, and holds a
+   * package of the same name for each of them, so packages are counted by name and each package the
+   * repository carries counts once, however many builds of it the repository publishes.
+   *
    * Every entry is counted again from what the catalog holds now, so a repository whose packages
    * were all removed ends up at zero. The counts are written statement by statement instead of in a
    * transaction: an entry the counts no longer name is the one that is zeroed, and a listing read
@@ -58,7 +62,7 @@ export default class Repo extends RepoSchema {
         .from('pkgs')
         .select('repo_id')
         .whereNotNull('repo_id')
-        .count('* as pkgCount')
+        .countDistinct('name as pkgCount')
         .groupBy('repo_id'),
       db
         .from('app_pkgs')
