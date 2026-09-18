@@ -5,6 +5,7 @@ import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { RepoSchema } from '#database/schema'
 import Distro from '#models/distro'
 import Pkg from '#models/pkg'
+import { searchScope } from '#utils/search'
 
 /** One row of a counted entry: which repository it belongs to, and how many of what it holds. */
 type CountRow = { repo_id: number; pkgCount?: string | number; appCount?: string | number }
@@ -23,6 +24,20 @@ export default class Repo extends RepoSchema {
 
   @hasMany(() => Pkg)
   declare packages: HasMany<typeof Pkg>
+
+  /**
+   * Repositories the search terms name: the name a repository is listed and linked by, and the
+   * releases it serves, whose name it carries in turn. What a repository is read with — the address
+   * its packages are fetched from, the origin it comes from — and what it publishes are not part of
+   * what names it, and are left to the listing that shows them.
+   */
+  static search = searchScope<typeof Repo>((query, pattern) => {
+    query.where((search) => {
+      search
+        .whereILike('name', pattern)
+        .orWhereHas('distros', (distros) => distros.whereILike('name', pattern))
+    })
+  })
 
   /**
    * Recompute the counts the repository listings read and order by and store with every entry

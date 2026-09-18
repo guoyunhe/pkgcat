@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
 import Repo from '#models/repo'
+import { searchScope } from '#utils/search'
 
 /** One row of a counted entry: which distribution it belongs to, and how many of what it holds. */
 type CountRow = { distro_id: number; pkgCount?: string | number; appCount?: string | number }
@@ -54,6 +55,15 @@ export default class Distro extends DistroSchema {
     pivotRelatedForeignKey: 'repo_id',
   })
   declare repos: ManyToMany<typeof Repo>
+
+  /**
+   * Releases the search terms name: the distribution a release is a release of. Which release it is
+   * — its version and its architecture — and what it packages are left to the listing that shows
+   * them, which filters by them.
+   */
+  static search = searchScope<typeof Distro>((query, pattern) => {
+    query.whereILike('name', pattern)
+  })
 
   static fromOsRelease(contents: string) {
     const values = parseOsRelease(contents)

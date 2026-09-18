@@ -2,7 +2,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 
 import Distro from '#models/distro'
 import Repo from '#models/repo'
-import { searchRepos } from '#services/catalog_search'
 import RepoTransformer from '#transformers/repo_transformer'
 import { pageOf } from '#utils/pagination'
 import { repoListValidator, repoValidator } from '#validators/repo'
@@ -22,7 +21,7 @@ export default class ReposController {
     // The repositories of one release, which its detail page lists
     if (distroId) query.whereHas('distros', (distros) => distros.where('distros.id', distroId))
     if (source) query.where('source', source)
-    if (q) searchRepos(query, q)
+    if (q) query.apply((scopes) => scopes.search(q))
 
     // A listing that asked for no page size receives every repository, which the pagination of the
     // database cannot express; the others are paged by it

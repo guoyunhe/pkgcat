@@ -10,6 +10,7 @@ import Image from '#models/image'
 import Pkg from '#models/pkg'
 import Review from '#models/review'
 import User from '#models/user'
+import { searchScope } from '#utils/search'
 
 export default class App extends AppSchema {
   @belongsTo(() => Image, { foreignKey: 'iconId' })
@@ -59,4 +60,25 @@ export default class App extends AppSchema {
 
   @manyToMany(() => User, { pivotTable: 'favorites' })
   declare favoritedBy: ManyToMany<typeof User>
+
+  /**
+   * Applications the search terms name: the identifier they are stored with, the identifiers they
+   * have answered to before (`aliases`), and the name and summary of every language they carry,
+   * which a repository announces in its own metadata. What an application is stored with rather
+   * than what it is — its version, its license — is left to the listing that shows it.
+   */
+  static search = searchScope<typeof App>((query, pattern) => {
+    query.where((search) => {
+      search
+        // The name and the summary are translated per locale in their own table, so the search
+        // covers every language an application carries. The columns are compared as they are
+        // stored, which their collation (`utf8mb4_*_ai_ci`) reads without regard to case; a column
+        // stored with a binary collation would have to be compared through `lower()`.
+        .whereILike('appstream_id', pattern)
+        .orWhereHas('aliases', (aliasQuery) => aliasQuery.whereILike('appstream_id', pattern))
+        .orWhereHas('translations', (translationQuery) =>
+          translationQuery.whereILike('name', pattern).orWhereILike('summary', pattern),
+        )
+    })
+  })
 }

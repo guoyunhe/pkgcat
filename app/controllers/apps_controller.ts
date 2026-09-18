@@ -8,7 +8,6 @@ import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { attachTranslations, replaceTranslations } from '#services/app_translations'
-import { searchApps } from '#services/catalog_search'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
 import {
@@ -73,7 +72,7 @@ export default class AppsController {
     }
 
     if (query) {
-      searchApps(appsQuery, query)
+      appsQuery.apply((scopes) => scopes.search(query))
     }
 
     if (category.length > 0) {

@@ -4,7 +4,6 @@ import App from '#models/app'
 import Distro from '#models/distro'
 import Pkg from '#models/pkg'
 import Repo from '#models/repo'
-import { searchApps, searchDistros, searchPkgs, searchRepos } from '#services/catalog_search'
 import { searchCountsValidator } from '#validators/search'
 
 /**
@@ -24,17 +23,17 @@ export default class SearchController {
     const { q } = await request.validateUsing(searchCountsValidator)
     const terms = q ?? ''
 
-    // The queries are narrowed the way the listings themselves are (`#services/catalog_search`), so
-    // a count is the total the listing it counts would report
+    // The queries are narrowed by the scope the listings themselves narrow with, so a count is the
+    // total the listing it counts would report
     const appsQuery = App.query()
     const pkgsQuery = Pkg.query()
     const reposQuery = Repo.query()
     const distrosQuery = Distro.query()
     if (terms) {
-      searchApps(appsQuery, terms)
-      searchPkgs(pkgsQuery, terms)
-      searchRepos(reposQuery, terms)
-      searchDistros(distrosQuery, terms)
+      appsQuery.apply((scopes) => scopes.search(terms))
+      pkgsQuery.apply((scopes) => scopes.search(terms))
+      reposQuery.apply((scopes) => scopes.search(terms))
+      distrosQuery.apply((scopes) => scopes.search(terms))
     }
 
     const [apps, pkgs, repos, distros] = await Promise.all([
