@@ -1,4 +1,5 @@
 import { Alert, Group, Loader, Pagination, Table, Text } from '@mantine/core'
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -44,7 +45,8 @@ type DistroTableProps = {
 
 /**
  * Table of distribution releases, which reads them itself and narrows them by the architecture its
- * toolbar holds: shared by the distribution listing and the search results.
+ * toolbar holds — kept in the query string, so that a narrowed table can be shared and reloaded:
+ * shared by the distribution listing and the search results.
  */
 export default function DistroTable({
   load,
@@ -60,9 +62,13 @@ export default function DistroTable({
   const [result, setResult] = useState<Paginated<Distro> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The architecture the toolbar narrows the listing to, which the API reads: a change of it reads
-  // the first page of the listing again
-  const [archFilter, setArchFilter] = useState<string | null>(null)
+  // The architecture the toolbar narrows the listing to, which the API reads, and the page of the
+  // listing the reader is on; both are kept in the query string so that a narrowed table can be
+  // shared and reloaded
+  const [{ arch, page }, setParams] = useQueryStates({
+    arch: parseAsString,
+    page: parseAsInteger.withDefault(1),
+  })
   // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
   // passes an inline arrow would otherwise read another page on every one of its renders
   const reportCount = useRef(onCountChange)
@@ -70,27 +76,16 @@ export default function DistroTable({
   // What the page is read with, held as one value so that it is read again for a change of what
   // narrows it, and for nothing else
   const filters = useMemo<DistroFilters>(
-    () => (hideFilters ? emptyDistroFilters : { ...emptyDistroFilters, arch: archFilter }),
-    [archFilter, hideFilters],
+    () => (hideFilters ? emptyDistroFilters : { ...emptyDistroFilters, arch }),
+    [arch, hideFilters],
   )
-  // What the listing is read by — the loader, the filters and the page the reader was left on — held
-  // in one state object rather than three, because a function handed to `useState` is read as an
-  // updater and would be called with the previous state
-  const [listing, setListing] = useState({ filters, load, page: 1 })
-
-  // Another listing — other filters, another loader — starts over, which is adjusted while rendering
-  // so that its first page is read instead of the page the previous listing was left on
-  if (listing.load !== load || listing.filters !== filters) {
-    setListing({ filters, load, page: 1 })
-  }
 
   useEffect(() => {
     let active = true
 
     setLoading(true)
     setError(null)
-    listing
-      .load(listing.page, listing.filters)
+    load(page, filters)
       .then((distroPage) => {
         if (!active) return
         setResult(distroPage)
@@ -110,7 +105,7 @@ export default function DistroTable({
     return () => {
       active = false
     }
-  }, [errorMessage, listing, t])
+  }, [errorMessage, filters, load, page, t])
 
   /** A release the vendors no longer support, which the table says by colouring its end of life. */
   function isExpired(distro: Distro) {
@@ -122,13 +117,12 @@ export default function DistroTable({
   // Every field is read by the API, so the toolbar stays where it is while another page is read —
   // the page does not move under the reader — and a listing the filter narrowed keeps it, so that
   // what was set can be taken back
-  const showToolbar =
-    !hideFilters && (result === null || result.meta.total > 0 || archFilter !== null)
+  const showToolbar = !hideFilters && (result === null || result.meta.total > 0 || arch !== null)
 
   // An empty table is a different thing from a filter that matches nothing, which the count the
   // listing reports tells apart — a page beyond the last one holds no row either
   const noRows =
-    result !== null && result.meta.total === 0 && archFilter !== null
+    result !== null && result.meta.total === 0 && arch !== null
       ? t('distros.filterEmpty')
       : emptyMessage
 
@@ -138,9 +132,9 @@ export default function DistroTable({
         <Group align='flex-end' gap='sm' mb='lg'>
           <ArchSelect
             label={t('common.architecture')}
-            onChange={setArchFilter}
+            onChange={(next) => void setParams({ arch: next, page: null })}
             placeholder={t('distros.filterAny')}
-            value={archFilter}
+            value={arch}
           />
           {extraFilters}
         </Group>
@@ -224,7 +218,7 @@ export default function DistroTable({
               className={styles.pagination}
               total={result.meta.lastPage}
               value={result.meta.currentPage}
-              onChange={(page) => setListing({ ...listing, page })}
+              onChange={(nextPage) => void setParams({ page: nextPage })}
             />
           )}
         </>

@@ -75,6 +75,7 @@
     "i18next-http-backend": "^4.0.2",
     "luxon": "^3.7.2",
     "mysql2": "^3.24.3",
+    "nuqs": "^2.10.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-i18next": "^17.0.13",

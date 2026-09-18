@@ -234,11 +234,14 @@ export default function DistroDetailPage() {
         </Tabs.Panel>
 
         <Tabs.Panel pt='lg' value='repositories'>
+          {/* The packages are listed beside these, so the parameters of this table carry a prefix of
+              their own: the page of one listing is not read as the page of the other */}
           <RepoTable
             emptyMessage={t('distros.detail.noRepos')}
             load={loadRepos}
             onCountChange={setRepoCount}
             onRowClick={(repo) => navigate(`/repos/${repo.id}`)}
+            paramPrefix='repos'
             showDistros={false}
           />
         </Tabs.Panel>

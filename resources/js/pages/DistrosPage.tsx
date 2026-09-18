@@ -1,8 +1,9 @@
 import { Button, Select, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
+import { parseAsInteger, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroTable from '../components/DistroTable'
@@ -21,22 +22,23 @@ export default function DistrosPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [searchParams] = useSearchParams()
   const isAdmin = ready && user?.role === 'admin'
-  // The sort order is read by the API, so it is kept in the URL and the listing is re-read for it
-  const sort = distroSort(searchParams.get('sort'))
+  // The sort order is read by the API, so it is kept in the query string and the listing is re-read
+  // for it — as no order of its own when it is the one the listing starts at. The page of the
+  // listing belongs to the table, so it is cleared here: another order reads the first page of the
+  // listing again, the way another narrowing does
+  const [{ sort }, setListingParams] = useQueryStates({
+    page: parseAsInteger,
+    sort: parseAsStringLiteral(distroSorts).withDefault('name'),
+  })
 
-  // The order the listing is read in is kept in the URL, and the architecture the table narrows it
-  // to is held by the table itself: both are read by the API, so a change of either reads the first
-  // page of the listing again
+  // The order the listing is read in is kept in the query string, and so is the architecture the
+  // table narrows it to: both are read by the API, so a change of either reads the first page of
+  // the listing again
   const loadDistros = useCallback(
     (page: number, filters: DistroFilters) => getDistros(sort, filters, page),
     [sort],
   )
-
-  function distrosUrl(nextSort: DistroSort) {
-    return nextSort === 'name' ? '/distros' : `/distros?sort=${nextSort}`
-  }
 
   // Every order is shared with the listing it names, so no label lives in the distributions section
   const sortLabels: Record<DistroSort, string> = {
@@ -71,7 +73,9 @@ export default function DistrosPage() {
             allowDeselect={false}
             data={distroSorts.map((value) => ({ value, label: sortLabels[value] }))}
             label={t('common.sortBy')}
-            onChange={(nextSort) => navigate(distrosUrl(distroSort(nextSort)))}
+            onChange={(nextSort) =>
+              void setListingParams({ page: null, sort: distroSort(nextSort) })
+            }
             value={sort}
             w={filterWidth}
           />

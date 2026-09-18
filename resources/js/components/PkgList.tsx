@@ -1,7 +1,8 @@
 import type { Data } from '@generated/data'
 import { Alert, Loader, Pagination, Text } from '@mantine/core'
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
@@ -15,9 +16,8 @@ type PkgListProps = {
   /**
    * Reads one page of the listing, narrowed by the filters the toolbar holds. The loader has to
    * keep its identity (`useCallback`), which is also what tells the listing that it reads something
-   * else now — other search terms, the packages of another application or release — and starts it
-   * over at its first page. A page that has nothing to read answers with `null`, which the listing
-   * shows as empty.
+   * else now — other search terms, the packages of another application or release. A page that has
+   * nothing to read answers with `null`, which the listing shows as empty.
    */
   load: (page: number, filters: PkgFiltersValue) => Promise<Paginated<Data.Pkg> | null>
   /**
@@ -26,6 +26,13 @@ type PkgListProps = {
    * with no filters.
    */
   showFilters?: boolean
+  /**
+   * Whether the filters are remembered for a later visit, which the package listing asks for: a
+   * filter the query string does not name is read from what was set last time. A listing that
+   * shares its page with others — the search results, which reset what a tab was narrowed by —
+   * leaves it out, and reads the query string alone.
+   */
+  rememberFilters?: boolean
   /** Number of packages the listing holds, told whenever a page of it is read. */
   onCountChange?: (count: number) => void
   /** Bumped by the page when something outside the listing changed it, such as a deleted package. */
@@ -43,13 +50,15 @@ type PkgListProps = {
 }
 
 /**
- * Listing of packages, which reads its own pages and shows the filters they are narrowed by: shared
- * by the catalog search, the details of an application, the details of a release and the listing of
- * every package.
+ * Listing of packages, which reads its own pages and shows the filters they are narrowed by — kept
+ * in the query string, so that a narrowed listing can be shared and reloaded. Shared by the catalog
+ * search, the details of an application, the details of a release and the listing of every
+ * package.
  */
 export default function PkgList({
   load,
   showFilters = true,
+  rememberFilters = false,
   onCountChange,
   refreshKey,
   emptyMessage,
@@ -59,9 +68,26 @@ export default function PkgList({
   showDetails,
 }: PkgListProps) {
   const { t } = useTranslation()
-  const [storedFilters, setStoredFilters] = useStoredPkgFilters()
-  // A listing without a toolbar is narrowed by nothing, whatever another listing stored
-  const filters = showFilters ? storedFilters : emptyPkgFilters
+  // The filters are remembered across visits, which is what a listing that names no filters falls
+  // back to
+  const [remembered, setRemembered] = useStoredPkgFilters()
+  const [{ arch, distroId, page, type }, setParams] = useQueryStates({
+    arch: parseAsString,
+    distroId: parseAsString,
+    page: parseAsInteger.withDefault(1),
+    type: parseAsString,
+  })
+  // What the query string names wins over what an earlier visit remembered, and a listing without a
+  // toolbar is narrowed by nothing at all
+  const stored = rememberFilters ? remembered : emptyPkgFilters
+  const filters = useMemo<PkgFiltersValue>(() => {
+    if (!showFilters) return emptyPkgFilters
+    return {
+      arch: arch ?? stored.arch,
+      distroId: distroId ?? stored.distroId,
+      type: type ?? stored.type,
+    }
+  }, [arch, distroId, showFilters, stored, type])
   const [result, setResult] = useState<Paginated<Data.Pkg> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -69,24 +95,13 @@ export default function PkgList({
   // passes an inline arrow would otherwise read another page on every one of its renders
   const reportCount = useRef(onCountChange)
   reportCount.current = onCountChange
-  // What the listing is read by — the loader, the filters and the page the reader was left on — held
-  // in one state object rather than three, because a function handed to `useState` is read as an
-  // updater and would be called with the previous state
-  const [listing, setListing] = useState({ filters, load, page: 1 })
-
-  // Another listing — other filters, another loader — starts over, which is adjusted while rendering
-  // so that its first page is read instead of the page the previous listing was left on
-  if (listing.load !== load || listing.filters !== filters) {
-    setListing({ filters, load, page: 1 })
-  }
 
   useEffect(() => {
     let active = true
 
     setLoading(true)
     setError(null)
-    listing
-      .load(listing.page, listing.filters)
+    load(page, filters)
       .then((pkgPage) => {
         if (!active) return
         setResult(pkgPage)
@@ -108,13 +123,25 @@ export default function PkgList({
     return () => {
       active = false
     }
-  }, [errorMessage, listing, refreshKey, t])
+  }, [errorMessage, filters, load, page, refreshKey, t])
+
+  // What the toolbar is set to is kept in the query string and remembered for a later visit, and a
+  // narrowing the reader changes reads the first page of the listing again
+  function changeFilters(next: PkgFiltersValue) {
+    if (rememberFilters) setRemembered(next)
+    void setParams({
+      arch: next.arch,
+      distroId: next.distroId,
+      page: null,
+      type: next.type,
+    })
+  }
 
   const narrowed = filters.distroId !== null || filters.type !== null || filters.arch !== null
 
   return (
     <>
-      {showFilters && <PkgFilters onChange={setStoredFilters} value={storedFilters} />}
+      {showFilters && <PkgFilters onChange={changeFilters} value={filters} />}
       {error ? (
         <Alert color='red' mb='lg'>
           {error}
@@ -144,7 +171,7 @@ export default function PkgList({
               className={styles.pagination}
               total={result.meta.lastPage}
               value={result.meta.currentPage}
-              onChange={(page) => setListing({ ...listing, page })}
+              onChange={(nextPage) => void setParams({ page: nextPage })}
             />
           )}
         </>

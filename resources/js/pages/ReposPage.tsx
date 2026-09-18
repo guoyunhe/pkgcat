@@ -3,9 +3,10 @@ import { Alert, Button, Select, Text, Title } from '@mantine/core'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
+import { parseAsInteger, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useSearchParams } from 'wouter'
+import { Link, useLocation } from 'wouter'
 
 import { useAuth } from '../auth'
 import { filterWidth } from '../components/ListFilter'
@@ -25,24 +26,25 @@ export default function ReposPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [searchParams] = useSearchParams()
   const isAdmin = ready && user?.role === 'admin'
-  // The sort order is read by the API, so it is kept in the URL and the listing is re-read for it
-  const sort = repoSort(searchParams.get('sort'))
+  // The sort order is read by the API, so it is kept in the query string and the listing is re-read
+  // for it — as no order of its own when it is the one the listing starts at. The page of the
+  // listing belongs to the table, so it is cleared here: another order reads the first page of the
+  // listing again, the way another narrowing does
+  const [{ sort }, setListingParams] = useQueryStates({
+    page: parseAsInteger,
+    sort: parseAsStringLiteral(repoSorts).withDefault('name'),
+  })
 
   const [error, setError] = useState<string | null>(null)
   // A deleted repository is not in the list anymore, which the table reads again to find out
   const [refresh, setRefresh] = useState(0)
-  // The order is kept in the URL and the API reads it, and so are the filters the table holds: a
-  // change of either reads the first page of the listing again
+  // The order is kept in the query string and the API reads it, and so are the filters the table
+  // holds: a change of either reads the first page of the listing again
   const loadRepos = useCallback(
     (page: number, filters: RepoFilters) => getRepos(sort, filters, page),
     [sort],
   )
-
-  function reposUrl(nextSort: RepoSort) {
-    return nextSort === 'name' ? '/repos' : `/repos?sort=${nextSort}`
-  }
 
   async function remove(repo: Data.Repo) {
     if (!window.confirm(t('repos.confirmDelete', { name: repo.name }))) return
@@ -92,7 +94,7 @@ export default function ReposPage() {
             allowDeselect={false}
             data={repoSorts.map((value) => ({ value, label: sortLabels[value] }))}
             label={t('common.sortBy')}
-            onChange={(nextSort) => navigate(reposUrl(repoSort(nextSort)))}
+            onChange={(nextSort) => void setListingParams({ page: null, sort: repoSort(nextSort) })}
             value={sort}
             w={filterWidth}
           />

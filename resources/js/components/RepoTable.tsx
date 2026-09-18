@@ -2,10 +2,12 @@ import type { Data } from '@generated/data'
 import { Alert, Group, Loader, Pagination, Table, Text, TextInput } from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
+import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { prefixedUrlKeys } from '../searchParams'
 import { emptyRepoFilters, repoSources, type RepoFilters } from '../services/repos'
 import type { Paginated } from '../types/pagination'
 import DistroSelect from './DistroSelect'
@@ -14,6 +16,9 @@ import ListFilter, { filterWidth } from './ListFilter'
 import styles from './RepoTable.module.css'
 
 const packageTypesWithIcons = new Set(['deb', 'rpm', 'pacman'])
+
+/** Names the parameters of the table are kept in the query string under. */
+const paramNames = ['distroId', 'page', 'q', 'source'] as const
 
 /** Counts run into the hundreds of thousands, so they are grouped the way the locale does it. */
 function formatCount(value: number, language: string) {
@@ -56,11 +61,14 @@ type RepoTableProps = {
   renderActions?: (repo: Data.Repo) => ReactNode
   /** What clicking a row opens, usually the editor; rows that open nothing are plain text. */
   onRowClick?: (repo: Data.Repo) => void
+  /** Prefix the parameters carry, on a page that shows several listings at once. */
+  paramPrefix?: string
 }
 
 /**
- * Table of repositories, which reads them itself and narrows them by what its toolbar holds: shared
- * by the repository listing and the detail page of a release.
+ * Table of repositories, which reads them itself and narrows them by what its toolbar holds — kept
+ * in the query string, so that a narrowed table can be shared and reloaded: shared by the
+ * repository listing and the detail page of a release.
  */
 export default function RepoTable({
   load,
@@ -73,17 +81,26 @@ export default function RepoTable({
   hideFilters = false,
   renderActions,
   onRowClick,
+  paramPrefix = '',
 }: RepoTableProps) {
   const { t, i18n } = useTranslation()
   const [result, setResult] = useState<Paginated<Data.Repo> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // What the toolbar narrows the listing down by, which is nothing until it is used. The API reads
-  // every one of them, so a change reads another page — the search terms however wait for the
-  // typing to pause first, since a word would otherwise be asked for letter by letter
-  const [search, setSearch] = useState('')
-  const [distroFilter, setDistroFilter] = useState<string | null>(null)
-  const [sourceFilter, setSourceFilter] = useState<string | null>(null)
+  // What the toolbar narrows the listing down by, which is nothing until it is used, and which is
+  // kept in the query string so that a narrowed table can be shared and reloaded
+  const [{ distroId: distroParam, page, q, source }, setParams] = useQueryStates(
+    {
+      distroId: parseAsString,
+      page: parseAsInteger.withDefault(1),
+      q: parseAsString,
+      source: parseAsString,
+    },
+    { urlKeys: prefixedUrlKeys(paramPrefix, paramNames) },
+  )
+  // The box is typed into, and what it holds narrows the listing once the typing pauses — the
+  // search terms wait for it, since a word would otherwise be asked for letter by letter
+  const [search, setSearch] = useState(q ?? '')
   // The hook answers with the value, the way to drop a pending change and the handlers around it
   const [debouncedSearch] = useDebouncedValue(search, 300)
   // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
@@ -97,30 +114,34 @@ export default function RepoTable({
       hideFilters
         ? emptyRepoFilters
         : {
-            distroId: distroFilter === null ? null : Number(distroFilter),
-            q: debouncedSearch.trim(),
-            source: sourceFilter,
+            distroId:
+              distroParam !== null && Number.isInteger(Number(distroParam))
+                ? Number(distroParam)
+                : null,
+            q: q ?? '',
+            source,
           },
-    [debouncedSearch, distroFilter, hideFilters, sourceFilter],
+    [distroParam, hideFilters, q, source],
   )
-  // What the listing is read by — the loader, the filters and the page the reader was left on — held
-  // in one state object rather than three, because a function handed to `useState` is read as an
-  // updater and would be called with the previous state
-  const [listing, setListing] = useState({ filters, load, page: 1 })
 
-  // Another listing — other filters, another loader — starts over, which is adjusted while rendering
-  // so that its first page is read instead of the page the previous listing was left on
-  if (listing.load !== load || listing.filters !== filters) {
-    setListing({ filters, load, page: 1 })
-  }
+  // A search terms name in the query string is what the box shows, so that what a deep link was
+  // narrowed by comes back into it; what was typed narrows the listing once the typing pauses
+  useEffect(() => {
+    setSearch(q ?? '')
+  }, [q])
+
+  useEffect(() => {
+    if (hideFilters) return
+    const terms = debouncedSearch.trim()
+    if (terms !== (q ?? '')) void setParams({ page: null, q: terms || null })
+  }, [debouncedSearch, hideFilters, q, setParams])
 
   useEffect(() => {
     let active = true
 
     setLoading(true)
     setError(null)
-    listing
-      .load(listing.page, listing.filters)
+    load(page, filters)
       .then((repoPage) => {
         if (!active) return
         setResult(repoPage)
@@ -140,7 +161,13 @@ export default function RepoTable({
     return () => {
       active = false
     }
-  }, [errorMessage, listing, refreshKey, t])
+  }, [errorMessage, filters, load, page, refreshKey, t])
+
+  // A narrowing the reader changes reads the first page of the listing again, since the page counts
+  // the repositories the filters kept
+  function narrow(next: Partial<{ distroId: string | null; source: string | null }>) {
+    void setParams({ ...next, page: null })
+  }
 
   function formatDate(value: string | null) {
     if (!value) return t('repos.neverSynced')
@@ -159,7 +186,7 @@ export default function RepoTable({
   // Every field is read by the API, so the toolbar stays where it is while another page is read —
   // the page does not move under the reader — and a listing the filters narrowed keeps it, so that
   // what was set can be taken back
-  const narrowed = search.trim() !== '' || distroFilter !== null || sourceFilter !== null
+  const narrowed = search.trim() !== '' || distroParam !== null || source !== null
   const showToolbar = !hideFilters && (result === null || result.meta.total > 0 || narrowed)
 
   // An empty table is a different thing from filters that match nothing, which the count the
@@ -168,7 +195,7 @@ export default function RepoTable({
     result !== null && result.meta.total === 0 && narrowed
       ? search.trim() !== ''
         ? t('repos.searchEmpty')
-        : distroFilter !== null
+        : distroParam !== null
           ? t('repos.filterEmpty')
           : t('repos.sourceEmpty')
       : emptyMessage
@@ -189,17 +216,17 @@ export default function RepoTable({
           />
           <DistroSelect
             label={t('common.distribution')}
-            onChange={setDistroFilter}
+            onChange={(next) => narrow({ distroId: next })}
             placeholder={t('repos.filterAny')}
             searchable
-            value={distroFilter}
+            value={distroParam}
           />
           <ListFilter
             data={sourceOptions}
             label={t('common.source')}
-            onChange={setSourceFilter}
+            onChange={(next) => narrow({ source: next })}
             placeholder={t('repos.filterAnySource')}
-            value={sourceFilter}
+            value={source}
           />
           {extraFilters}
         </Group>
@@ -317,7 +344,7 @@ export default function RepoTable({
               className={styles.pagination}
               total={result.meta.lastPage}
               value={result.meta.currentPage}
-              onChange={(page) => setListing({ ...listing, page })}
+              onChange={(nextPage) => void setParams({ page: nextPage })}
             />
           )}
         </>

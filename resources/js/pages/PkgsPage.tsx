@@ -39,8 +39,9 @@ export default function PkgsPage() {
         )}
       </header>
 
-      {/* A package is edited and deleted on its own page, which the title of its row opens */}
-      <PkgList emptyMessage={t('common.packagesNotFound')} load={readPkgs} />
+      {/* A package is edited and deleted on its own page, which the title of its row opens; the
+          filters of the toolbar are kept in the query string and remembered for a later visit */}
+      <PkgList emptyMessage={t('common.packagesNotFound')} load={readPkgs} rememberFilters />
     </main>
   )
 }
