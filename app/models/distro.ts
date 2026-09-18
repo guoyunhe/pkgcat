@@ -1,12 +1,13 @@
-import { belongsTo, hasManyThrough, manyToMany, scope } from '@adonisjs/lucid/orm'
-import type { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
-import type { BelongsTo, HasManyThrough, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { belongsTo, manyToMany } from '@adonisjs/lucid/orm'
+import db from '@adonisjs/lucid/services/db'
+import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
-import DistroRepo from '#models/distro_repo'
-import Pkg from '#models/pkg'
 import Repo from '#models/repo'
+
+/** One row of a counted entry: which distribution it belongs to, and how many of what it holds. */
+type CountRow = { distro_id: number; pkgCount?: string | number; appCount?: string | number }
 
 type OsReleaseValues = Record<string, string>
 
@@ -54,37 +55,6 @@ export default class Distro extends DistroSchema {
   })
   declare repos: ManyToMany<typeof Repo>
 
-  /**
-   * Packages the release is served, which are the packages of the repositories serving it. A
-   * package belongs to one repository, so a repository shared by several releases holds the
-   * packages of each of them.
-   */
-  @hasManyThrough([() => Pkg, () => DistroRepo], {
-    foreignKey: 'distroId',
-    throughLocalKey: 'repoId',
-    throughForeignKey: 'repoId',
-  })
-  declare pkgs: HasManyThrough<typeof Pkg>
-
-  /**
-   * Counts a release is read with — its listing shows them next to every entry, and its own page
-   * shows them for the one release it opens: the packages the release is served, and the
-   * applications those packages provide, counted apart so that an application provided by the
-   * packages of several repositories is counted once. An aggregate reports one number, so the two
-   * are read apart as well, and the applications are counted through the packages that provide
-   * them, which is the one step of the chain the catalog keeps no relation for.
-   */
-  static withCounts = scope((query: ModelQueryBuilderContract<typeof Distro>) => {
-    query
-      .withAggregate('pkgs', (subQuery) => subQuery.count('*').as('pkgCount'))
-      .withAggregate('pkgs', (subQuery) =>
-        subQuery
-          .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
-          .countDistinct('app_pkgs.app_id')
-          .as('appCount'),
-      )
-  })
-
   static fromOsRelease(contents: string) {
     const values = parseOsRelease(contents)
 
@@ -95,6 +65,68 @@ export default class Distro extends DistroSchema {
       version: isRollingRelease(values) ? null : (values.VERSION_ID ?? null),
       releaseDate: parseDate(values.RELEASE_DATE),
       eolDate: parseDate(values.EOL_DATE),
+    }
+  }
+
+  /**
+   * Recompute the counts the distribution listings read and order by and store with every entry
+   * (`pkg_count` and `app_count`): the packages of the repositories serving the distribution, and
+   * the applications those packages provide — counted apart, because an application may be provided
+   * by the packages of several repositories and belongs to the distribution once.
+   *
+   * A distribution is counted from what its repositories hold now, so one whose packages were all
+   * removed ends up at zero. Every entry is counted again, and the counts are written statement by
+   * statement instead of in a transaction, like the counts of a repository (`Repo.refreshCounts`).
+   */
+  static async refreshCounts() {
+    const [packageRows, applicationRows] = await Promise.all([
+      db
+        .from('distro_repos')
+        .join('pkgs', 'pkgs.repo_id', 'distro_repos.repo_id')
+        .select('distro_repos.distro_id')
+        .count('* as pkgCount')
+        .groupBy('distro_repos.distro_id'),
+      db
+        .from('distro_repos')
+        .join('pkgs', 'pkgs.repo_id', 'distro_repos.repo_id')
+        .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
+        .select('distro_repos.distro_id')
+        .countDistinct('app_pkgs.app_id as appCount')
+        .groupBy('distro_repos.distro_id'),
+    ])
+
+    const counts = new Map<number, { packages: number; applications: number }>()
+    const countOf = (id: number) => {
+      const count = counts.get(id) ?? { packages: 0, applications: 0 }
+      counts.set(id, count)
+      return count
+    }
+
+    for (const row of packageRows as CountRow[]) {
+      countOf(Number(row.distro_id)).packages = Number(row.pkgCount)
+    }
+    for (const row of applicationRows as CountRow[]) {
+      countOf(Number(row.distro_id)).applications = Number(row.appCount)
+    }
+
+    for (const [id, count] of counts) {
+      await db
+        .from('distros')
+        .where('id', id)
+        .update({ pkg_count: count.packages, app_count: count.applications })
+    }
+
+    // What is left of the stored counts after the counted entries were written belongs to
+    // distributions that hold nothing
+    const stored = await db
+      .from('distros')
+      .select('id')
+      .where((query) => query.where('pkg_count', '>', 0).orWhere('app_count', '>', 0))
+    const emptied = (stored as { id: number }[])
+      .map((row) => row.id)
+      .filter((id) => !counts.has(id))
+    if (emptied.length > 0) {
+      await db.from('distros').whereIn('id', emptied).update({ pkg_count: 0, app_count: 0 })
     }
   }
 }

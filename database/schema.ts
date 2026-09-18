@@ -160,8 +160,10 @@ export class CategorySchema extends BaseModel {
 }
 
 export class DistroSchema extends BaseModel {
-  static $columns = ['arch', 'compatibleDistroId', 'createdAt', 'eolDate', 'id', 'name', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
+  static $columns = ['appCount', 'arch', 'compatibleDistroId', 'createdAt', 'eolDate', 'id', 'name', 'pkgCount', 'pkgType', 'releaseDate', 'updatedAt', 'version'] as const
   $columns = DistroSchema.$columns
+  @column()
+  declare appCount: number
   @column()
   declare arch: string
   @column()
@@ -174,6 +176,8 @@ export class DistroSchema extends BaseModel {
   declare id: number
   @column()
   declare name: string
+  @column()
+  declare pkgCount: number
   @column()
   declare pkgType: string | null
   @column.date()
@@ -281,8 +285,10 @@ export class PkgSchema extends BaseModel {
 }
 
 export class RepoSchema extends BaseModel {
-  static $columns = ['baseUrl', 'configContent', 'configUrl', 'createdAt', 'id', 'installScript', 'lastSyncedAt', 'name', 'source', 'syncIntervalDays', 'type', 'updatedAt'] as const
+  static $columns = ['appCount', 'baseUrl', 'configContent', 'configUrl', 'createdAt', 'id', 'installScript', 'lastSyncedAt', 'name', 'pkgCount', 'source', 'syncIntervalDays', 'type', 'updatedAt'] as const
   $columns = RepoSchema.$columns
+  @column()
+  declare appCount: number
   @column()
   declare baseUrl: string
   @column()
@@ -299,6 +305,8 @@ export class RepoSchema extends BaseModel {
   declare lastSyncedAt: DateTime | null
   @column()
   declare name: string
+  @column()
+  declare pkgCount: number
   @column()
   declare source: string
   @column()

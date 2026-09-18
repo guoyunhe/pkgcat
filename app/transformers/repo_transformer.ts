@@ -19,13 +19,12 @@ export default class RepoTransformer extends BaseTransformer<Repo> {
         'lastSyncedAt',
         'createdAt',
         'updatedAt',
+        'pkgCount',
+        'appCount',
       ]),
       // A repository may serve several distributions, and every architecture of a distribution is
       // its own entry
       distros: DistroTransformer.transform(this.resource.distros ?? []),
-      /** Packages the repository holds, and the applications those packages provide. */
-      pkgCount: this.resource.$extras.pkgCount ?? 0,
-      appCount: this.resource.$extras.appCount ?? 0,
     }
   }
 }

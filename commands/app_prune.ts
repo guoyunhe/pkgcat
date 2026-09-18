@@ -3,6 +3,8 @@ import type { CommandOptions } from '@adonisjs/core/types/ace'
 import chalk from 'chalk'
 
 import App from '#models/app'
+import Distro from '#models/distro'
+import Repo from '#models/repo'
 
 /** Applications are deleted in batches, so a long backlog never sends one huge statement. */
 const deleteBatchSize = 500
@@ -72,6 +74,10 @@ export default class AppPrune extends BaseCommand {
       const ids = apps.slice(index, index + deleteBatchSize).map((app) => app.id)
       await App.query().whereIn('id', ids).delete()
     }
+    // The applications the packages of an entry provided are what its counts are made of, and they
+    // are gone with the deleted applications
+    await Repo.refreshCounts()
+    await Distro.refreshCounts()
     this.logger.info(`Deleted ${chalk.red(String(apps.length))} application(s)`)
   }
 }

@@ -14,12 +14,11 @@ function toDateTime(value: string | null) {
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
     const { page, perPage, sort, q, arch } = await request.validateUsing(distroListValidator)
-    // The counts are read with the listing itself (see `Distro.withCounts`), so the entries a page
-    // holds and the counts they show are read together, and the order by a count is asked of the
-    // database the way the order by a name is
-    const query = Distro.query()
-      .apply((scopes) => scopes.withCounts())
-      .preload('compatibleDistro')
+    // The counts a listing shows are stored with the entry it lists (`Distro.pkgCount` and
+    // `Distro.appCount`, written by the synchronization that changes the packages), so the entries a
+    // page holds and the counts they show are read together, and the order by a count is the order
+    // of a column
+    const query = Distro.query().preload('compatibleDistro')
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
@@ -28,12 +27,7 @@ export default class DistrosController {
     // other in, so a page of such a listing holds the same entries every time it is read
     const countColumns = { packages: 'pkgCount', apps: 'appCount' } as const
     if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
-    query
-      .orderBy('name')
-      .orderByRaw('release_date is null desc')
-      .orderBy('releaseDate', 'desc')
-      .orderBy('version')
-      .orderBy('arch')
+    query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
     if (q) {
       // A release is found by what names it — the distribution, the version and the architecture it
       // is published for, and the format it packages — rather than by the repositories serving it,
@@ -61,9 +55,7 @@ export default class DistrosController {
   }
 
   async show({ params, serialize }: HttpContext) {
-    // The detail page shows the same counts as the listing, of the one release it opens
     const distro = await Distro.query()
-      .apply((scopes) => scopes.withCounts())
       .where('id', params.id)
       .preload('compatibleDistro')
       .firstOrFail()

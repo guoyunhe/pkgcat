@@ -6,6 +6,7 @@ import { DateTime } from 'luxon'
 import App from '#models/app'
 import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
+import Distro from '#models/distro'
 import Image from '#models/image'
 import Pkg from '#models/pkg'
 import Repo from '#models/repo'
@@ -162,6 +163,11 @@ export default class RepoSync extends BaseCommand {
         this.logger.error(`${repo.name}: ${error instanceof Error ? error.message : String(error)}`)
       }
     }
+
+    // The packages the run wrote are what the counts of the repositories it synchronized and of the
+    // distributions they serve are made of, so they are counted once the run has written them all
+    await Repo.refreshCounts()
+    await Distro.refreshCounts()
 
     if (synced === 0) {
       this.logger.warning('No repositories were synchronized, use --force to sync anyway')
