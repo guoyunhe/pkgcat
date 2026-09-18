@@ -1,4 +1,5 @@
-import { belongsTo, hasManyThrough, manyToMany } from '@adonisjs/lucid/orm'
+import { belongsTo, hasManyThrough, manyToMany, scope } from '@adonisjs/lucid/orm'
+import type { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import type { BelongsTo, HasManyThrough, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
@@ -64,6 +65,25 @@ export default class Distro extends DistroSchema {
     throughForeignKey: 'repoId',
   })
   declare pkgs: HasManyThrough<typeof Pkg>
+
+  /**
+   * Counts a release is read with — its listing shows them next to every entry, and its own page
+   * shows them for the one release it opens: the packages the release is served, and the
+   * applications those packages provide, counted apart so that an application provided by the
+   * packages of several repositories is counted once. An aggregate reports one number, so the two
+   * are read apart as well, and the applications are counted through the packages that provide
+   * them, which is the one step of the chain the catalog keeps no relation for.
+   */
+  static withCounts = scope((query: ModelQueryBuilderContract<typeof Distro>) => {
+    query
+      .withAggregate('pkgs', (subQuery) => subQuery.count('*').as('pkgCount'))
+      .withAggregate('pkgs', (subQuery) =>
+        subQuery
+          .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
+          .countDistinct('app_pkgs.app_id')
+          .as('appCount'),
+      )
+  })
 
   static fromOsRelease(contents: string) {
     const values = parseOsRelease(contents)

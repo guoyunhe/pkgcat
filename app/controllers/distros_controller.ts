@@ -1,5 +1,4 @@
 import type { HttpContext } from '@adonisjs/core/http'
-import type { ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 import { DateTime } from 'luxon'
 
 import Distro from '#models/distro'
@@ -12,32 +11,15 @@ function toDateTime(value: string | null) {
   return value ? DateTime.fromISO(value) : null
 }
 
-/**
- * The counts a release shows of itself, read by the database with the entries it lists: the
- * packages it is served, and the applications those packages provide — counted apart, so that an
- * application provided by the packages of several repositories is counted once. An aggregate
- * reports one number, so the two are read apart as well, and the applications are counted through
- * the packages that provide them, which is the one step of the chain the catalog keeps no relation
- * for.
- */
-function withCounts(query: ModelQueryBuilderContract<typeof Distro>) {
-  return query
-    .withAggregate('pkgs', (subQuery) => subQuery.count('*').as('pkgCount'))
-    .withAggregate('pkgs', (subQuery) =>
-      subQuery
-        .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
-        .countDistinct('app_pkgs.app_id')
-        .as('appCount'),
-    )
-}
-
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
     const { page, perPage, sort, q, arch } = await request.validateUsing(distroListValidator)
-    // The counts of a release are aggregates of the listing itself, so the entries a page holds and
-    // the counts they show are read together, and the order by a count is asked of the database the
-    // way the order by a name is
-    const query = withCounts(Distro.query().preload('compatibleDistro'))
+    // The counts are read with the listing itself (see `Distro.withCounts`), so the entries a page
+    // holds and the counts they show are read together, and the order by a count is asked of the
+    // database the way the order by a name is
+    const query = Distro.query()
+      .apply((scopes) => scopes.withCounts())
+      .preload('compatibleDistro')
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
@@ -80,7 +62,8 @@ export default class DistrosController {
 
   async show({ params, serialize }: HttpContext) {
     // The detail page shows the same counts as the listing, of the one release it opens
-    const distro = await withCounts(Distro.query())
+    const distro = await Distro.query()
+      .apply((scopes) => scopes.withCounts())
       .where('id', params.id)
       .preload('compatibleDistro')
       .firstOrFail()
