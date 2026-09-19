@@ -45,8 +45,12 @@ const agents = new Map<string, Agent>([
 
 /** Failure of a download, reported the way the synchronization names it. */
 class DownloadError extends Error {
+  /** Status of the answer, or `null` when the request was left without one. */
+  readonly status: number | null
+
   constructor(url: string, status: number | null, cause?: unknown) {
     super(`Unable to download ${url}${status ? ` (${status})` : ''}`, { cause })
+    this.status = status
   }
 }
 
@@ -101,19 +105,19 @@ async function openStream(url: string): Promise<Readable> {
 }
 
 /**
- * Answer a request, asking again when the connection failed before the server answered it. A host
- * that answers in turn reaches a repository through several addresses, and a resolver or a mirror
- * that drops a connection without answering it has not served the request, which is how a single
- * file of a repository fails while every other one is read — the failure the synchronization of
- * `Ubuntu 22.04 Main` reported for the DEP-11 metadata of its `restricted` component. Only a
- * failure that produced no answer is repeated: an answer of the server and a wait of our own that
- * ran out are reported as they were, and a second connection that fails as well is reported too.
+ * Answer a request, asking once more when it was left without an answer: the connection was
+ * dropped, the address did not resolve, or a wait of ours ran out — a connection a server has
+ * closed is not noticed until the request written into it goes unanswered. Such a failure names the
+ * connection rather than the repository, which is how a single file of a repository fails while
+ * every other one is read, so the request is made again on a fresh connection. An answer of the
+ * server, an error status included, is reported as it was, and so is a second attempt that fails as
+ * well.
  */
 async function answerTwice<T>(url: string, request: () => Promise<T>): Promise<T> {
   try {
     return await request()
   } catch (error) {
-    if (error instanceof DownloadError) throw error
+    if (!wentUnanswered(error)) throw error
 
     try {
       return await request()
@@ -121,6 +125,11 @@ async function answerTwice<T>(url: string, request: () => Promise<T>): Promise<T
       throw retried instanceof DownloadError ? retried : new DownloadError(url, null, retried)
     }
   }
+}
+
+/** Whether a failure happened before the server answered the request at all. */
+function wentUnanswered(error: unknown) {
+  return !(error instanceof DownloadError) || error.status === null
 }
 
 const redirectStatuses = [301, 302, 303, 307, 308]
