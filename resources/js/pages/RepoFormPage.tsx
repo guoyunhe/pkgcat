@@ -18,7 +18,7 @@ import { FloppyDiskIcon } from '@phosphor-icons/react/FloppyDisk'
 import { XIcon } from '@phosphor-icons/react/X'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Redirect, useLocation, useRoute } from 'wouter'
+import { Redirect, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import { distroLabel, getDistroCatalog } from '../services/distros'
@@ -30,8 +30,8 @@ export default function RepoFormPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/repos/:id/edit')
-  const repoId = params?.id ? Number(params.id) : undefined
+  const { id } = useParams()
+  const repoId = Number(id)
 
   const [distros, setDistros] = useState<Data.Distro[]>([])
   const [loading, setLoading] = useState(Boolean(repoId))

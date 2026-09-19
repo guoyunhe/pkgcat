@@ -7,7 +7,7 @@ import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useRoute } from 'wouter'
+import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import AppMergeModal from '../components/AppMergeModal'
@@ -37,8 +37,8 @@ export default function AppDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/apps/:id')
-  const appId = params?.id ? Number(params.id) : undefined
+  const { id } = useParams()
+  const appId = Number(id)
   const [app, setApp] = useState<Data.App | null>(null)
   const [packagesRefresh, setPackagesRefresh] = useState(0)
   const [error, setError] = useState<string | null>(null)

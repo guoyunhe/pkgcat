@@ -20,7 +20,7 @@ import { MagicWandIcon } from '@phosphor-icons/react/MagicWand'
 import { XIcon } from '@phosphor-icons/react/X'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Redirect, useLocation, useRoute } from 'wouter'
+import { Redirect, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import AppTypeSelect from '../components/AppTypeSelect'
@@ -81,8 +81,8 @@ export default function AppFormPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/apps/:id/edit')
-  const appId = params?.id ? Number(params.id) : undefined
+  const { id } = useParams()
+  const appId = Number(id)
   const [form, setForm] = useState<AppPayload>(() => emptyForm(defaultLanguage()))
   const [iconUrl, setIconUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(appId))

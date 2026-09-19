@@ -18,7 +18,7 @@ import { FloppyDiskIcon } from '@phosphor-icons/react/FloppyDisk'
 import { XIcon } from '@phosphor-icons/react/X'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Redirect, useLocation, useRoute, useSearchParams } from 'wouter'
+import { Redirect, useLocation, useParams, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import { getApps } from '../services/apps'
@@ -57,9 +57,9 @@ export default function PkgFormPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/pkgs/:id/edit')
+  const { id } = useParams()
   const [searchParams] = useSearchParams()
-  const pkgId = params?.id ? Number(params.id) : undefined
+  const pkgId = Number(id)
   const presetAppId = searchParams.get('appId')
 
   const [apps, setApps] = useState<Data.App[]>([])

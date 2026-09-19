@@ -6,7 +6,7 @@ import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useRoute } from 'wouter'
+import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import { deletePkg, getPkg } from '../services/pkgs'
@@ -27,8 +27,8 @@ export default function PkgDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/pkgs/:id')
-  const pkgId = params?.id ? Number(params.id) : undefined
+  const { id } = useParams()
+  const pkgId = Number(id)
   const [pkg, setPkg] = useState<Data.Pkg | null>(null)
   const [error, setError] = useState<string | null>(null)
 

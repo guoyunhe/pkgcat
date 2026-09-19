@@ -5,7 +5,7 @@ import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useRoute } from 'wouter'
+import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import CountBadge from '../components/CountBadge'
@@ -27,8 +27,8 @@ export default function RepoDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
-  const [, params] = useRoute('/repos/:id')
-  const repoId = params?.id ? Number(params.id) : undefined
+  const { id } = useParams()
+  const repoId = Number(id)
   const [repo, setRepo] = useState<Data.Repo | null>(null)
   const [activeTab, setActiveTab] = useState<RepoTab>('packages')
   const [error, setError] = useState<string | null>(null)

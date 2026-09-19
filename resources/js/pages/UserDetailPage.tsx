@@ -4,7 +4,7 @@ import { ArrowRightIcon } from '@phosphor-icons/react/ArrowRight'
 import { SquaresFourIcon } from '@phosphor-icons/react/SquaresFour'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useRoute, useSearchParams } from 'wouter'
+import { Link, useLocation, useParams, useSearchParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroRelease from '../components/DistroRelease'
@@ -23,8 +23,8 @@ export default function UserDetailPage() {
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
   const [searchParams] = useSearchParams()
-  const [, routeParams] = useRoute('/users/:id')
-  const userId = routeParams?.id ? Number(routeParams.id) : NaN
+  const { id } = useParams()
+  const userId = Number(id)
   const page = Number(searchParams.get('page') ?? 1) || 1
 
   const [profile, setProfile] = useState<Data.User | null>(null)
