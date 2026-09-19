@@ -57,18 +57,20 @@ export type DistroFilters = {
 export const emptyDistroFilters: DistroFilters = { arch: null, q: '' }
 
 /**
- * One page of the distribution listing, which the API pages ten entries at a time. The order is
- * read by the API as well, since it is the order of the whole listing: the entries that hold the
- * most packages or applications, or that the most users run, come first, and the rest follow by
- * name.
+ * One page of the distribution listing, which the API pages ten entries at a time; a caller that
+ * shows a page of its own size — the home page, which lays a fixed number of cards out — reads that
+ * many entries instead. The order is read by the API as well, since it is the order of the whole
+ * listing: the entries that hold the most packages or applications, or that the most users run,
+ * come first, and the rest follow by name.
  */
 export async function getDistros(
   sort: DistroSort = 'name',
   filters: DistroFilters = emptyDistroFilters,
   page = 1,
+  perPage?: number,
 ) {
   const { data } = await api.get<SerializedPaginated<Distro>>('/distros', {
-    params: { page, sort, q: filters.q || undefined, arch: filters.arch },
+    params: { page, perPage, sort, q: filters.q || undefined, arch: filters.arch },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Distro>
 }

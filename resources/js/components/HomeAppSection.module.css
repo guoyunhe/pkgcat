@@ -1,0 +1,20 @@
+/* The applications are the rows the listings show them as, which carry the line between them */
+.appList {
+  border-top: 1px solid var(--ph-border);
+}
+
+/* A row that stands in for an application while the listing is read keeps the metrics of the row
+   that replaces it (`AppListItem`): an icon of 80px and the lines beside it */
+.row {
+  align-items: center;
+  border-bottom: 1px solid var(--ph-border);
+  display: flex;
+  gap: 18px;
+  padding: 20px 0;
+}
+
+.lines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
