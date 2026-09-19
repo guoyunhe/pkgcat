@@ -31,10 +31,8 @@ export default function RepoDetailPage() {
   const repoId = params?.id ? Number(params.id) : undefined
   const [repo, setRepo] = useState<Data.Repo | null>(null)
   const [activeTab, setActiveTab] = useState<RepoTab>('packages')
-  // What the package listing holds, which it says itself and the tab shows
-  const [pkgCount, setPkgCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
-  // A route without a repository reads nothing; the page shows the invalid id instead of the listing
+
   const readPkgs = useCallback(
     (page: number) =>
       repoId ? getRepoPackages(repoId, page, i18n.language) : Promise.resolve(null),
@@ -215,7 +213,7 @@ export default function RepoDetailPage() {
       >
         <Tabs.List>
           <Tabs.Tab
-            rightSection={<CountBadge count={pkgCount ?? undefined} loading={pkgCount === null} />}
+            rightSection={<CountBadge count={repo.pkgCount} loading={false} />}
             value='packages'
           >
             {t('common.packages')}
@@ -232,7 +230,6 @@ export default function RepoDetailPage() {
           <PkgList
             emptyMessage={t('repos.detail.noPackages')}
             load={readPkgs}
-            onCountChange={setPkgCount}
             showFilters={false}
           />
         </Tabs.Panel>
