@@ -1,13 +1,21 @@
-import type { ReactNode } from 'react'
+import { Group, Select, type SelectProps } from '@mantine/core'
 import { useEffect, useState } from 'react'
 
 import { distroLabel, getDistroCatalog, type Distro } from '../services/distros'
-import ListFilter from './ListFilter'
+
+import styles from './DistroSelect.module.css'
 
 /** One release of the catalog, of the fields that name it. */
 type DistroEntry = Pick<Distro, 'arch' | 'id' | 'name' | 'version'>
 
-type DistroSelectProps = {
+/** One option of the field: a release, named the way releases are named, with its icon. */
+type DistroOption = {
+  icon: string
+  label: string
+  value: string
+}
+
+type DistroSelectProps = Omit<SelectProps, 'data' | 'renderOption'> & {
   /**
    * Entries the field offers. It reads the whole catalog when it is given none, while a listing
    * that begins from a narrower set of releases — the ones it shows — hands its own over.
@@ -15,24 +23,19 @@ type DistroSelectProps = {
   distros?: DistroEntry[]
   /** Entries the field leaves out, which is how a form omits the release it is editing */
   excludeIds?: number[]
-  label: string
-  onChange: (value: string | null) => void
-  value: string | null
-  /** Hint the field shows under it, which a form passes and a listing filter does not. */
-  description?: ReactNode
-  placeholder?: string
-  searchable?: boolean
-  width?: number
 }
 
 /**
- * Field that names a release of the catalog. Its options are the entries it is given, or every
- * entry of the catalog when it is given none, each of them named the way a release is named
- * everywhere — by its distribution, its version and the architecture that tells two entries of one
- * release apart — and carrying the icon of its distribution.
+ * Field that names a release of the catalog, which is a `Select` over everything the catalog holds:
+ * what it adds to one is the options it offers — every release named the way releases are named
+ * everywhere, with the icon of its distribution — while every other prop is the one `Select` takes.
+ * A form therefore binds it with `form.getInputProps`, and a listing narrows another one by it the
+ * way it does with any other field.
  */
 export default function DistroSelect({ distros, excludeIds, ...field }: DistroSelectProps) {
   const [catalog, setCatalog] = useState<DistroEntry[]>([])
+  const options = distroOptions(distros ?? catalog, excludeIds)
+  const selected = options.find((option) => option.value === field.value)
 
   useEffect(() => {
     if (distros) return
@@ -50,7 +53,23 @@ export default function DistroSelect({ distros, excludeIds, ...field }: DistroSe
     }
   }, [distros])
 
-  return <ListFilter data={distroOptions(distros ?? catalog, excludeIds)} {...field} />
+  return (
+    <Select
+      clearable
+      data={options}
+      leftSection={selected ? <img alt='' className={styles.icon} src={selected.icon} /> : null}
+      renderOption={({ option }) => {
+        const { icon } = option as DistroOption
+        return (
+          <Group gap='xs' wrap='nowrap'>
+            <img alt='' className={styles.icon} src={icon} />
+            <span>{option.label}</span>
+          </Group>
+        )
+      }}
+      {...field}
+    />
+  )
 }
 
 /**

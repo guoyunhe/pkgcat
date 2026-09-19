@@ -213,6 +213,7 @@ export default function RepoTable({
             placeholder={t('repos.filterAny')}
             searchable
             value={distroParam}
+            w={filterWidth}
           />
           <ListFilter
             data={sourceOptions}

@@ -170,9 +170,9 @@ export default function SettingsPage() {
                 <DistroSelect
                   description={t('settings.distroHint')}
                   label={t('common.distribution')}
-                  onChange={(value) => profileForm.setFieldValue('distroId', value)}
                   searchable
-                  value={profileForm.values.distroId}
+                  w='100%'
+                  {...profileForm.getInputProps('distroId')}
                 />
                 <Group justify='flex-end'>
                   <Button

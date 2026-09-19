@@ -8,7 +8,7 @@ import { getDistroCatalog, type Distro } from '../services/distros'
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import { packageTypes } from '../utils/pkgTypes'
 import DistroSelect from './DistroSelect'
-import ListFilter from './ListFilter'
+import ListFilter, { filterWidth } from './ListFilter'
 
 const storageKey = 'pkg-filters'
 
@@ -75,6 +75,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
         placeholder={t('packages.filterAny')}
         searchable
         value={value.distroId}
+        w={filterWidth}
       />
       <ListFilter
         data={packageTypes.map((type) => ({ label: type, value: type }))}

@@ -1,0 +1,7 @@
+/* Icon of a release, sized to the field it is shown in */
+.icon {
+  display: block;
+  height: 18px;
+  object-fit: contain;
+  width: 18px;
+}

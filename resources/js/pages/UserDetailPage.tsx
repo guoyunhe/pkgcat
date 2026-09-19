@@ -139,7 +139,7 @@ export default function UserDetailPage() {
           )}
           {profile.distro && (
             <Text c='dimmed' size='sm'>
-              {t('common.distribution')} <DistroRelease distro={profile.distro} showArch />
+              <DistroRelease distro={profile.distro} showArch />
             </Text>
           )}
         </div>
