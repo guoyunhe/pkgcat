@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-import { firstValue, localeField, pageNumber, positiveInteger } from '#utils/query_params'
+import { firstValue, pageNumber, positiveInteger } from '#utils/query_params'
 
 /**
  * Package formats that can be created or edited by hand. Uploaded files are recognized by their
@@ -74,8 +74,4 @@ export const pkgListValidator = vine.create({
     .optional(),
   arch: singleValue(),
   type: singleValue(),
-  locale: localeField(),
 })
-
-/** Query parameters of a single package of the catalog. */
-export const pkgLocaleValidator = vine.create({ locale: localeField() })

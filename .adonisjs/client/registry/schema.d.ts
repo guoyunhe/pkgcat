@@ -299,10 +299,10 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/api/apps/:app_id/pkgs'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       paramsTuple: [ParamValue]
       params: { app_id: ParamValue }
-      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -383,10 +383,10 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/api/pkgs'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       paramsTuple: []
       params: {}
-      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['store']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
@@ -398,19 +398,19 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: ExtractQueryForGet<InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      query: {}
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['show']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['show']>>>
     }
   }
   'pkgs.update': {
     methods: ["PUT","PATCH"]
     pattern: '/api/pkgs/:id'
     types: {
-      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      body: ExtractBody<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>|InferInput<(typeof import('#validators/pkg').pkgLocaleValidator)>>
+      query: ExtractQuery<InferInput<(typeof import('#validators/pkg').pkgValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['update']>>>
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/pkgs_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
