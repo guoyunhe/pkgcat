@@ -17,7 +17,6 @@ export type PkgPayload = Omit<Partial<Data.Pkg>, 'apps'> & { appIds?: number[] }
 export type PkgFilters = {
   distroId: string | null
   type: string | null
-  arch: string | null
 }
 
 function authHeaders() {
@@ -30,7 +29,6 @@ export function filterParams(filters: PkgFilters) {
   return {
     distroId: filters.distroId ?? undefined,
     type: filters.type ?? undefined,
-    arch: filters.arch ?? undefined,
   }
 }
 
@@ -41,11 +39,10 @@ export function filterParams(filters: PkgFilters) {
 export async function getPkgs(
   query = '',
   page = 1,
-  filters: PkgFilters = { distroId: null, type: null, arch: null },
-  locale?: string,
+  filters: PkgFilters = { distroId: null, type: null },
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
-    params: { page, q: query || undefined, ...filterParams(filters), locale },
+    params: { page, q: query || undefined, ...filterParams(filters) },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
 }

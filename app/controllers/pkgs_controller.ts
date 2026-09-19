@@ -25,13 +25,13 @@ const maxPackageSize = 2 * 1024 * 1024 * 1024
 
 export default class PkgsController {
   async index({ params, request, serialize }: HttpContext) {
-    const { page, perPage, q, distroId, repoId, arch, type } =
+    const { page, perPage, q, distroId, repoId, type } =
       await request.validateUsing(pkgListValidator)
     // Packages are listed by name, which is how a package is looked up; the id keeps the order of a
     // name stable, so that paging never repeats or skips a row the way a partly ordered list does.
     // It is asked for in ascending order on purpose: a descending one cannot be read from the index
     // of the names and makes the database sort half a million rows for every page.
-    const pkgsQuery = Pkg.query().preload('apps').orderBy('name').orderBy('id')
+    const pkgsQuery = Pkg.query().orderBy('name').orderBy('id')
 
     if (params.app_id) {
       await App.findOrFail(params.app_id)
@@ -65,7 +65,6 @@ export default class PkgsController {
       }
     }
 
-    if (arch) pkgsQuery.where('arch', arch)
     if (type) pkgsQuery.where('type', type)
     if (repoId) pkgsQuery.where('repo_id', repoId)
 

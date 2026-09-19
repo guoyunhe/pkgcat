@@ -14,9 +14,9 @@ export default function PkgsPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
   const isAdmin = ready && user?.role === 'admin'
-  // The listing the filters in its toolbar name, which the list reads one page of at a time
+
   const readPkgs = useCallback(
-    (page: number, filters: PkgFilters) => getPkgs('', page, filters, i18n.language),
+    (page: number, filters: PkgFilters) => getPkgs('', page, filters),
     [i18n.language],
   )
 
@@ -39,8 +39,6 @@ export default function PkgsPage() {
         )}
       </header>
 
-      {/* A package is edited and deleted on its own page, which the title of its row opens; the
-          filters of the toolbar are kept in the query string and remembered for a later visit */}
       <PkgList emptyMessage={t('common.packagesNotFound')} load={readPkgs} rememberFilters />
     </main>
   )

@@ -80,7 +80,6 @@ export default function PkgList({
   const filters = useMemo<PkgFiltersValue>(() => {
     if (!showFilters) return emptyPkgFilters
     return {
-      arch: arch ?? stored.arch,
       distroId: distroId ?? stored.distroId,
       type: type ?? stored.type,
     }
@@ -122,14 +121,13 @@ export default function PkgList({
   function changeFilters(next: PkgFiltersValue) {
     if (rememberFilters) setRemembered(next)
     void setParams({
-      arch: next.arch,
       distroId: next.distroId,
       page: null,
       type: next.type,
     })
   }
 
-  const narrowed = filters.distroId !== null || filters.type !== null || filters.arch !== null
+  const narrowed = filters.distroId !== null || filters.type !== null
 
   return (
     <>

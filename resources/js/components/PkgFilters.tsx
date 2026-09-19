@@ -7,14 +7,13 @@ import { useTranslation } from 'react-i18next'
 import { getDistroCatalog, type Distro } from '../services/distros'
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import { packageTypes } from '../utils/pkgTypes'
-import ArchSelect from './ArchSelect'
 import DistroSelect from './DistroSelect'
 import ListFilter from './ListFilter'
 
 const storageKey = 'pkg-filters'
 
 /** Filters that narrow nothing, which a listing that shows no toolbar reads with. */
-export const emptyPkgFilters: PkgFiltersValue = { distroId: null, type: null, arch: null }
+export const emptyPkgFilters: PkgFiltersValue = { distroId: null, type: null }
 
 /**
  * Filters are remembered across visits, but older shapes (distributions by name, or lists from when
@@ -26,7 +25,6 @@ function parseFilters(raw: string) {
     return {
       distroId: typeof value.distroId === 'string' ? value.distroId : null,
       type: typeof value.type === 'string' ? value.type : null,
-      arch: typeof value.arch === 'string' ? value.arch : null,
     }
   } catch {
     return emptyPkgFilters
@@ -46,12 +44,6 @@ type PkgFiltersProps = {
   onChange: (value: PkgFiltersValue) => void
 }
 
-/**
- * Distribution, package format and architecture filters for the package listings, which `PkgList`
- * shows above its rows and holds what they are set to. A distribution is one release for one
- * architecture, and the packages it serves are the ones its repositories hold for that
- * architecture.
- */
 export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
   const { t } = useTranslation()
   const [distros, setDistros] = useState<Distro[]>([])
@@ -72,7 +64,7 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
     }
   }, [])
 
-  const hasFilters = value.distroId !== null || value.type !== null || value.arch !== null
+  const hasFilters = value.distroId !== null || value.type !== null
 
   return (
     <Group align='flex-end' gap='sm' mb='lg'>
@@ -83,13 +75,6 @@ export default function PkgFilters({ value, onChange }: PkgFiltersProps) {
         placeholder={t('packages.filterAny')}
         searchable
         value={value.distroId}
-      />
-      <ArchSelect
-        label={t('common.architecture')}
-        onChange={(arch) => onChange({ ...value, arch })}
-        placeholder={t('packages.filterAny')}
-        searchable
-        value={value.arch}
       />
       <ListFilter
         data={packageTypes.map((type) => ({ label: type, value: type }))}

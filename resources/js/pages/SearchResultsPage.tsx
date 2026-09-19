@@ -76,7 +76,7 @@ export default function SearchResultsPage() {
   )
   // The packages the search terms name, narrowed by the filters the list holds
   const readPkgs = useCallback(
-    (page: number, filters: PkgFilters) => getPkgs(terms, page, filters, i18n.language),
+    (page: number, filters: PkgFilters) => getPkgs(terms, page, filters),
     [i18n.language, terms],
   )
   // The repositories and the releases the search terms name, whose tables carry no toolbar here:
