@@ -1,34 +1,27 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Container, Group, Loader, Pagination, Text, Title } from '@mantine/core'
-import { ArrowRightIcon } from '@phosphor-icons/react/ArrowRight'
-import { SquaresFourIcon } from '@phosphor-icons/react/SquaresFour'
+import { Alert, Container, Loader, Text, Title } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useParams, useSearchParams } from 'wouter'
+import { useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import DistroRelease from '../components/DistroRelease'
-import FavoriteButton from '../components/FavoriteButton'
+import FavoriteList from '../components/FavoriteList'
 import ReviewList from '../components/ReviewList'
 import UserAvatar from '../components/UserAvatar'
 import { deleteReview, getUserReviews } from '../services/reviews'
-import { getUser, getUserFavorites } from '../services/users'
+import { getUser } from '../services/users'
 import type { Paginated } from '../types/pagination'
-import { localized } from '../utils/appstream'
 
 import styles from './UserDetailPage.module.css'
 
 export default function UserDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const [, navigate] = useLocation()
-  const [searchParams] = useSearchParams()
   const { id } = useParams()
   const userId = Number(id)
-  const page = Number(searchParams.get('page') ?? 1) || 1
 
   const [profile, setProfile] = useState<Data.User | null>(null)
-  const [result, setResult] = useState<Paginated<Data.App> | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -54,13 +47,6 @@ export default function UserDetailPage() {
       setError(null)
       const foundUser = await getUser(userId)
       setProfile(foundUser)
-
-      const favorites = await getUserFavorites(userId, page, i18n.language)
-      if (favorites.data.length === 0 && page > 1) {
-        navigate(`/users/${userId}?page=${favorites.meta.lastPage || 1}`, { replace: true })
-        return
-      }
-      setResult(favorites)
     } catch (reason) {
       const status =
         reason && typeof reason === 'object' && 'response' in reason
@@ -78,7 +64,7 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     void loadPage()
-  }, [i18n.language, userId, page])
+  }, [i18n.language, userId])
 
   useEffect(() => {
     if (!Number.isInteger(userId) || userId <= 0) return
@@ -116,17 +102,17 @@ export default function UserDetailPage() {
 
   if (notFound) {
     return (
-      <main className={styles.page}>
+      <Container component='main' size='md' py='xl'>
         <Alert color='red'>{t('profile.notFound')}</Alert>
-      </main>
+      </Container>
     )
   }
 
   if (error || !profile) {
     return (
-      <main className={styles.page}>
+      <Container component='main' size='md' py='xl'>
         <Alert color='red'>{error ?? t('profile.loadError')}</Alert>
-      </main>
+      </Container>
     )
   }
 
@@ -159,78 +145,7 @@ export default function UserDetailPage() {
         </div>
       </header>
 
-      <section className={styles.favorites}>
-        <Group justify='space-between'>
-          <Title order={2}>{t('profile.favoritesTitle')}</Title>
-          {result && <Text c='dimmed'>{result.meta.total}</Text>}
-        </Group>
-
-        {loading ? (
-          <div className={styles.loading}>
-            <Loader color='orange' />
-          </div>
-        ) : result && result.data.length > 0 ? (
-          <>
-            <section className={styles.grid}>
-              {result.data.map((app) => (
-                <article className={styles.item} key={app.id}>
-                  {app.icon ? (
-                    <img alt='' className={styles.icon} src={app.icon.url} />
-                  ) : (
-                    <div className={`${styles.icon} ${styles.emptyIcon}`} />
-                  )}
-                  <div className={styles.copy}>
-                    <Title order={3}>
-                      <Link className={styles.link} href={`/apps/${app.id}`}>
-                        {localized(app.name, i18n.language)}{' '}
-                        <ArrowRightIcon size={18} weight='bold' />
-                      </Link>
-                    </Title>
-                    <Text c='dimmed'>{localized(app.summary, i18n.language)}</Text>
-                    <div className={styles.metadata}>
-                      {app.version && <span>{app.version}</span>}
-                      {app.license && <span>{app.license}</span>}
-                    </div>
-                  </div>
-                  <div className={styles.favorite}>
-                    <FavoriteButton
-                      appId={app.id}
-                      favorite={app.isFavorite}
-                      onChange={isOwn ? () => void loadPage() : undefined}
-                    />
-                  </div>
-                </article>
-              ))}
-            </section>
-            {result.meta.lastPage > 1 && (
-              <Pagination
-                className={styles.pagination}
-                total={result.meta.lastPage}
-                value={result.meta.currentPage}
-                onChange={(nextPage) => {
-                  navigate(nextPage > 1 ? `/users/${userId}?page=${nextPage}` : `/users/${userId}`)
-                }}
-              />
-            )}
-          </>
-        ) : (
-          <div className={styles.empty}>
-            <Text c='dimmed'>
-              {isOwn ? t('profile.noFavorites') : t('profile.noFavoritesOther')}
-            </Text>
-            {isOwn && (
-              <Button
-                component={Link}
-                href='/apps'
-                leftSection={<SquaresFourIcon size={18} />}
-                mt='md'
-              >
-                {t('profile.browseApps')}
-              </Button>
-            )}
-          </div>
-        )}
-      </section>
+      <FavoriteList isOwn={isOwn} userId={userId} />
 
       <section className={styles.reviews}>
         <Title order={2}>{t('reviews.title')}</Title>

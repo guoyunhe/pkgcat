@@ -22,14 +22,6 @@
   margin: 6px 0 4px;
 }
 
-.favorites {
-  margin-top: 40px;
-}
-
-.favorites h2 {
-  margin: 0;
-}
-
 .reviews {
   margin-top: 44px;
 }
@@ -38,98 +30,9 @@
   margin-bottom: 16px;
 }
 
-.grid {
-  border-top: 1px solid var(--ph-border);
-  margin-top: 20px;
-}
-
-.item {
-  align-items: center;
-  border-bottom: 1px solid var(--ph-border);
-  display: grid;
-  gap: 18px;
-  grid-template-columns: 56px minmax(0, 1fr) auto;
-  padding: 20px 0;
-}
-
-.icon {
-  height: 56px;
-  object-fit: contain;
-  width: 56px;
-}
-
-.emptyIcon {
-  background: var(--ph-icon-bg);
-}
-
-.favorite {
-  justify-self: end;
-}
-
-.copy h3 {
-  margin: 0 0 4px;
-}
-
-.link {
-  align-items: center;
-  color: inherit;
-  display: inline-flex;
-  gap: 6px;
-  text-decoration: none;
-}
-
-.link:hover {
-  color: var(--ph-primary);
-}
-
-.metadata {
-  display: flex;
-  gap: 8px;
-  margin-top: 9px;
-}
-
-.metadata span {
-  border: 1px solid var(--ph-border);
-  font-size: 12px;
-  padding: 2px 6px;
-}
-
-.empty {
-  align-items: center;
-  border-top: 1px solid var(--ph-border);
-  display: flex;
-  flex-direction: column;
-  margin-top: 20px;
-  padding: 64px 0;
-}
-
-.pagination {
-  margin-top: 28px;
-}
-
 @media (max-width: 600px) {
-  .page {
-    padding: 44px 18px;
-  }
-
   .profileHeader {
     align-items: flex-start;
     gap: 16px;
-  }
-
-  .avatar {
-    font-size: 26px;
-    height: 64px;
-    width: 64px;
-  }
-
-  .item {
-    gap: 12px;
-    grid-template-columns: 48px minmax(0, 1fr) auto;
-  }
-
-  .icon {
-    height: 48px;
-    width: 48px;
   }
 }

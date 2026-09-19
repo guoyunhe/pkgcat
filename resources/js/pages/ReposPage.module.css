@@ -21,23 +21,6 @@
   letter-spacing: 0;
 }
 
-.status {
-  align-items: center;
-  display: flex;
-  gap: 6px;
-}
-
-.dot {
-  border-radius: 50%;
-  display: inline-block;
-  height: 8px;
-  width: 8px;
-}
-
-.dotDisabled {
-  background: #adb5bd;
-}
-
 @media (max-width: 600px) {
   .page {
     padding: 44px 18px;

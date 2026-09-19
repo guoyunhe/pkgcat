@@ -112,10 +112,6 @@
   padding: 24px 0;
 }
 
-.pagination {
-  margin-top: 28px;
-}
-
 @media (max-width: 600px) {
   .page {
     padding: 32px 18px 48px;

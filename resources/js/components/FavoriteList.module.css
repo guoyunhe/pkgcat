@@ -1,0 +1,31 @@
+.favorites {
+  margin-top: 40px;
+}
+
+.favorites h2 {
+  margin: 0;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 72px 0;
+}
+
+.grid {
+  border-top: 1px solid var(--ph-border);
+  margin-top: 20px;
+}
+
+.empty {
+  align-items: center;
+  border-top: 1px solid var(--ph-border);
+  display: flex;
+  flex-direction: column;
+  margin-top: 20px;
+  padding: 64px 0;
+}
+
+.pagination {
+  margin-top: 28px;
+}
