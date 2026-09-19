@@ -813,7 +813,9 @@ export default class RepoAppstreamExtractor {
    *
    * The documents are read with the `failsafe` schema, which reads every scalar as the text the
    * format declares it to be: the default schema turns a version upstream announces as `49.0` into
-   * the number `49`, losing the rest of it.
+   * the number `49`, losing the rest of it. A document that repeats a key is read the way the
+   * format allows — the catalog of the `universe` component of Ubuntu 22.04 writes `ca_ES:` twice
+   * for `org.gnome.Klotski` — so one sloppy record does not fail the component it sits in.
    */
   private parseDep11(content: string): ExtractedApp[] {
     const apps: ExtractedApp[] = []
@@ -821,7 +823,10 @@ export default class RepoAppstreamExtractor {
     for (const document of content.split(/\n---\n/)) {
       if (!document.includes('ID:') || document.includes('File: DEP-11')) continue
 
-      const record = parseYaml(document, { schema: 'failsafe' }) as Dep11Record | null
+      const record = parseYaml(document, {
+        schema: 'failsafe',
+        uniqueKeys: false,
+      }) as Dep11Record | null
       if (!record?.ID) continue
 
       const xml = this.dep11Xml(record)

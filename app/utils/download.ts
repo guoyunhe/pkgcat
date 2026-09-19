@@ -59,25 +59,25 @@ export type DownloadOptions = { optional?: boolean }
 export async function download(url: string): Promise<Buffer>
 export async function download(url: string, options: { optional: true }): Promise<Buffer | null>
 export async function download(url: string, options: DownloadOptions = {}): Promise<Buffer | null> {
-  try {
-    const response = await openResponse(url)
-    const status = response.statusCode ?? 0
+  return answerTwice(url, () => readFile(url, options))
+}
 
-    // A path a repository does not have is answered with 404, or with 410 when it was removed
-    if (options.optional && (status === 404 || status === 410)) {
-      response.resume()
-      return null
-    }
+async function readFile(url: string, options: DownloadOptions): Promise<Buffer | null> {
+  const response = await openResponse(url)
+  const status = response.statusCode ?? 0
 
-    if (status < 200 || status >= 300) {
-      response.destroy()
-      throw new DownloadError(url, status)
-    }
-
-    return await collectChunks(response)
-  } catch (error) {
-    throw error instanceof DownloadError ? error : new DownloadError(url, null, error)
+  // A path a repository does not have is answered with 404, or with 410 when it was removed
+  if (options.optional && (status === 404 || status === 410)) {
+    response.resume()
+    return null
   }
+
+  if (status < 200 || status >= 300) {
+    response.destroy()
+    throw new DownloadError(url, status)
+  }
+
+  return await collectChunks(response)
 }
 
 /**
@@ -86,17 +86,40 @@ export async function download(url: string, options: DownloadOptions = {}): Prom
  * rest of a file whose metadata has been found.
  */
 export async function downloadStream(url: string): Promise<Readable> {
-  try {
-    const response = await openResponse(url)
-    const status = response.statusCode ?? 0
-    if (status < 200 || status >= 300) {
-      response.destroy()
-      throw new DownloadError(url, status)
-    }
+  return answerTwice(url, () => openStream(url))
+}
 
-    return response
+async function openStream(url: string): Promise<Readable> {
+  const response = await openResponse(url)
+  const status = response.statusCode ?? 0
+  if (status < 200 || status >= 300) {
+    response.destroy()
+    throw new DownloadError(url, status)
+  }
+
+  return response
+}
+
+/**
+ * Answer a request, asking again when the connection failed before the server answered it. A host
+ * that answers in turn reaches a repository through several addresses, and a resolver or a mirror
+ * that drops a connection without answering it has not served the request, which is how a single
+ * file of a repository fails while every other one is read — the failure the synchronization of
+ * `Ubuntu 22.04 Main` reported for the DEP-11 metadata of its `restricted` component. Only a
+ * failure that produced no answer is repeated: an answer of the server and a wait of our own that
+ * ran out are reported as they were, and a second connection that fails as well is reported too.
+ */
+async function answerTwice<T>(url: string, request: () => Promise<T>): Promise<T> {
+  try {
+    return await request()
   } catch (error) {
-    throw error instanceof DownloadError ? error : new DownloadError(url, null, error)
+    if (error instanceof DownloadError) throw error
+
+    try {
+      return await request()
+    } catch (retried) {
+      throw retried instanceof DownloadError ? retried : new DownloadError(url, null, retried)
+    }
   }
 }
 
