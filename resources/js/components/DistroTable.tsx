@@ -29,8 +29,6 @@ type DistroTableProps = {
   errorMessage?: string
   /** Controls the page keeps next to the table, such as the order it keeps in its URL. */
   extraFilters?: ReactNode
-  /** Number of releases the table lists, told whenever a page of it is read. */
-  onCountChange?: (count: number) => void
   /**
    * Whether the table shows the architecture its rows are narrowed by. A page that already fixes
    * what the table reads — the search results, which are narrowed by their own terms — leaves it
@@ -53,7 +51,6 @@ export default function DistroTable({
   emptyMessage,
   errorMessage,
   extraFilters,
-  onCountChange,
   hideFilters = false,
   renderActions,
   onRowClick,
@@ -69,10 +66,6 @@ export default function DistroTable({
     arch: parseAsString,
     page: parseAsInteger.withDefault(1),
   })
-  // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
-  // passes an inline arrow would otherwise read another page on every one of its renders
-  const reportCount = useRef(onCountChange)
-  reportCount.current = onCountChange
   // What the page is read with, held as one value so that it is read again for a change of what
   // narrows it, and for nothing else
   const filters = useMemo<DistroFilters>(
@@ -89,7 +82,6 @@ export default function DistroTable({
       .then((distroPage) => {
         if (!active) return
         setResult(distroPage)
-        reportCount.current?.(distroPage?.meta.total ?? 0)
       })
       .catch((reason) => {
         if (active) {

@@ -2,10 +2,9 @@ import type { Data } from '@generated/data'
 import { Alert, Group, Loader, Pagination, Text } from '@mantine/core'
 import { parseAsInteger, parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { prefixedUrlKeys } from '../searchParams'
 import { appSorts, type AppSort } from '../services/apps'
 import type { Paginated } from '../types/pagination'
 import AppListItem from './AppListItem'
@@ -30,8 +29,6 @@ type AppListProps = {
    * that has nothing to read answers with `null`, which the listing shows as empty.
    */
   load: (page: number, filters: AppFilters) => Promise<Paginated<Data.App> | null>
-  /** Number of applications the listing holds, told whenever a page of it is read. */
-  onCountChange?: (count: number) => void
   /** Message of the empty listing, which every page names after what it shows. */
   emptyMessage: string
   /** Message of an empty listing the filters narrowed down; without filters the one above is shown. */
@@ -50,7 +47,6 @@ type AppListProps = {
  */
 export default function AppList({
   load,
-  onCountChange,
   emptyMessage,
   filteredEmptyMessage,
   errorMessage,
@@ -71,10 +67,6 @@ export default function AppList({
   const [result, setResult] = useState<Paginated<Data.App> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
-  // passes an inline arrow would otherwise read another page on every one of its renders
-  const reportCount = useRef(onCountChange)
-  reportCount.current = onCountChange
 
   useEffect(() => {
     let active = true
@@ -85,7 +77,6 @@ export default function AppList({
       .then((appPage) => {
         if (!active) return
         setResult(appPage)
-        reportCount.current?.(appPage?.meta.total ?? 0)
       })
       .catch((reason) => {
         if (active) {
