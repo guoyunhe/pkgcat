@@ -17,7 +17,8 @@ export default class DistrosController {
     // The counts a listing shows are stored with the entry it lists (`Distro.pkgCount` and
     // `Distro.appCount`, written by the synchronization that changes the packages), so the entries a
     // page holds and the counts they show are read together, and the order by a count is the order
-    // of a column
+    // of a column. The users of a release are counted by the database with the entries it counts
+    // them for instead, which orders them the same way out of the one query (`Distro.users`)
     const query = Distro.query().preload('compatibleDistro')
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
@@ -25,7 +26,10 @@ export default class DistrosController {
     // keep the order stable for releases published on the same day and for the architectures of one
     // entry — and, read after a count, they are the order the entries that share it follow each
     // other in, so a page of such a listing holds the same entries every time it is read
-    const countColumns = { packages: 'pkgCount', apps: 'appCount' } as const
+    const countColumns = { packages: 'pkgCount', apps: 'appCount', users: 'userCount' } as const
+    if (sort === 'users') {
+      query.withAggregate('users', (subQuery) => subQuery.count('*').as('userCount'))
+    }
     if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
     query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
     if (q) query.apply((scopes) => scopes.search(q))

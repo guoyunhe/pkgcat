@@ -46,6 +46,7 @@
     "repositories": "リポジトリ",
     "apps": "アプリケーション",
     "packages": "パッケージ",
+    "users": "ユーザー",
     "pkgNames": "パッケージ名",
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID の別名",

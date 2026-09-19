@@ -32,7 +32,7 @@ export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro'> & {
 }
 
 /** Sort orders the distribution listing accepts; `name` is the default. */
-export const distroSorts = ['name', 'packages', 'apps'] as const
+export const distroSorts = ['name', 'packages', 'apps', 'users'] as const
 
 export type DistroSort = (typeof distroSorts)[number]
 
@@ -58,8 +58,9 @@ export const emptyDistroFilters: DistroFilters = { arch: null, q: '' }
 
 /**
  * One page of the distribution listing, which the API pages ten entries at a time. The order is
- * read by the API as well, since it is the order of the whole listing: the entries with the most
- * packages come first, and the rest follow by name.
+ * read by the API as well, since it is the order of the whole listing: the entries that hold the
+ * most packages or applications, or that the most users run, come first, and the rest follow by
+ * name.
  */
 export async function getDistros(
   sort: DistroSort = 'name',

@@ -1,10 +1,11 @@
-import { belongsTo, manyToMany } from '@adonisjs/lucid/orm'
+import { belongsTo, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import db from '@adonisjs/lucid/services/db'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import { DateTime } from 'luxon'
 
 import { DistroSchema } from '#database/schema'
 import Repo from '#models/repo'
+import User from '#models/user'
 import { searchScope } from '#utils/search'
 
 /** One row of a counted entry: which distribution it belongs to, and how many of what it holds. */
@@ -55,6 +56,16 @@ export default class Distro extends DistroSchema {
     pivotRelatedForeignKey: 'repo_id',
   })
   declare repos: ManyToMany<typeof Repo>
+
+  /**
+   * Users that run this release, which is the distribution each of them named for themselves; a
+   * user runs one release. The listing that orders the releases by how many users they have counts
+   * them (`DistrosController.index`) rather than reading a count stored with the entry the way the
+   * package and application counts are: the users of a release are read from the index of the
+   * distribution they name, and the releases are few enough to be counted for.
+   */
+  @hasMany(() => User, { foreignKey: 'distroId' })
+  declare users: HasMany<typeof User>
 
   /**
    * Releases the search terms name: the distribution a release is a release of. Which release it is

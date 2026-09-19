@@ -46,6 +46,7 @@
     "repositories": "軟體倉庫",
     "apps": "應用程式",
     "packages": "軟體套件",
+    "users": "使用者",
     "pkgNames": "軟體套件名稱",
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID 別名",

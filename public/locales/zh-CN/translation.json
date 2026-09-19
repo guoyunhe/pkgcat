@@ -46,6 +46,7 @@
     "repositories": "软件源",
     "apps": "应用",
     "packages": "软件包",
+    "users": "用户",
     "pkgNames": "软件包名称",
     "appstreamId": "AppStream ID",
     "appstreamIdAliases": "AppStream ID 别名",

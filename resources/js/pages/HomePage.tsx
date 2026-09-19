@@ -8,12 +8,18 @@ import { Link } from 'wouter'
 import AppListItem from '../components/AppListItem'
 import HomeDistroCard from '../components/HomeDistroCard'
 import { getApps } from '../services/apps'
-import { getDistroCatalog, type Distro } from '../services/distros'
+import { getDistros, type Distro } from '../services/distros'
 
 import styles from './HomePage.module.css'
 
 /** Number of applications the home page shows, each with the icon the listing shows it with. */
 const appCount = 6
+
+/**
+ * Number of releases the home page shows: the ones the most users run. The listing pages its
+ * entries ten at a time, so the first page it reads is the list shown here.
+ */
+const distroCount = 10
 
 export default function HomePage() {
   const { t, i18n } = useTranslation()
@@ -24,14 +30,15 @@ export default function HomePage() {
 
   useEffect(() => {
     // The applications are read in a random order and only those that carry an icon, so that a visit
-    // shows other applications than the one before it, all of them with an icon to show
+    // shows other applications than the one before it, all of them with an icon to show; the releases
+    // are the ones the most users run, which the listing reads as its own first page
     Promise.all([
       getApps('', 1, appCount, null, null, 'random', i18n.language, true),
-      getDistroCatalog(),
+      getDistros('users'),
     ])
-      .then(([appPage, distroList]) => {
+      .then(([appPage, distroPage]) => {
         setApps(appPage.data)
-        setDistros(distroList)
+        setDistros(distroPage.data.slice(0, distroCount))
       })
       .catch((reason) => setError(reason instanceof Error ? reason.message : t('home.loadError')))
       .finally(() => setLoading(false))

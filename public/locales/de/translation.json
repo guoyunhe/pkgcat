@@ -46,6 +46,7 @@
     "repositories": "Repositories",
     "apps": "Anwendungen",
     "packages": "Pakete",
+    "users": "Benutzer",
     "pkgNames": "Paketnamen",
     "appstreamId": "AppStream-ID",
     "appstreamIdAliases": "AppStream-ID-Aliase",

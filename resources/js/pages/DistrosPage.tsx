@@ -45,6 +45,7 @@ export default function DistrosPage() {
     apps: t('common.apps'),
     name: t('common.name'),
     packages: t('common.packages'),
+    users: t('common.users'),
   }
 
   return (
