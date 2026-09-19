@@ -192,6 +192,12 @@ export default function DistroDetailPage() {
           </Text>
           <Text>{formatCount(distro.appCount, i18n.language)}</Text>
         </div>
+        <div>
+          <Text size='sm' c='dimmed'>
+            {t('common.users')}
+          </Text>
+          <Text>{formatCount(distro.userCount ?? 0, i18n.language)}</Text>
+        </div>
       </section>
 
       <Tabs
