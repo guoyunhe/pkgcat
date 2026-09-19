@@ -1,4 +1,4 @@
-import { Alert, Button, Group, Loader, Tabs, Text, Title } from '@mantine/core'
+import { Alert, Button, Container, Group, Loader, Tabs, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -63,9 +63,9 @@ export default function DistroDetailPage() {
 
   if (error) {
     return (
-      <main className={styles.page}>
+      <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
         <Alert color='red'>{error}</Alert>
-      </main>
+      </Container>
     )
   }
   if (!distro || !ready) {
@@ -93,7 +93,7 @@ export default function DistroDetailPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
       <header className={styles.header}>
         <Button
           component={Link}
@@ -233,6 +233,6 @@ export default function DistroDetailPage() {
           />
         </Tabs.Panel>
       </Tabs>
-    </main>
+    </Container>
   )
 }

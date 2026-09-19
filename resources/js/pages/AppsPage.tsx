@@ -1,4 +1,4 @@
-import { Button, Text, Title } from '@mantine/core'
+import { Button, Container, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback } from 'react'
@@ -27,7 +27,7 @@ export default function AppsPage() {
   )
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='lg'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
@@ -51,6 +51,6 @@ export default function AppsPage() {
         load={readApps}
         renderActions={(app) => <FavoriteButton appId={app.id} favorite={app.isFavorite} />}
       />
-    </main>
+    </Container>
   )
 }

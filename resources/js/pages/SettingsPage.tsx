@@ -1,4 +1,15 @@
-import { Alert, Button, Card, Group, Loader, Stack, Text, TextInput, Title } from '@mantine/core'
+import {
+  Alert,
+  Button,
+  Card,
+  Container,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { FloppyDiskIcon } from '@phosphor-icons/react/FloppyDisk'
 import { useEffect, useState } from 'react'
@@ -110,7 +121,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='sm'>
       <header className={styles.header}>
         <Text className={styles.eyebrow}>{t('common.account')}</Text>
         <Title order={1}>{t('common.settings')}</Title>
@@ -222,6 +233,6 @@ export default function SettingsPage() {
           </Stack>
         </Card>
       </Stack>
-    </main>
+    </Container>
   )
 }

@@ -1,4 +1,4 @@
-import { Button, Select, Text, Title } from '@mantine/core'
+import { Button, Container, Select, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { parseAsInteger, parseAsStringLiteral, useQueryStates } from 'nuqs'
 import { useCallback } from 'react'
@@ -49,7 +49,7 @@ export default function DistrosPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='lg'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.administration')}</Text>
@@ -84,6 +84,6 @@ export default function DistrosPage() {
         load={loadDistros}
         onRowClick={(distro) => navigate(`/distros/${distro.id}`)}
       />
-    </main>
+    </Container>
   )
 }

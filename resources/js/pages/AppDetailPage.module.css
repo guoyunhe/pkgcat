@@ -1,9 +1,3 @@
-.page {
-  margin: 0 auto;
-  max-width: 900px;
-  padding: 56px 24px 72px;
-}
-
 .header {
   display: flex;
   justify-content: space-between;
@@ -113,10 +107,6 @@
 }
 
 @media (max-width: 600px) {
-  .page {
-    padding: 32px 18px 48px;
-  }
-
   .intro {
     align-items: start;
     grid-template-columns: 72px minmax(0, 1fr);

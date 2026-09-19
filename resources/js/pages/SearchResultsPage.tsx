@@ -1,4 +1,4 @@
-import { Tabs, Text, Title } from '@mantine/core'
+import { Container, Tabs, Text, Title } from '@mantine/core'
 import {
   parseAsInteger,
   parseAsString,
@@ -121,7 +121,7 @@ export default function SearchResultsPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='lg'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('search.eyebrow')}</Text>
@@ -204,6 +204,6 @@ export default function SearchResultsPage() {
           />
         </Tabs.Panel>
       </Tabs>
-    </main>
+    </Container>
   )
 }

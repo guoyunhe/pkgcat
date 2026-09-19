@@ -2,6 +2,7 @@ import type { Data } from '@generated/data'
 import {
   Alert,
   Button,
+  Container,
   Group,
   Loader,
   MultiSelect,
@@ -147,7 +148,7 @@ export default function PkgFormPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='sm'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.packages')}</Text>
@@ -227,6 +228,6 @@ export default function PkgFormPage() {
           </Group>
         </Stack>
       </form>
-    </main>
+    </Container>
   )
 }

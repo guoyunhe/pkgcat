@@ -2,6 +2,7 @@ import {
   Alert,
   Autocomplete,
   Button,
+  Container,
   Group,
   Loader,
   Select,
@@ -125,7 +126,7 @@ export default function DistroFormPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='sm'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.distribution')}</Text>
@@ -209,6 +210,6 @@ export default function DistroFormPage() {
           </Group>
         </Stack>
       </form>
-    </main>
+    </Container>
   )
 }

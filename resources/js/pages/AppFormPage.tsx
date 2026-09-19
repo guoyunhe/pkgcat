@@ -2,6 +2,7 @@ import type { Data } from '@generated/data'
 import {
   Alert,
   Button,
+  Container,
   Group,
   Input,
   Loader,
@@ -214,7 +215,7 @@ export default function AppFormPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='sm'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.apps')}</Text>
@@ -411,6 +412,6 @@ export default function AppFormPage() {
           </Button>
         </Group>
       </Stack>
-    </main>
+    </Container>
   )
 }

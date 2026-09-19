@@ -1,5 +1,16 @@
 import type { Data } from '@generated/data'
-import { Alert, Anchor, Button, Group, Loader, Stack, Tabs, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Anchor,
+  Button,
+  Container,
+  Group,
+  Loader,
+  Stack,
+  Tabs,
+  Text,
+  Title,
+} from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -53,9 +64,9 @@ export default function RepoDetailPage() {
 
   if (error) {
     return (
-      <main className={styles.page}>
+      <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
         <Alert color='red'>{error}</Alert>
-      </main>
+      </Container>
     )
   }
   if (!repo || !ready) {
@@ -91,7 +102,7 @@ export default function RepoDetailPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
       <header className={styles.header}>
         <Button
           component={Link}
@@ -255,6 +266,6 @@ export default function RepoDetailPage() {
           )}
         </Tabs.Panel>
       </Tabs>
-    </main>
+    </Container>
   )
 }

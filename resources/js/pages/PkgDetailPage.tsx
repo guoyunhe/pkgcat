@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Anchor, Badge, Button, Group, Loader, Text, Title } from '@mantine/core'
+import { Alert, Anchor, Badge, Button, Container, Group, Loader, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { DownloadSimpleIcon } from '@phosphor-icons/react/DownloadSimple'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -48,9 +48,9 @@ export default function PkgDetailPage() {
 
   if (error) {
     return (
-      <main className={styles.page}>
+      <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
         <Alert color='red'>{error}</Alert>
-      </main>
+      </Container>
     )
   }
   if (!pkg || !ready) {
@@ -78,7 +78,7 @@ export default function PkgDetailPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
       <header className={styles.header}>
         <Button
           component={Link}
@@ -252,6 +252,6 @@ export default function PkgDetailPage() {
           </Group>
         )}
       </section>
-    </main>
+    </Container>
   )
 }

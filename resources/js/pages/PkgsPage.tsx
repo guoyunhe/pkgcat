@@ -1,4 +1,4 @@
-import { Button, Text, Title } from '@mantine/core'
+import { Button, Container, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -21,7 +21,7 @@ export default function PkgsPage() {
   )
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='lg'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
@@ -40,6 +40,6 @@ export default function PkgsPage() {
       </header>
 
       <PkgList emptyMessage={t('common.packagesNotFound')} load={readPkgs} rememberFilters />
-    </main>
+    </Container>
   )
 }

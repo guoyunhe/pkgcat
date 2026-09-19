@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Select, Text, Title } from '@mantine/core'
+import { Alert, Button, Container, Select, Text, Title } from '@mantine/core'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -64,7 +64,7 @@ export default function ReposPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 44, xs: 72 }} size='lg'>
       <header className={styles.header}>
         <div>
           <Text className={styles.eyebrow}>{t('common.administration')}</Text>
@@ -129,6 +129,6 @@ export default function ReposPage() {
             : undefined
         }
       />
-    </main>
+    </Container>
   )
 }

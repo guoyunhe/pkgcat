@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Pagination, Text, Title } from '@mantine/core'
+import { Alert, Button, Container, Group, Loader, Pagination, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -86,9 +86,9 @@ export default function AppDetailPage() {
 
   if (error) {
     return (
-      <main className={styles.page}>
+      <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
         <Alert color='red'>{error}</Alert>
-      </main>
+      </Container>
     )
   }
   if (!app || !ready) {
@@ -138,7 +138,7 @@ export default function AppDetailPage() {
   }
 
   return (
-    <main className={styles.page}>
+    <Container component='main' py={{ base: 32, xs: 56 }} size='md'>
       <header className={styles.header}>
         <Button
           component={Link}
@@ -347,6 +347,6 @@ export default function AppDetailPage() {
           />
         ) : null}
       </section>
-    </main>
+    </Container>
   )
 }
