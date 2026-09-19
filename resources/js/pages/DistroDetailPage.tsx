@@ -1,4 +1,3 @@
-import type { Data } from '@generated/data'
 import { Alert, Button, Group, Loader, Tabs, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -35,8 +34,6 @@ export default function DistroDetailPage() {
   const distroId = params?.id ? Number(params.id) : undefined
   const [distro, setDistro] = useState<Distro | null>(null)
   const [activeTab, setActiveTab] = useState<DistroTab>('packages')
-  // What the two listings hold, which they say themselves and the tabs show
-  const [repoCount, setRepoCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   // A route without a release reads nothing; the page shows the invalid id instead of the listings.
   // The release the table lists is fixed by the page, so the table holds no filters of its own
@@ -211,14 +208,7 @@ export default function DistroDetailPage() {
           >
             {t('common.packages')}
           </Tabs.Tab>
-          <Tabs.Tab
-            rightSection={
-              <CountBadge count={repoCount ?? undefined} loading={repoCount === null} />
-            }
-            value='repositories'
-          >
-            {t('common.repositories')}
-          </Tabs.Tab>
+          <Tabs.Tab value='repositories'>{t('common.repositories')}</Tabs.Tab>
         </Tabs.List>
 
         {/* Both listings are read on their own, and the count of each of them is what the tabs show */}
@@ -237,7 +227,6 @@ export default function DistroDetailPage() {
           <RepoTable
             emptyMessage={t('distros.detail.noRepos')}
             load={loadRepos}
-            onCountChange={setRepoCount}
             onRowClick={(repo) => navigate(`/repos/${repo.id}`)}
             paramPrefix='repos'
             showDistros={false}

@@ -42,8 +42,6 @@ type RepoTableProps = {
   errorMessage?: string
   /** Controls the page keeps next to the table, such as the order it keeps in its URL. */
   extraFilters?: ReactNode
-  /** Number of repositories the table lists, told whenever a page of it is read. */
-  onCountChange?: (count: number) => void
   /** Bumped by the page when something outside the table changed it, such as a deleted repository. */
   refreshKey?: number
   /**
@@ -75,7 +73,6 @@ export default function RepoTable({
   emptyMessage,
   errorMessage,
   extraFilters,
-  onCountChange,
   refreshKey,
   showDistros = true,
   hideFilters = false,
@@ -103,10 +100,7 @@ export default function RepoTable({
   const [search, setSearch] = useState(q ?? '')
   // The hook answers with the value, the way to drop a pending change and the handlers around it
   const [debouncedSearch] = useDebouncedValue(search, 300)
-  // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
-  // passes an inline arrow would otherwise read another page on every one of its renders
-  const reportCount = useRef(onCountChange)
-  reportCount.current = onCountChange
+
   // What the page is read with, held as one value so that it is read again for a change of what
   // narrows it, and for nothing else
   const filters = useMemo<RepoFilters>(
@@ -145,7 +139,6 @@ export default function RepoTable({
       .then((repoPage) => {
         if (!active) return
         setResult(repoPage)
-        reportCount.current?.(repoPage?.meta.total ?? 0)
       })
       .catch((reason) => {
         if (active) {
