@@ -2,7 +2,7 @@ import { Card, Text } from '@mantine/core'
 
 import type { Distro } from '../services/distros'
 
-import styles from './HomeCards.module.css'
+import styles from './HomeDistroCard.module.css'
 
 type HomeDistroCardProps = {
   distro: Distro

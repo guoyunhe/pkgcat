@@ -37,7 +37,11 @@
   margin: 6px 0 0;
 }
 
-.appGrid,
+/* The applications are the rows the listings show them as, which carry the line between them */
+.appList {
+  border-top: 1px solid var(--ph-border);
+}
+
 .distroGrid {
   display: grid;
   gap: 18px;
@@ -55,7 +59,6 @@
     padding: 44px 18px 56px;
   }
 
-  .appGrid,
   .distroGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -68,7 +71,6 @@
     gap: 12px;
   }
 
-  .appGrid,
   .distroGrid {
     grid-template-columns: 1fr;
   }

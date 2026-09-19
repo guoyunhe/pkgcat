@@ -229,8 +229,11 @@ export const mergeAppValidator = vine.create({
   sourceId: vine.number().exists({ table: 'apps', column: 'id' }),
 })
 
-/** Sort orders the application listing accepts; `newest` is the default. */
-export const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
+/**
+ * Sort orders the application listing accepts; `newest` is the default. `random` is the order the
+ * home page reads its handful of applications in, rather than one a reader picks from a listing.
+ */
+export const appSorts = ['newest', 'name', 'favorites', 'rating', 'random'] as const
 
 /**
  * Category codes of a listing filter; the query string may repeat them or separate them with
@@ -257,6 +260,15 @@ export const appListValidator = vine.create({
   sort: vine.enum(appSorts).parse(knownValue(appSorts, 'newest')),
   /** Component type the listing is narrowed to; an unknown type does not narrow it at all. */
   type: vine.enum(appTypes).parse(knownValue(appTypes)).optional(),
+  /**
+   * Whether the listing holds the applications that carry an icon alone, which the home page reads:
+   * it shows each application next to its icon, and fills its list with another application instead
+   * of with an empty frame. A value that is not `true` narrows nothing.
+   */
+  withIcon: vine
+    .boolean()
+    .parse((value) => value === true || value === 'true')
+    .optional(),
   category: vine.array(vine.string()).parse(categoryCodes),
   q: vine.string().trim().toLowerCase().optional(),
   locale: localeField(),

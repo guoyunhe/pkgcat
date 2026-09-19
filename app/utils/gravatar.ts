@@ -9,5 +9,5 @@ const gravatarSize = 256
  */
 export function gravatarUrl(email: string, size = gravatarSize) {
   const hash = createHash('md5').update(email.trim().toLowerCase()).digest('hex')
-  return `https://www.gravatar.com/avatar/${hash}?s=${size}&d=mp`
+  return `https://seccdn.libravatar.org/gravatarproxy/avatar/${hash}?s=${size}&d=mp`
 }

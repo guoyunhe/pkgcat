@@ -5,12 +5,15 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
-import HomeAppCard from '../components/HomeAppCard'
+import AppListItem from '../components/AppListItem'
 import HomeDistroCard from '../components/HomeDistroCard'
 import { getApps } from '../services/apps'
 import { getDistroCatalog, type Distro } from '../services/distros'
 
 import styles from './HomePage.module.css'
+
+/** Number of applications the home page shows, each with the icon the listing shows it with. */
+const appCount = 6
 
 export default function HomePage() {
   const { t, i18n } = useTranslation()
@@ -20,9 +23,14 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([getApps('', 1, 12, null, null, 'newest', i18n.language), getDistroCatalog()])
+    // The applications are read in a random order and only those that carry an icon, so that a visit
+    // shows other applications than the one before it, all of them with an icon to show
+    Promise.all([
+      getApps('', 1, appCount, null, null, 'random', i18n.language, true),
+      getDistroCatalog(),
+    ])
       .then(([appPage, distroList]) => {
-        setApps(appPage.data.slice(0, 6))
+        setApps(appPage.data)
         setDistros(distroList)
       })
       .catch((reason) => setError(reason instanceof Error ? reason.message : t('home.loadError')))
@@ -52,9 +60,9 @@ export default function HomePage() {
                 {t('home.viewAll')} <ArrowRightIcon size={16} />
               </Anchor>
             </div>
-            <div className={styles.appGrid}>
+            <div className={styles.appList}>
               {apps.map((app) => (
-                <HomeAppCard app={app} key={app.id} />
+                <AppListItem app={app} key={app.id} />
               ))}
             </div>
           </section>

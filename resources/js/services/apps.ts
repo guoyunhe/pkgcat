@@ -48,6 +48,12 @@ export const appSorts = ['newest', 'name', 'favorites', 'rating'] as const
 
 export type AppSort = (typeof appSorts)[number]
 
+/**
+ * Order a listing reads its page in: the ones it offers a reader, and the random one the home page
+ * reads its handful of applications in, which no listing offers as a choice of its own.
+ */
+export type AppSortQuery = AppSort | 'random'
+
 /** Sort order named by a listing query, falling back to the newest applications. */
 export function appSort(value: string | null | undefined): AppSort {
   return appSorts.find((sort) => sort === value) ?? 'newest'
@@ -60,9 +66,11 @@ export async function getApps(
   category: string | null = null,
   /** AppStream component type the listing is narrowed to, or `null` for every type. */
   type: string | null = null,
-  sort: AppSort = 'newest',
+  sort: AppSortQuery = 'newest',
   /** Locale the names and summaries are read in; omitted returns every translation. */
   locale?: string,
+  /** Whether only the applications that carry an icon are listed, which the home page reads. */
+  withIcon = false,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.App>>('/apps', {
     params: {
@@ -73,6 +81,7 @@ export async function getApps(
       type: type || undefined,
       sort,
       locale,
+      withIcon: withIcon || undefined,
     },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.App>
@@ -95,7 +104,7 @@ export async function getApp(id: number, locale?: string) {
 export async function getAppPackages(
   id: number,
   page = 1,
-  filters: PkgFilters = { distroId: null, type: null, arch: null },
+  filters: PkgFilters = { distroId: null, type: null },
   locale?: string,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>(`/apps/${id}/pkgs`, {

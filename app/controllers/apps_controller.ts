@@ -34,6 +34,7 @@ export default class AppsController {
       perPage,
       sort,
       type,
+      withIcon,
       category,
       q: query,
       locale,
@@ -67,6 +68,13 @@ export default class AppsController {
       case 'rating':
         appsQuery.orderBy('avgRating', 'desc').orderBy('id', 'desc')
         break
+      case 'random':
+        // Read by the home page, which shows a different handful of applications on every visit.
+        // The order is asked of the database, which reads the applications it sorts from the index
+        // of the icon where the listing holds the ones that carry an icon: a handful is taken out of
+        // those rather than out of the catalog, so the table is not ordered for every visit.
+        appsQuery.orderByRaw('RAND()')
+        break
       default:
         appsQuery.orderBy('id', 'desc')
     }
@@ -88,6 +96,7 @@ export default class AppsController {
     }
 
     if (type) appsQuery.where('apps.type', type)
+    if (withIcon) appsQuery.whereNotNull('apps.icon_id')
 
     const paginator = await appsQuery.paginate(page, perPage)
     await attachTranslations(paginator.all(), locale)
