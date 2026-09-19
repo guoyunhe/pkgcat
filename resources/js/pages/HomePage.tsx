@@ -1,12 +1,11 @@
 import type { Data } from '@generated/data'
-import { Alert, Anchor, Loader, Text, Title } from '@mantine/core'
-import { ArrowRightIcon } from '@phosphor-icons/react/ArrowRight'
+import { Alert, Container, Loader } from '@mantine/core'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'wouter'
 
 import AppListItem from '../components/AppListItem'
 import HomeDistroCard from '../components/HomeDistroCard'
+import HomeSection from '../components/HomeSection'
 import { getApps } from '../services/apps'
 import { getDistros, type Distro } from '../services/distros'
 
@@ -45,7 +44,7 @@ export default function HomePage() {
   }, [i18n.language])
 
   return (
-    <main className={styles.page}>
+    <Container component='main' size='md'>
       {error && (
         <Alert color='red' mb='lg'>
           {error}
@@ -57,38 +56,27 @@ export default function HomePage() {
         </div>
       ) : (
         <>
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <Text className={styles.eyebrow}>{t('common.linuxCatalog')}</Text>
-                <Title order={1}>{t('common.apps')}</Title>
-              </div>
-              <Anchor component={Link} href='/apps'>
-                {t('home.viewAll')} <ArrowRightIcon size={16} />
-              </Anchor>
-            </div>
+          <HomeSection eyebrow={t('common.linuxCatalog')} href='/apps' title={t('common.apps')}>
             <div className={styles.appList}>
               {apps.map((app) => (
                 <AppListItem app={app} key={app.id} />
               ))}
             </div>
-          </section>
+          </HomeSection>
 
-          <section className={styles.section}>
-            <div className={styles.sectionHeader}>
-              <div>
-                <Text className={styles.eyebrow}>{t('home.operatingSystems')}</Text>
-                <Title order={2}>{t('common.distributions')}</Title>
-              </div>
-            </div>
+          <HomeSection
+            eyebrow={t('home.operatingSystems')}
+            href='/distros'
+            title={t('common.distributions')}
+          >
             <div className={styles.distroGrid}>
               {distros.map((distro) => (
                 <HomeDistroCard distro={distro} key={distro.id} />
               ))}
             </div>
-          </section>
+          </HomeSection>
         </>
       )}
-    </main>
+    </Container>
   )
 }

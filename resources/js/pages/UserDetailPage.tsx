@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Group, Loader, Pagination, Text, Title } from '@mantine/core'
+import { Alert, Button, Container, Group, Loader, Pagination, Text, Title } from '@mantine/core'
 import { ArrowRightIcon } from '@phosphor-icons/react/ArrowRight'
 import { SquaresFourIcon } from '@phosphor-icons/react/SquaresFour'
 import { useEffect, useState } from 'react'
@@ -138,7 +138,7 @@ export default function UserDetailPage() {
     : null
 
   return (
-    <main className={styles.page}>
+    <Container component='main' size='md' py='xl'>
       <header className={styles.profileHeader}>
         <UserAvatar size={88} user={profile} />
         <div>
@@ -252,6 +252,6 @@ export default function UserDetailPage() {
           />
         ) : null}
       </section>
-    </main>
+    </Container>
   )
 }

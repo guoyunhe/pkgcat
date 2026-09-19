@@ -1,42 +1,3 @@
-.page {
-  margin: 0 auto;
-  padding: 64px 24px 80px;
-  width: 100%;
-}
-
-.section {
-  border-top: 1px solid var(--ph-border);
-  padding: 28px 0 44px;
-}
-
-.section + .section {
-  margin-top: 20px;
-}
-
-.sectionHeader {
-  align-items: end;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.sectionHeader a {
-  align-items: center;
-  display: inline-flex;
-  gap: 5px;
-}
-
-.eyebrow {
-  color: var(--ph-primary);
-  font-weight: 700;
-  letter-spacing: 0;
-}
-
-.section h1,
-.section h2 {
-  margin: 6px 0 0;
-}
-
 /* The applications are the rows the listings show them as, which carry the line between them */
 .appList {
   border-top: 1px solid var(--ph-border);
@@ -65,12 +26,6 @@
 }
 
 @media (max-width: 520px) {
-  .sectionHeader {
-    align-items: start;
-    flex-direction: column;
-    gap: 12px;
-  }
-
   .distroGrid {
     grid-template-columns: 1fr;
   }

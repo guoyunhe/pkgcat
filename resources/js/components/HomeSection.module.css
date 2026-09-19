@@ -1,0 +1,38 @@
+.section {
+  padding: 28px 0 44px;
+}
+
+.section + .section {
+  margin-top: 20px;
+}
+
+.header {
+  align-items: end;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.header a {
+  align-items: center;
+  display: inline-flex;
+  gap: 5px;
+}
+
+.eyebrow {
+  color: var(--ph-primary);
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.header h2 {
+  margin: 6px 0 0;
+}
+
+@media (max-width: 520px) {
+  .header {
+    align-items: start;
+    flex-direction: column;
+    gap: 12px;
+  }
+}
