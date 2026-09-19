@@ -18,8 +18,11 @@ export default class DistrosController {
     // `Distro.appCount`, written by the synchronization that changes the packages), so the entries a
     // page holds and the counts they show are read together, and the order by a count is the order
     // of a column. The users of a release are counted by the database with the entries it counts
-    // them for instead, which orders them the same way out of the one query (`Distro.users`)
-    const query = Distro.query().preload('compatibleDistro')
+    // them for instead (`Distro.users`), which every listing asks for — a card of the home page
+    // shows the count of a release, and the sorting reads the same number
+    const query = Distro.query()
+      .preload('compatibleDistro')
+      .withAggregate('users', (subQuery) => subQuery.count('*').as('userCount'))
     // The releases of one distribution stay together under its name, and follow each other from the
     // newest to the oldest one, which their versions cannot express: as text, "10" comes before "8".
     // A rolling release keeps no date, so it comes first within its name. The remaining keys only
@@ -27,9 +30,6 @@ export default class DistrosController {
     // entry — and, read after a count, they are the order the entries that share it follow each
     // other in, so a page of such a listing holds the same entries every time it is read
     const countColumns = { packages: 'pkgCount', apps: 'appCount', users: 'userCount' } as const
-    if (sort === 'users') {
-      query.withAggregate('users', (subQuery) => subQuery.count('*').as('userCount'))
-    }
     if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
     query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
     if (q) query.apply((scopes) => scopes.search(q))
@@ -50,6 +50,7 @@ export default class DistrosController {
     const distro = await Distro.query()
       .where('id', params.id)
       .preload('compatibleDistro')
+      .withAggregate('users', (subQuery) => subQuery.count('*').as('userCount'))
       .firstOrFail()
     return serialize(DistroTransformer.transform(distro))
   }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import AppListItem from '../components/AppListItem'
-import HomeDistroCard from '../components/HomeDistroCard'
+import DistroCard from '../components/DistroCard'
 import HomeSection from '../components/HomeSection'
 import { getApps } from '../services/apps'
 import { getDistros, type Distro } from '../services/distros'
@@ -71,7 +71,7 @@ export default function HomePage() {
           >
             <div className={styles.distroGrid}>
               {distros.map((distro) => (
-                <HomeDistroCard distro={distro} key={distro.id} />
+                <DistroCard distro={distro} key={distro.id} />
               ))}
             </div>
           </HomeSection>

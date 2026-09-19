@@ -1,0 +1,41 @@
+/* The card is the link to the release it shows, so the whole box is the target */
+.card {
+  align-items: center;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.card:hover {
+  border-color: var(--ph-primary);
+  transform: translateY(-2px);
+}
+
+.icon {
+  height: 64px;
+  object-fit: contain;
+  width: 64px;
+}
+
+/* Name, version and architecture are one line, so they are one run of text of one size */
+.name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.counts {
+  color: var(--ph-muted);
+}
+
+.count {
+  align-items: center;
+  display: inline-flex;
+  font-size: 0.875rem;
+  gap: 6px;
+}
