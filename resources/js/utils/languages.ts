@@ -81,16 +81,19 @@ export function languageOptions(
   }))
 }
 
-/** Picks the language a form starts with: the data's own language, else the interface language. */
-export function defaultLanguage(
-  used: string[],
-  uiLanguage?: string,
-  locales: string[] = supportedLocales(),
-) {
-  const pool = dedupe([...used, ...locales])
-  const wanted = uiLanguage?.toLowerCase()
-  const exact = wanted ? pool.find((tag) => tag.toLowerCase() === wanted) : undefined
-  const base = wanted?.split('-')[0]
-  const interfaceLanguage = base ? pool.find((tag) => tag.toLowerCase() === base) : undefined
-  return used[0] ?? exact ?? interfaceLanguage ?? locales[0] ?? uiLanguage ?? ''
+/**
+ * Language a form starts editing in, which is the language the catalog falls back to rather than
+ * the language the interface is read in. Metadata is written in English unless it is translated —
+ * English is the language AppStream keys untranslated values under — so most entries of the catalog
+ * carry no text in the language an editor reads the site in, and a form opening on the interface
+ * language would open on empty fields. A language the catalog does not list as its fallback still
+ * has to be a language of a select, which is what the second half guards against.
+ */
+export function defaultLanguage(locales: string[] = supportedLocales()) {
+  const fallback = fallbackLanguage()
+  return (
+    locales.find((locale) => locale.toLowerCase() === fallback.toLowerCase()) ??
+    locales[0] ??
+    fallback
+  )
 }

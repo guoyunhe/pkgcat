@@ -78,12 +78,12 @@ function formFromApp(app: Data.App): AppPayload {
 }
 
 export default function AppFormPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const { ready, user } = useAuth()
   const [, navigate] = useLocation()
   const [, params] = useRoute('/apps/:id/edit')
   const appId = params?.id ? Number(params.id) : undefined
-  const [form, setForm] = useState<AppPayload>(() => emptyForm(defaultLanguage([], i18n.language)))
+  const [form, setForm] = useState<AppPayload>(() => emptyForm(defaultLanguage()))
   const [iconUrl, setIconUrl] = useState<string | null>(null)
   const [loading, setLoading] = useState(Boolean(appId))
   const [saving, setSaving] = useState(false)
@@ -95,8 +95,9 @@ export default function AppFormPage() {
   const [filling, setFilling] = useState(false)
   const [appstreamError, setAppstreamError] = useState<string | null>(null)
   const appstreamFile = useRef<HTMLInputElement>(null)
-  // Localized text is edited one language at a time. The form owns its language selector, so the
-  // interface language only decides which language the form starts with.
+  // Localized text is edited one language at a time. The form owns its language selector and opens
+  // on the language the catalog falls back to, which is the one metadata is written in; the editor
+  // switches to another language of its own.
   const [chosenLanguage, setChosenLanguage] = useState<string | null>(null)
   const usedLanguages = useMemo(
     () => [...new Set([...Object.keys(form.name), ...Object.keys(form.summary)])],
@@ -106,7 +107,7 @@ export default function AppFormPage() {
   const editingLanguage =
     chosenLanguage && languages.some((option) => option.value === chosenLanguage)
       ? chosenLanguage
-      : defaultLanguage(usedLanguages, i18n.language)
+      : defaultLanguage()
   const nameMissing = !Object.values(form.name).some((value) => value?.trim())
   const summaryMissing = !Object.values(form.summary).some((value) => value?.trim())
 
