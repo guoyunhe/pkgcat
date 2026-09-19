@@ -1,5 +1,15 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Container, Group, Loader, Pagination, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Button,
+  Container,
+  DataList,
+  Group,
+  Loader,
+  Pagination,
+  Text,
+  Title,
+} from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -190,56 +200,46 @@ export default function AppDetailPage() {
         </div>
       </section>
 
-      <section className={styles.metadata}>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.version')}
-          </Text>
-          <Text>{app.version ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.license')}
-          </Text>
-          <Text>{app.license ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.appstreamId')}
-          </Text>
-          <Text>{app.appstreamId ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.type')}
-          </Text>
-          <Text>{app.type}</Text>
-        </div>
+      <DataList className={styles.metadata} gap='md'>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.version')}</DataList.ItemLabel>
+          <DataList.ItemValue>{app.version ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.license')}</DataList.ItemLabel>
+          <DataList.ItemValue>{app.license ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.appstreamId')}</DataList.ItemLabel>
+          <DataList.ItemValue>{app.appstreamId ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.type')}</DataList.ItemLabel>
+          <DataList.ItemValue>{app.type}</DataList.ItemValue>
+        </DataList.Item>
         {app.appstreamIdAliases.length > 0 && (
-          <div>
-            <Text size='sm' c='dimmed'>
-              {t('common.appstreamIdAliases')}
-            </Text>
-            <Text>{app.appstreamIdAliases.join(', ')}</Text>
-          </div>
+          <DataList.Item>
+            <DataList.ItemLabel>{t('common.appstreamIdAliases')}</DataList.ItemLabel>
+            <DataList.ItemValue>{app.appstreamIdAliases.join(', ')}</DataList.ItemValue>
+          </DataList.Item>
         )}
         {app.pkgNames.length > 0 && (
-          <div>
-            <Text size='sm' c='dimmed'>
-              {t('common.pkgNames')}
-            </Text>
-            <Text>{app.pkgNames.map(formatPkgNameMapping).join(', ')}</Text>
-          </div>
+          <DataList.Item>
+            <DataList.ItemLabel>{t('common.pkgNames')}</DataList.ItemLabel>
+            <DataList.ItemValue>
+              {app.pkgNames.map(formatPkgNameMapping).join(', ')}
+            </DataList.ItemValue>
+          </DataList.Item>
         )}
         {app.categories.length > 0 && (
-          <div>
-            <Text size='sm' c='dimmed'>
-              {t('detail.categories')}
-            </Text>
-            <CategoryBadges categories={app.categories} />
-          </div>
+          <DataList.Item>
+            <DataList.ItemLabel>{t('detail.categories')}</DataList.ItemLabel>
+            <DataList.ItemValue>
+              <CategoryBadges categories={app.categories} />
+            </DataList.ItemValue>
+          </DataList.Item>
         )}
-      </section>
+      </DataList>
 
       {screenshots.length > 0 && (
         <section className={styles.screenshots}>

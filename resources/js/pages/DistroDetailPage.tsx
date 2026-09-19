@@ -1,4 +1,4 @@
-import { Alert, Button, Container, Group, Loader, Tabs, Text, Title } from '@mantine/core'
+import { Alert, Button, Container, DataList, Group, Loader, Tabs, Text, Title } from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -137,68 +137,58 @@ export default function DistroDetailPage() {
         </div>
       </section>
 
-      <section className={styles.metadata}>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.version')}
-          </Text>
-          <Text>{distro.version ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.packageFormat')}
-          </Text>
-          <Text className={styles.status}>{distro.pkgType ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.architecture')}
-          </Text>
-          <Text>{distro.arch}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('distros.columns.releaseDate')}
-          </Text>
-          <Text>{distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('distros.columns.eolDate')}
-          </Text>
-          <Text className={isExpired ? styles.expired : undefined}>
+      <DataList className={styles.metadata} gap='md'>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.version')}</DataList.ItemLabel>
+          <DataList.ItemValue>{distro.version ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.packageFormat')}</DataList.ItemLabel>
+          <DataList.ItemValue className={styles.status}>
+            {distro.pkgType ?? t('common.notSpecified')}
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.architecture')}</DataList.ItemLabel>
+          <DataList.ItemValue>{distro.arch}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('distros.columns.releaseDate')}</DataList.ItemLabel>
+          <DataList.ItemValue>
+            {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('distros.columns.eolDate')}</DataList.ItemLabel>
+          <DataList.ItemValue className={isExpired ? styles.expired : undefined}>
             {distro.eolDate ? formatDate(distro.eolDate, i18n.language) : '—'}
-          </Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('distros.columns.compatible')}
-          </Text>
-          {distro.compatibleDistro ? (
-            <DistroRelease arch={distro.arch} distro={distro.compatibleDistro} />
-          ) : (
-            <Text>—</Text>
-          )}
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.packages')}
-          </Text>
-          <Text>{formatCount(distro.pkgCount, i18n.language)}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.apps')}
-          </Text>
-          <Text>{formatCount(distro.appCount, i18n.language)}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.users')}
-          </Text>
-          <Text>{formatCount(distro.userCount ?? 0, i18n.language)}</Text>
-        </div>
-      </section>
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('distros.columns.compatible')}</DataList.ItemLabel>
+          <DataList.ItemValue>
+            {distro.compatibleDistro ? (
+              <DistroRelease arch={distro.arch} distro={distro.compatibleDistro} />
+            ) : (
+              '—'
+            )}
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.packages')}</DataList.ItemLabel>
+          <DataList.ItemValue>{formatCount(distro.pkgCount, i18n.language)}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.apps')}</DataList.ItemLabel>
+          <DataList.ItemValue>{formatCount(distro.appCount, i18n.language)}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.users')}</DataList.ItemLabel>
+          <DataList.ItemValue>
+            {formatCount(distro.userCount ?? 0, i18n.language)}
+          </DataList.ItemValue>
+        </DataList.Item>
+      </DataList>
 
       <Tabs
         className={styles.listings}

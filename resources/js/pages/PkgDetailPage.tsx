@@ -1,5 +1,16 @@
 import type { Data } from '@generated/data'
-import { Alert, Anchor, Badge, Button, Container, Group, Loader, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Anchor,
+  Badge,
+  Button,
+  Container,
+  DataList,
+  Group,
+  Loader,
+  Text,
+  Title,
+} from '@mantine/core'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { DownloadSimpleIcon } from '@phosphor-icons/react/DownloadSimple'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -138,58 +149,46 @@ export default function PkgDetailPage() {
         </div>
       </section>
 
-      <section className={styles.metadata}>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.packageFormat')}
-          </Text>
-          <Text className={styles.status}>{pkg.type}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.version')}
-          </Text>
-          <Text>{pkg.version ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('packages.fields.release')}
-          </Text>
-          <Text>{pkg.release ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.architecture')}
-          </Text>
-          <Text>{pkg.arch ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.license')}
-          </Text>
-          <Text>{pkg.license ?? t('common.notSpecified')}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('packages.detail.size')}
-          </Text>
-          <Text>
+      <DataList className={styles.metadata} gap='md'>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.packageFormat')}</DataList.ItemLabel>
+          <DataList.ItemValue className={styles.status}>{pkg.type}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.version')}</DataList.ItemLabel>
+          <DataList.ItemValue>{pkg.version ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('packages.fields.release')}</DataList.ItemLabel>
+          <DataList.ItemValue>{pkg.release ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.architecture')}</DataList.ItemLabel>
+          <DataList.ItemValue>{pkg.arch ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.license')}</DataList.ItemLabel>
+          <DataList.ItemValue>{pkg.license ?? t('common.notSpecified')}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('packages.detail.size')}</DataList.ItemLabel>
+          <DataList.ItemValue>
             {pkg.size === null ? t('common.notSpecified') : formatBytes(pkg.size, i18n.language)}
-          </Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.repository')}
-          </Text>
-          {pkg.repo ? (
-            <Anchor component={Link} href={`/repos/${pkg.repo.id}`} className={styles.namedLink}>
-              {pkg.repo.name}
-            </Anchor>
-          ) : (
-            <Text>—</Text>
-          )}
-        </div>
-      </section>
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.repository')}</DataList.ItemLabel>
+          <DataList.ItemValue>
+            {pkg.repo ? (
+              <Anchor component={Link} href={`/repos/${pkg.repo.id}`} className={styles.namedLink}>
+                {pkg.repo.name}
+              </Anchor>
+            ) : (
+              '—'
+            )}
+          </DataList.ItemValue>
+        </DataList.Item>
+      </DataList>
 
       {pkg.description && (
         <section className={styles.section}>

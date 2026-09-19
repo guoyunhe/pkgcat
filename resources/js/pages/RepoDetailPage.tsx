@@ -4,6 +4,7 @@ import {
   Anchor,
   Button,
   Container,
+  DataList,
   Group,
   Loader,
   Stack,
@@ -147,62 +148,50 @@ export default function RepoDetailPage() {
         </div>
       </section>
 
-      <section className={styles.metadata}>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.packageFormat')}
-          </Text>
-          <Text className={styles.status}>{repo.type}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.source')}
-          </Text>
+      <DataList className={styles.metadata} gap='md'>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.packageFormat')}</DataList.ItemLabel>
+          <DataList.ItemValue className={styles.status}>{repo.type}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.source')}</DataList.ItemLabel>
           {/* A source the interface does not know is still named by the value it was stored as */}
-          <Text>{t(`repos.sources.${repo.source}`, { defaultValue: repo.source })}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('repos.columns.syncInterval')}
-          </Text>
-          <Text>
+          <DataList.ItemValue>
+            {t(`repos.sources.${repo.source}`, { defaultValue: repo.source })}
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('repos.columns.syncInterval')}</DataList.ItemLabel>
+          <DataList.ItemValue>
             {repo.syncIntervalDays
               ? t('repos.everyDays', { count: repo.syncIntervalDays })
               : t('repos.manual')}
-          </Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('repos.columns.lastSynced')}
-          </Text>
-          <Text>
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('repos.columns.lastSynced')}</DataList.ItemLabel>
+          <DataList.ItemValue>
             {repo.lastSyncedAt
               ? new Intl.DateTimeFormat(i18n.language, {
                   dateStyle: 'medium',
                   timeStyle: 'short',
                 }).format(new Date(repo.lastSyncedAt))
               : t('repos.neverSynced')}
-          </Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.packages')}
-          </Text>
-          <Text>{formatCount(repo.pkgCount, i18n.language)}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.apps')}
-          </Text>
-          <Text>{formatCount(repo.appCount, i18n.language)}</Text>
-        </div>
-        <div>
-          <Text size='sm' c='dimmed'>
-            {t('common.distributions')}
-          </Text>
-          <Text>{formatCount(repo.distros.length, i18n.language)}</Text>
-        </div>
-      </section>
+          </DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.packages')}</DataList.ItemLabel>
+          <DataList.ItemValue>{formatCount(repo.pkgCount, i18n.language)}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.apps')}</DataList.ItemLabel>
+          <DataList.ItemValue>{formatCount(repo.appCount, i18n.language)}</DataList.ItemValue>
+        </DataList.Item>
+        <DataList.Item>
+          <DataList.ItemLabel>{t('common.distributions')}</DataList.ItemLabel>
+          <DataList.ItemValue>{formatCount(repo.distros.length, i18n.language)}</DataList.ItemValue>
+        </DataList.Item>
+      </DataList>
 
       {repo.configUrl && (
         <section className={styles.section}>

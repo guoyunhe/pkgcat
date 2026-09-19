@@ -36,16 +36,13 @@
 .metadata {
   border-bottom: 1px solid var(--ph-border);
   border-top: 1px solid var(--ph-border);
-  display: grid;
-  gap: 24px;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   margin: 44px 0;
   padding: 22px 0;
 }
 
 /* A field may hold a long value — a license expression, a set of checksums — which wraps inside
-   its cell instead of widening the page */
-.metadata div {
+   its row instead of widening the page */
+.metadata dd {
   min-width: 0;
   overflow-wrap: anywhere;
 }
@@ -107,9 +104,5 @@
   .icon {
     height: 72px;
     width: 72px;
-  }
-
-  .metadata {
-    grid-template-columns: 1fr;
   }
 }
