@@ -2,7 +2,7 @@ import type { Data } from '@generated/data'
 import { Alert, Loader, Pagination, Text } from '@mantine/core'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
@@ -33,8 +33,6 @@ type PkgListProps = {
    * leaves it out, and reads the query string alone.
    */
   rememberFilters?: boolean
-  /** Number of packages the listing holds, told whenever a page of it is read. */
-  onCountChange?: (count: number) => void
   /** Bumped by the page when something outside the listing changed it, such as a deleted package. */
   refreshKey?: number
   /** Message of the empty listing, which every page names after what it shows. */
@@ -59,7 +57,6 @@ export default function PkgList({
   load,
   showFilters = true,
   rememberFilters = false,
-  onCountChange,
   refreshKey,
   emptyMessage,
   filteredEmptyMessage,
@@ -91,10 +88,6 @@ export default function PkgList({
   const [result, setResult] = useState<Paginated<Data.Pkg> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The callback is held in a ref, so that reading a page depends on the loader alone: a page that
-  // passes an inline arrow would otherwise read another page on every one of its renders
-  const reportCount = useRef(onCountChange)
-  reportCount.current = onCountChange
 
   useEffect(() => {
     let active = true
@@ -105,7 +98,6 @@ export default function PkgList({
       .then((pkgPage) => {
         if (!active) return
         setResult(pkgPage)
-        reportCount.current?.(pkgPage?.meta.total ?? 0)
       })
       .catch((reason) => {
         if (active) {

@@ -36,7 +36,6 @@ export default function DistroDetailPage() {
   const [distro, setDistro] = useState<Distro | null>(null)
   const [activeTab, setActiveTab] = useState<DistroTab>('packages')
   // What the two listings hold, which they say themselves and the tabs show
-  const [pkgCount, setPkgCount] = useState<number | null>(null)
   const [repoCount, setRepoCount] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   // A route without a release reads nothing; the page shows the invalid id instead of the listings.
@@ -207,7 +206,7 @@ export default function DistroDetailPage() {
       >
         <Tabs.List>
           <Tabs.Tab
-            rightSection={<CountBadge count={pkgCount ?? undefined} loading={pkgCount === null} />}
+            rightSection={<CountBadge count={distro.pkgCount} loading={false} />}
             value='packages'
           >
             {t('common.packages')}
@@ -227,7 +226,6 @@ export default function DistroDetailPage() {
           <PkgList
             emptyMessage={t('distros.detail.noPackages')}
             load={readPkgs}
-            onCountChange={setPkgCount}
             showDetails
             showFilters={false}
           />
