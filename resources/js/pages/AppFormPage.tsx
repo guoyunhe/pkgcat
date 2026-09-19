@@ -3,6 +3,7 @@ import {
   Alert,
   Button,
   Group,
+  Input,
   Loader,
   Select,
   Stack,
@@ -12,16 +13,27 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+import { ArrowsClockwiseIcon } from '@phosphor-icons/react/ArrowsClockwise'
+import { FileArrowUpIcon } from '@phosphor-icons/react/FileArrowUp'
 import { FloppyDiskIcon } from '@phosphor-icons/react/FloppyDisk'
+import { MagicWandIcon } from '@phosphor-icons/react/MagicWand'
 import { XIcon } from '@phosphor-icons/react/X'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useRoute } from 'wouter'
 
 import { useAuth } from '../auth'
 import AppTypeSelect from '../components/AppTypeSelect'
 import ImageUpload from '../components/ImageUpload'
-import { createApp, getApp, updateApp, type AppPayload } from '../services/apps'
+import {
+  createApp,
+  fetchAppStreamContent,
+  getApp,
+  getAppStreamFields,
+  updateApp,
+  type AppPayload,
+} from '../services/apps'
+import { getErrorMessage } from '../services/errors'
 import { defaultLanguage, languageOptions } from '../utils/languages'
 import { formatPkgNameMapping, parsePkgNameMapping } from '../utils/pkgNames'
 
@@ -76,6 +88,13 @@ export default function AppFormPage() {
   const [loading, setLoading] = useState(Boolean(appId))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // The AppStream URL is read, a metadata file is imported, and the metadata is filled into the
+  // form: each of the three runs on its own, so that one failing does not block the others
+  const [syncing, setSyncing] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [filling, setFilling] = useState(false)
+  const [appstreamError, setAppstreamError] = useState<string | null>(null)
+  const appstreamFile = useRef<HTMLInputElement>(null)
   // Localized text is edited one language at a time. The form owns its language selector, so the
   // interface language only decides which language the form starts with.
   const [chosenLanguage, setChosenLanguage] = useState<string | null>(null)
@@ -132,6 +151,67 @@ export default function AppFormPage() {
     }
   }
 
+  /** Read the metadata the AppStream URL publishes, replacing the content the editor holds. */
+  async function syncAppStream() {
+    const url = form.appstreamUrl?.trim()
+    if (!url) return
+
+    try {
+      setSyncing(true)
+      setAppstreamError(null)
+      const content = await fetchAppStreamContent(url)
+      setForm((current) => ({ ...current, appstreamContent: content }))
+    } catch (reason) {
+      setAppstreamError(getErrorMessage(reason))
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  /** Read a metadata file of the editor's own machine, which it may have downloaded elsewhere. */
+  async function importAppStreamFile(file: File) {
+    try {
+      setImporting(true)
+      setAppstreamError(null)
+      const content = await file.text()
+      setForm((current) => ({ ...current, appstreamContent: content }))
+    } catch {
+      setAppstreamError(t('form.appstreamImportError'))
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  /**
+   * Fill the form with what the metadata declares. Only the fields the metadata speaks about are
+   * written, so an application that carries something the metadata does not mention keeps it, and
+   * the name and the summary arrive in every language the metadata translates them into.
+   */
+  async function fillFromAppStream() {
+    const content = form.appstreamContent?.trim()
+    if (!content) return
+
+    try {
+      setFilling(true)
+      setAppstreamError(null)
+      const fields = await getAppStreamFields(content)
+      setForm((current) => ({
+        ...current,
+        name: { ...current.name, ...fields.name },
+        summary: { ...current.summary, ...fields.summary },
+        type: fields.type,
+        version: fields.version ?? current.version,
+        license: fields.license ?? current.license,
+        homepage: fields.homepage ?? current.homepage,
+        appstreamId: fields.appstreamId ?? current.appstreamId,
+      }))
+    } catch (reason) {
+      setAppstreamError(getErrorMessage(reason))
+    } finally {
+      setFilling(false)
+    }
+  }
+
   return (
     <main className={styles.page}>
       <header className={styles.header}>
@@ -153,6 +233,78 @@ export default function AppFormPage() {
         </Alert>
       )}
       <Stack className={styles.form}>
+        {/* The AppStream metadata is where an application comes from, so the editor reads it
+            first and writes the rest of the form out of it */}
+        <Group align='flex-end' gap='sm' wrap='nowrap'>
+          <TextInput
+            className={styles.field}
+            label={t('form.appstreamUrl')}
+            onChange={(event) => setForm({ ...form, appstreamUrl: event.currentTarget.value })}
+            value={form.appstreamUrl ?? ''}
+          />
+          <Button
+            disabled={!form.appstreamUrl?.trim()}
+            leftSection={<ArrowsClockwiseIcon size={18} />}
+            loading={syncing}
+            onClick={() => void syncAppStream()}
+            variant='default'
+          >
+            {t('form.appstreamSync')}
+          </Button>
+        </Group>
+        <Input.Wrapper
+          description={t('form.appstreamContentHint')}
+          label={
+            <Group gap='xs' justify='space-between' wrap='nowrap'>
+              <Text fw={500} size='sm'>
+                {t('form.appstreamContent')}
+              </Text>
+              <Group gap='xs'>
+                <Button
+                  leftSection={<FileArrowUpIcon size={16} />}
+                  loading={importing}
+                  onClick={() => appstreamFile.current?.click()}
+                  size='compact-sm'
+                  variant='light'
+                >
+                  {t('form.appstreamImport')}
+                </Button>
+                <Button
+                  disabled={!form.appstreamContent?.trim()}
+                  leftSection={<MagicWandIcon size={16} />}
+                  loading={filling}
+                  onClick={() => void fillFromAppStream()}
+                  size='compact-sm'
+                  variant='light'
+                >
+                  {t('form.appstreamFill')}
+                </Button>
+              </Group>
+            </Group>
+          }
+          labelElement='div'
+        >
+          <Textarea
+            aria-label={t('form.appstreamContent')}
+            autosize
+            maxRows={12}
+            minRows={4}
+            onChange={(event) => setForm({ ...form, appstreamContent: event.currentTarget.value })}
+            value={form.appstreamContent ?? ''}
+          />
+        </Input.Wrapper>
+        <input
+          accept='.xml,.metainfo,.appdata,application/xml,text/xml'
+          hidden
+          onChange={(event) => {
+            const file = event.currentTarget.files?.[0]
+            event.currentTarget.value = ''
+            if (file) void importAppStreamFile(file)
+          }}
+          ref={appstreamFile}
+          type='file'
+        />
+        {appstreamError && <Alert color='red'>{appstreamError}</Alert>}
         <ImageUpload
           acceptLabel={t('form.iconAccept')}
           dropLabel={t('form.iconDrop')}
@@ -233,20 +385,6 @@ export default function AppFormPage() {
           label={t('common.pkgNames')}
           value={(form.pkgNames ?? []).map(formatPkgNameMapping)}
           onChange={(tags) => setForm({ ...form, pkgNames: tags.map(parsePkgNameMapping) })}
-        />
-        <TextInput
-          label={t('form.appstreamUrl')}
-          value={form.appstreamUrl ?? ''}
-          onChange={(event) => setForm({ ...form, appstreamUrl: event.currentTarget.value })}
-        />
-        <Textarea
-          autosize
-          description={t('form.appstreamContentHint')}
-          label={t('form.appstreamContent')}
-          maxRows={12}
-          minRows={4}
-          value={form.appstreamContent ?? ''}
-          onChange={(event) => setForm({ ...form, appstreamContent: event.currentTarget.value })}
         />
         <TextInput
           label={t('form.desktopUrl')}

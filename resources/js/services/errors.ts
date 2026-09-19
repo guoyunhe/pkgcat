@@ -12,9 +12,8 @@ type ErrorResponse = {
 export function getErrorMessage(error: unknown) {
   if (isXiorError<ErrorResponse>(error)) {
     const body = error.response?.data
-    if (body?.message ?? body?.errors?.[0]?.message) {
-      return body.message ?? body.errors?.[0]?.message
-    }
+    const reported = body?.message ?? body?.errors?.[0]?.message
+    if (reported) return reported
   }
   return error instanceof Error ? error.message : 'Request failed'
 }

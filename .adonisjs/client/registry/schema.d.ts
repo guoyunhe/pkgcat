@@ -199,6 +199,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['merge']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'apps.appstream': {
+    methods: ["POST"]
+    pattern: '/api/apps/appstream'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/app').appstreamUrlValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/app').appstreamUrlValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['appstream']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['appstream']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'apps.appstream_fields': {
+    methods: ["POST"]
+    pattern: '/api/apps/appstream/fields'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#validators/app').appstreamContentValidator)>>
+      paramsTuple: []
+      params: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/app').appstreamContentValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['appstreamFields']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['appstreamFields']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'favorites.store': {
     methods: ["POST"]
     pattern: '/api/apps/:id/favorite'

@@ -26,6 +26,11 @@
   padding-top: 24px;
 }
 
+/* A field that shares its row with the button acting on it takes the rest of the row */
+.field {
+  flex: 1;
+}
+
 .loading {
   display: flex;
   justify-content: center;

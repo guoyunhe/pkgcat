@@ -1,3 +1,4 @@
+import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
 
 import App from '#models/app'
@@ -8,12 +9,15 @@ import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { attachTranslations, replaceTranslations } from '#services/app_translations'
+import { appStreamFields, fetchAppStream } from '#services/appstream_import'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
 import {
   appListValidator,
   appLocaleValidator,
   appValidator,
+  appstreamContentValidator,
+  appstreamUrlValidator,
   mergeAppValidator,
 } from '#validators/app'
 
@@ -155,6 +159,34 @@ export default class AppsController {
     const app = await App.findOrFail(params.id)
     await app.delete()
     return response.noContent()
+  }
+
+  /**
+   * Read the AppStream metadata a URL publishes, which the editor imports into the form. The
+   * document is downloaded by the server because it lives on hosts that do not answer a request
+   * from a page.
+   */
+  async appstream({ request, serialize }: HttpContext) {
+    const { url } = await request.validateUsing(appstreamUrlValidator)
+    const content = await fetchAppStream(url)
+
+    return serialize({ content })
+  }
+
+  /**
+   * Fields an AppStream document declares, which the editor fills the form with. Reading the
+   * document on the server keeps the editor and the importer of the repositories on the same
+   * parser, and the locales of the metadata are resolved to the locales of the catalog the same way
+   * they are when an application is imported.
+   */
+  async appstreamFields({ request, serialize }: HttpContext) {
+    const { content } = await request.validateUsing(appstreamContentValidator)
+    const fields = appStreamFields(content)
+    if (!fields) {
+      throw new Exception('The content is not an AppStream component', { status: 422 })
+    }
+
+    return serialize(fields)
   }
 
   /**

@@ -43,6 +43,14 @@ router
     router
       .post('apps/:id/merge', [controllers.Apps, 'merge'])
       .use([middleware.auth(), middleware.admin()])
+    // AppStream metadata the editor imports into an application: the document is read, and the
+    // fields it declares are resolved, by the server, which reaches hosts a page cannot
+    router
+      .post('apps/appstream', [controllers.Apps, 'appstream'])
+      .use([middleware.auth(), middleware.admin()])
+    router
+      .post('apps/appstream/fields', [controllers.Apps, 'appstreamFields'])
+      .use([middleware.auth(), middleware.admin()])
     router.post('apps/:id/favorite', [controllers.Favorites, 'store']).use(middleware.auth())
     router.delete('apps/:id/favorite', [controllers.Favorites, 'destroy']).use(middleware.auth())
     router

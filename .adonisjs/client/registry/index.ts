@@ -102,6 +102,18 @@ const routes = {
     tokens: [{"old":"/api/apps/:id/merge","type":0,"val":"api","end":""},{"old":"/api/apps/:id/merge","type":0,"val":"apps","end":""},{"old":"/api/apps/:id/merge","type":1,"val":"id","end":""},{"old":"/api/apps/:id/merge","type":0,"val":"merge","end":""}],
     types: placeholder as Registry['apps.merge']['types'],
   },
+  'apps.appstream': {
+    methods: ["POST"],
+    pattern: '/api/apps/appstream',
+    tokens: [{"old":"/api/apps/appstream","type":0,"val":"api","end":""},{"old":"/api/apps/appstream","type":0,"val":"apps","end":""},{"old":"/api/apps/appstream","type":0,"val":"appstream","end":""}],
+    types: placeholder as Registry['apps.appstream']['types'],
+  },
+  'apps.appstream_fields': {
+    methods: ["POST"],
+    pattern: '/api/apps/appstream/fields',
+    tokens: [{"old":"/api/apps/appstream/fields","type":0,"val":"api","end":""},{"old":"/api/apps/appstream/fields","type":0,"val":"apps","end":""},{"old":"/api/apps/appstream/fields","type":0,"val":"appstream","end":""},{"old":"/api/apps/appstream/fields","type":0,"val":"fields","end":""}],
+    types: placeholder as Registry['apps.appstream_fields']['types'],
+  },
   'favorites.store': {
     methods: ["POST"],
     pattern: '/api/apps/:id/favorite',

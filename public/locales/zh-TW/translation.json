@@ -186,8 +186,12 @@
     "appstreamIdAliasesHint": "該應用程式以前使用過的 AppStream ID。合併應用程式時會自動登記被合併項目的 ID，讓倉庫中仍在使用該 ID 的軟體套件關聯到這裡。",
     "pkgNamesHint": "沒有 AppStream 中繼資料的軟體套件將依名稱關聯到本應用程式，例如 vlc；如需限定套件格式可寫 deb:vlc 或 rpm:vlc。",
     "appstreamUrl": "AppStream URL",
+    "appstreamSync": "同步",
     "appstreamContent": "AppStream XML",
-    "appstreamContentHint": "AppStream 原始中繼資料，通常從 AppStream URL 匯入。",
+    "appstreamContentHint": "AppStream 原始中繼資料，通常從 AppStream URL 同步；也可以匯入本機檔案。",
+    "appstreamImport": "匯入檔案",
+    "appstreamImportError": "無法讀取該檔案。",
+    "appstreamFill": "自動填入",
     "desktopUrl": "Desktop URL",
     "desktopContentHint": ".desktop 檔案內容，通常從 Desktop URL 匯入。"
   },

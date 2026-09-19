@@ -186,8 +186,12 @@
     "appstreamIdAliasesHint": "AppStream IDs this application used before. Merging an application registers its IDs here, so that repositories announcing them link to this entry.",
     "pkgNamesHint": "Packages without AppStream metadata are linked to this application by name, for example vlc. Limit a name to one package format with deb:vlc or rpm:vlc.",
     "appstreamUrl": "AppStream URL",
+    "appstreamSync": "Sync",
     "appstreamContent": "AppStream XML",
-    "appstreamContentHint": "Raw AppStream metadata, usually imported from the AppStream URL.",
+    "appstreamContentHint": "Raw AppStream metadata, usually synced from the AppStream URL. A local file can be imported as well.",
+    "appstreamImport": "Import file",
+    "appstreamImportError": "Unable to read the file.",
+    "appstreamFill": "Auto fill",
     "desktopUrl": "Desktop URL",
     "desktopContentHint": "Contents of the .desktop file, usually imported from the desktop URL."
   },

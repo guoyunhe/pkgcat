@@ -121,6 +121,44 @@ export async function deleteApp(id: number) {
 }
 
 /**
+ * Read the AppStream metadata a URL publishes. The server downloads the document, because the hosts
+ * metadata lives on do not answer a request from a page.
+ */
+export async function fetchAppStreamContent(url: string) {
+  const { data } = await api.post<{ data: { content: string } }>(
+    '/apps/appstream',
+    { url },
+    { headers: authHeaders() },
+  )
+  return data.data.content
+}
+
+/** Fields of an application an AppStream document declares, keyed the way the form edits them. */
+export type AppStreamFields = {
+  name: Record<string, string>
+  summary: Record<string, string>
+  type: string
+  version: string | null
+  license: string | null
+  homepage: string | null
+  appstreamId: string | null
+}
+
+/**
+ * Fields an AppStream document declares, which the editor fills the form of an application with.
+ * The document is read by the server, so that the editor fills the form the way the importer reads
+ * the metadata of a repository.
+ */
+export async function getAppStreamFields(content: string) {
+  const { data } = await api.post<{ data: AppStreamFields }>(
+    '/apps/appstream/fields',
+    { content },
+    { headers: authHeaders() },
+  )
+  return data.data
+}
+
+/**
  * Fold another catalog entry into this application. The merged entry keeps nothing: its packages,
  * favorites and reviews move here, and its AppStream IDs become aliases of this application, so
  * that repositories announcing them link to it from then on.

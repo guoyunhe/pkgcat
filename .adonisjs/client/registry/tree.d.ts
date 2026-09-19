@@ -29,6 +29,8 @@ export interface ApiDefinition {
     update: typeof routes['apps.update']
     destroy: typeof routes['apps.destroy']
     merge: typeof routes['apps.merge']
+    appstream: typeof routes['apps.appstream']
+    appstreamFields: typeof routes['apps.appstream_fields']
     reviews: {
       index: typeof routes['apps.reviews.index']
       store: typeof routes['apps.reviews.store']

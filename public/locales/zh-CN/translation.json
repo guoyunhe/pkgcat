@@ -186,8 +186,12 @@
     "appstreamIdAliasesHint": "该应用以前使用过的 AppStream ID。合并应用时会自动登记被合并条目的 ID，使仓库中仍在使用该 ID 的软件包关联到这里。",
     "pkgNamesHint": "没有 AppStream 元数据的软件包将按包名关联到本应用，例如 vlc；如需限定包格式可写 deb:vlc 或 rpm:vlc。",
     "appstreamUrl": "AppStream URL",
+    "appstreamSync": "同步",
     "appstreamContent": "AppStream XML",
-    "appstreamContentHint": "AppStream 原始元数据，通常从 AppStream URL 导入。",
+    "appstreamContentHint": "AppStream 原始元数据，通常从 AppStream URL 同步；也可以导入本地文件。",
+    "appstreamImport": "导入文件",
+    "appstreamImportError": "无法读取该文件。",
+    "appstreamFill": "自动填充",
     "desktopUrl": "Desktop URL",
     "desktopContentHint": ".desktop 文件内容，通常从 Desktop URL 导入。"
   },

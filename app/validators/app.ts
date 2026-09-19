@@ -264,3 +264,17 @@ export const appListValidator = vine.create({
 
 /** Query parameters of a single application of the catalog. */
 export const appLocaleValidator = vine.create({ locale: localeField() })
+
+/**
+ * URL of the AppStream metadata an editor imports into an application. The server reads the
+ * document on behalf of the page, which cannot reach the hosts metadata lives on; the URL itself is
+ * checked by the importer, which only accepts the schemes a page could read as well.
+ */
+export const appstreamUrlValidator = vine.create({
+  url: vine.string().trim().minLength(1).maxLength(2048),
+})
+
+/** AppStream document an editor fills the form of an application out of. */
+export const appstreamContentValidator = vine.create({
+  content: vine.string().trim().minLength(1),
+})

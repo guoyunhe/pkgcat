@@ -20,6 +20,8 @@ export type ScannedRoutes = {
     'apps.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'apps.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'apps.merge': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'apps.appstream': { paramsTuple?: []; params?: {} }
+    'apps.appstream_fields': { paramsTuple?: []; params?: {} }
     'favorites.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'favorites.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'apps.reviews.index': { paramsTuple: [ParamValue]; params: {'app_id': ParamValue} }
@@ -98,6 +100,8 @@ export type ScannedRoutes = {
     'auth.logout': { paramsTuple?: []; params?: {} }
     'apps.store': { paramsTuple?: []; params?: {} }
     'apps.merge': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'apps.appstream': { paramsTuple?: []; params?: {} }
+    'apps.appstream_fields': { paramsTuple?: []; params?: {} }
     'favorites.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'apps.reviews.store': { paramsTuple: [ParamValue]; params: {'app_id': ParamValue} }
     'apps.pkgs.store': { paramsTuple: [ParamValue]; params: {'app_id': ParamValue} }
