@@ -35,7 +35,7 @@ export default function HomeDistroSection() {
   useEffect(() => {
     let active = true
 
-    getDistros('users', emptyDistroFilters, 1, distroCount)
+    getDistros('userCount', emptyDistroFilters, 1, distroCount)
       .then((page) => {
         if (active) setDistros(page.data)
       })

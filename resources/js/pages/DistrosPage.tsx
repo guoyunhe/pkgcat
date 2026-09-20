@@ -29,7 +29,7 @@ export default function DistrosPage() {
   // listing again, the way another narrowing does
   const [{ sort }, setListingParams] = useQueryStates({
     page: parseAsInteger,
-    sort: parseAsStringLiteral(distroSorts).withDefault('name'),
+    sort: parseAsStringLiteral(distroSorts).withDefault('appCount'),
   })
 
   // The order the listing is read in is kept in the query string, and so is the architecture the
@@ -42,10 +42,10 @@ export default function DistrosPage() {
 
   // Every order is shared with the listing it names, so no label lives in the distributions section
   const sortLabels: Record<DistroSort, string> = {
-    apps: t('common.apps'),
+    appCount: t('common.apps'),
     name: t('common.name'),
-    packages: t('common.packages'),
-    users: t('common.users'),
+    pkgCount: t('common.packages'),
+    userCount: t('common.users'),
   }
 
   return (

@@ -52,11 +52,12 @@ export const distroValidator = vine.create({
 })
 
 /**
- * Sorts a distribution listing can be read in; the name order is the default one, which reads the
- * releases of one distribution from the newest to the oldest. The counts order the releases by what
- * they hold, or by how many users run them, the most first.
+ * Sorts a distribution listing can be read in, named after the field the listing answers with. The
+ * name order is what a request without one reads, which keeps the releases of one distribution
+ * together; the counts order the releases by what they hold, or by how many users run them, the
+ * most first.
  */
-export const distroSorts = ['name', 'packages', 'apps', 'users'] as const
+export const distroSorts = ['name', 'pkgCount', 'appCount', 'userCount'] as const
 
 /**
  * Query parameters of the distribution listing, which its page pages ten entries at a time. The

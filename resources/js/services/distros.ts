@@ -31,8 +31,8 @@ export type DistroPayload = Omit<Partial<Data.Distro>, 'compatibleDistro'> & {
   compatibleDistroId?: number | null
 }
 
-/** Sort orders the distribution listing accepts; `name` is the default. */
-export const distroSorts = ['name', 'packages', 'apps', 'users'] as const
+/** Sort orders the distribution listing accepts, named after the field they order by. */
+export const distroSorts = ['name', 'pkgCount', 'appCount', 'userCount'] as const
 
 export type DistroSort = (typeof distroSorts)[number]
 

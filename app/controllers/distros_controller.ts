@@ -17,9 +17,10 @@ export default class DistrosController {
     // The counts a listing shows are stored with the entry it lists (`Distro.pkgCount` and
     // `Distro.appCount`, written by the synchronization that changes the packages), so the entries a
     // page holds and the counts they show are read together, and the order by a count is the order
-    // of a column. The users of a release are counted by the database with the entries it counts
-    // them for instead (`Distro.users`), which every listing asks for — a card of the home page
-    // shows the count of a release, and the sorting reads the same number
+    // of a column — which is why a sort is named after the field it orders by. The users of a
+    // release are counted by the database with the entries it counts them for instead
+    // (`Distro.users`), which every listing asks for — a card of the home page shows the count of a
+    // release, and the sorting reads the same number
     const query = Distro.query()
       .preload('compatibleDistro')
       .withAggregate('users', (subQuery) => subQuery.count('*').as('userCount'))
@@ -29,8 +30,7 @@ export default class DistrosController {
     // keep the order stable for releases published on the same day and for the architectures of one
     // entry — and, read after a count, they are the order the entries that share it follow each
     // other in, so a page of such a listing holds the same entries every time it is read
-    const countColumns = { packages: 'pkgCount', apps: 'appCount', users: 'userCount' } as const
-    if (sort !== 'name') query.orderBy(countColumns[sort], 'desc')
+    if (sort !== 'name') query.orderBy(sort, 'desc')
     query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
     if (q) query.apply((scopes) => scopes.search(q))
     if (arch) query.where('arch', arch)

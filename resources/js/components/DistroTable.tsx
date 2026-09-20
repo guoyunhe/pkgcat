@@ -12,6 +12,15 @@ import DistroRelease from './DistroRelease'
 
 import styles from './DistroTable.module.css'
 
+/** Architecture a listing starts at, which most releases of the catalog are published for. */
+const defaultArch = 'x86_64'
+
+/**
+ * Value the cleared filter leaves in the query string: a parameter that is not there reads the
+ * architecture a listing starts at, so every architecture at once needs a value of its own.
+ */
+const anyArch = 'all'
+
 type DistroTableProps = {
   /**
    * Reads one page of the listing, narrowed by the fields the toolbar holds. The loader has to keep
@@ -44,7 +53,8 @@ type DistroTableProps = {
 /**
  * Table of distribution releases, which reads them itself and narrows them by the architecture its
  * toolbar holds — kept in the query string, so that a narrowed table can be shared and reloaded:
- * shared by the distribution listing and the search results.
+ * shared by the distribution listing and the search results. A listing starts at the architecture
+ * most releases are published for, and clearing the filter reads every architecture at once.
  */
 export default function DistroTable({
   load,
@@ -62,12 +72,13 @@ export default function DistroTable({
   // The architecture the toolbar narrows the listing to, which the API reads, and the page of the
   // listing the reader is on; both are kept in the query string so that a narrowed table can be
   // shared and reloaded
-  const [{ arch, page }, setParams] = useQueryStates({
+  const [{ arch: archParam, page }, setParams] = useQueryStates({
     arch: parseAsString,
     page: parseAsInteger.withDefault(1),
   })
   // What the page is read with, held as one value so that it is read again for a change of what
   // narrows it, and for nothing else
+  const arch = archParam === anyArch ? null : (archParam ?? defaultArch)
   const filters = useMemo<DistroFilters>(
     () => (hideFilters ? emptyDistroFilters : { ...emptyDistroFilters, arch }),
     [arch, hideFilters],
@@ -124,7 +135,7 @@ export default function DistroTable({
         <Group align='flex-end' gap='sm' mb='lg'>
           <ArchSelect
             label={t('common.architecture')}
-            onChange={(next) => void setParams({ arch: next, page: null })}
+            onChange={(next) => void setParams({ arch: next ?? anyArch, page: null })}
             placeholder={t('distros.filterAny')}
             value={arch}
           />
