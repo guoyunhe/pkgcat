@@ -158,11 +158,11 @@ export const distros: DistroSeed[] = [
   },
   {
     name: 'NixOS',
-    version: '25.05',
+    version: '26.05',
     pkgType: null,
     arches: ['x86_64', 'aarch64'],
-    releaseDate: '2025-05-23',
-    eolDate: '2025-12-31',
+    releaseDate: '2026-05-30',
+    eolDate: '2026-12-31',
   },
   {
     name: 'openSUSE Leap',
