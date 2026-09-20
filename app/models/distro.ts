@@ -11,6 +11,13 @@ import { searchScope } from '#utils/search'
 /** One row of a counted entry: which distribution it belongs to, and how many of what it holds. */
 type CountRow = { distro_id: number; pkgCount?: string | number; appCount?: string | number }
 
+/**
+ * Applications the counts of a distribution report: what a user installs, where the fonts, drivers
+ * and codecs a repository publishes — the components inferred from the files its packages ship —
+ * would otherwise dwarf the applications a distribution offers.
+ */
+const countedAppType = 'desktop-application'
+
 type OsReleaseValues = Record<string, string>
 
 function parseOsRelease(contents: string): OsReleaseValues {
@@ -93,7 +100,8 @@ export default class Distro extends DistroSchema {
    * Recompute the counts the distribution listings read and order by and store with every entry
    * (`pkg_count` and `app_count`): the packages of the repositories serving the distribution, and
    * the applications those packages provide — counted apart, because an application may be provided
-   * by the packages of several repositories and belongs to the distribution once.
+   * by the packages of several repositories and belongs to the distribution once. Only the desktop
+   * applications are counted (see `countedAppType`).
    *
    * Several repositories serve the same distribution — the release and its updates are published
    * apart — and hold packages of the same name, so packages are counted by name and each package
@@ -115,6 +123,8 @@ export default class Distro extends DistroSchema {
         .from('distro_repos')
         .join('pkgs', 'pkgs.repo_id', 'distro_repos.repo_id')
         .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
+        .join('apps', 'apps.id', 'app_pkgs.app_id')
+        .where('apps.type', countedAppType)
         .select('distro_repos.distro_id')
         .countDistinct('app_pkgs.app_id as appCount')
         .groupBy('distro_repos.distro_id'),
