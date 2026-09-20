@@ -22,13 +22,12 @@ type PkgListProps = {
   load: (page: number, filters: PkgFiltersValue) => Promise<Paginated<Data.Pkg> | null>
   /**
    * Whether the toolbar is shown above the rows. A listing that cannot be narrowed — the packages
-   * of a release, which fixes the package format and the architecture — leaves it out and is read
-   * with no filters.
+   * of a release, which fixes the package format — leaves it out and is read with no filters.
    */
   showFilters?: boolean
   /**
-   * Whether the filters are remembered for a later visit, which the package listing asks for: a
-   * filter the query string does not name is read from what was set last time. A listing that
+   * Whether the distribution is remembered for a later visit, which the package listing asks for: a
+   * distribution the query string does not name is read from what was set last time. A listing that
    * shares its page with others — the search results, which reset what a tab was narrowed by —
    * leaves it out, and reads the query string alone.
    */
@@ -65,25 +64,23 @@ export default function PkgList({
   showDetails,
 }: PkgListProps) {
   const { t } = useTranslation()
-  // The filters are remembered across visits, which is what a listing that names no filters falls
-  // back to
+  // The distribution the reader narrowed to is remembered across visits, which is what a listing
+  // that names none falls back to; the package format is never remembered
   const [remembered, setRemembered] = useStoredPkgFilters()
-  const [{ arch, distroId, page, type }, setParams] = useQueryStates({
-    arch: parseAsString,
+  const [{ distroId, page, type }, setParams] = useQueryStates({
     distroId: parseAsString,
     page: parseAsInteger.withDefault(1),
     type: parseAsString,
   })
   // What the query string names wins over what an earlier visit remembered, and a listing without a
   // toolbar is narrowed by nothing at all
-  const stored = rememberFilters ? remembered : emptyPkgFilters
   const filters = useMemo<PkgFiltersValue>(() => {
     if (!showFilters) return emptyPkgFilters
     return {
-      distroId: distroId ?? stored.distroId,
-      type: type ?? stored.type,
+      distroId: distroId ?? (rememberFilters ? remembered.distroId : null),
+      type,
     }
-  }, [arch, distroId, showFilters, stored, type])
+  }, [distroId, rememberFilters, remembered, showFilters, type])
   const [result, setResult] = useState<Paginated<Data.Pkg> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -116,10 +113,11 @@ export default function PkgList({
     }
   }, [errorMessage, filters, load, page, refreshKey, t])
 
-  // What the toolbar is set to is kept in the query string and remembered for a later visit, and a
-  // narrowing the reader changes reads the first page of the listing again
+  // What the toolbar is set to is kept in the query string, the chosen distribution is also
+  // remembered for a later visit, and a narrowing the reader changes reads the first page of the
+  // listing again
   function changeFilters(next: PkgFiltersValue) {
-    if (rememberFilters) setRemembered(next)
+    if (rememberFilters) setRemembered({ distroId: next.distroId })
     void setParams({
       distroId: next.distroId,
       page: null,

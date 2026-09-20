@@ -16,27 +16,35 @@ const storageKey = 'pkg-filters'
 export const emptyPkgFilters: PkgFiltersValue = { distroId: null, type: null }
 
 /**
- * Filters are remembered across visits, but older shapes (distributions by name, or lists from when
- * multi selection was supported) fall back to "no filter".
+ * The filter a listing is remembered by: only the distribution, since the package format is a
+ * question about one visit rather than about the listing.
  */
-function parseFilters(raw: string) {
+export type RememberedPkgFilters = Pick<PkgFiltersValue, 'distroId'>
+
+const noRememberedFilters: RememberedPkgFilters = { distroId: null }
+
+/**
+ * Filters are read as the distribution alone: a value from when the package format was remembered
+ * as well (or from when the distributions were named instead of identified) reads as a distribution
+ * or as no filter at all.
+ */
+function parseFilters(raw: string): RememberedPkgFilters {
   try {
-    const value = JSON.parse(raw) as Partial<PkgFiltersValue>
-    return {
-      distroId: typeof value.distroId === 'string' ? value.distroId : null,
-      type: typeof value.type === 'string' ? value.type : null,
-    }
+    const value = JSON.parse(raw) as Partial<RememberedPkgFilters>
+    return { distroId: typeof value.distroId === 'string' ? value.distroId : null }
   } catch {
-    return emptyPkgFilters
+    return noRememberedFilters
   }
 }
 
 /**
- * The selected filters are remembered in the local storage, so the stored value is also what the
- * first query uses.
+ * The distribution the reader narrowed to is remembered in the local storage, so the stored value
+ * is also what the first query uses.
  */
 export function useStoredPkgFilters() {
-  return useLocalStorage<PkgFiltersValue>(storageKey, emptyPkgFilters, { parser: parseFilters })
+  return useLocalStorage<RememberedPkgFilters>(storageKey, noRememberedFilters, {
+    parser: parseFilters,
+  })
 }
 
 type PkgFiltersProps = {
