@@ -15,6 +15,7 @@ import { parse as parseYaml } from 'yaml'
 
 import Pkg from '#models/pkg'
 import type Repo from '#models/repo'
+import { isIgnoredAppstreamId } from '#services/appstream_filter'
 import PackageFileExtractor, { normalizePackagePath } from '#services/package_file_extractor'
 import RepoPackageExtractor from '#services/repo_package_extractor'
 import type { ResolvedDebSource, RepoPackageType } from '#services/repo_package_extractor'
@@ -195,8 +196,8 @@ export function appstreamIdKey(id: string) {
 
 /**
  * AppStream ID carried by a metadata file path. Packages name their application in the file name,
- * so `/usr/share/metainfo/org.videolan.vlc.appdata.xml` declares `org.videolan.vlc`. Paths that are
- * not AppStream metadata return `null`.
+ * so `/usr/share/metainfo/org.videolan.vlc.appdata.xml` declares `org.videolan.vlc`; anything else,
+ * including a component the catalog leaves out, returns `null`.
  */
 function appstreamFileId(path: string): string | null {
   const trimmed = path.trim()
@@ -206,7 +207,10 @@ function appstreamFileId(path: string): string | null {
   for (const suffix of appstreamFileSuffixes) {
     if (!name.endsWith(suffix)) continue
     const id = name.slice(0, -suffix.length).trim()
-    return id ? canonicalAppstreamId(id) : null
+    if (!id) return null
+
+    const appstreamId = canonicalAppstreamId(id)
+    return isIgnoredAppstreamId(appstreamId) ? null : appstreamId
   }
   return null
 }
@@ -334,10 +338,13 @@ function declaredIcons(component: Component): AppstreamIcon[] {
   return icons.sort((a, b) => iconSize(b) - iconSize(a))
 }
 
-/** Extracted app of a parsed component, with the XML it was read from. */
-function toExtractedApp(component: Component, content: string): ExtractedApp {
+/** Extracted app of a parsed component, or `null` for a component the catalog leaves out. */
+function toExtractedApp(component: Component, content: string): ExtractedApp | null {
+  const appstreamId = canonicalAppstreamId(component.id)
+  if (isIgnoredAppstreamId(appstreamId)) return null
+
   return {
-    appstreamId: canonicalAppstreamId(component.id),
+    appstreamId,
     component,
     content,
     icons: declaredIcons(component),
@@ -444,7 +451,10 @@ export default class RepoAppstreamExtractor {
         const xml = decompressStream(content, compressionOf(content))
         for await (const element of eachXmlElement(xml, 'component')) {
           const component = parseAppStreamComponent(element)
-          if (component) apps.push(toExtractedApp(component, element))
+          if (!component) continue
+
+          const app = toExtractedApp(component, element)
+          if (app) apps.push(app)
         }
       }
     } finally {
@@ -484,7 +494,10 @@ export default class RepoAppstreamExtractor {
     const elements = this.eachMetadataElement(joinUrl(repo.baseUrl, appdata), 'component')
     for await (const element of elements) {
       const component = parseAppStreamComponent(element)
-      if (component) apps.push(toExtractedApp(component, element))
+      if (!component) continue
+
+      const app = toExtractedApp(component, element)
+      if (app) apps.push(app)
     }
 
     return apps
@@ -726,8 +739,11 @@ export default class RepoAppstreamExtractor {
     const component = parseAppStreamComponent(xml)
     if (!component || !isSameAppstreamId(component.id, appstreamId)) return null
 
+    const app = toExtractedApp(component, xml)
+    if (!app) return null
+
     return {
-      app: toExtractedApp(component, xml),
+      app,
       icon: await packagedIcon(files, declaredIcons(component), appstreamId, pkg.name),
     }
   }
@@ -831,7 +847,10 @@ export default class RepoAppstreamExtractor {
 
       const xml = this.dep11Xml(record)
       const component = parseAppStreamComponent(xml)
-      if (component) apps.push(toExtractedApp(component, xml))
+      if (!component) continue
+
+      const app = toExtractedApp(component, xml)
+      if (app) apps.push(app)
     }
 
     return apps
