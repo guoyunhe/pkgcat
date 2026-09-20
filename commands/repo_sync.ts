@@ -306,7 +306,8 @@ export default class RepoSync extends BaseCommand {
    * Create or update the applications a repository publishes, store the largest of their icons and
    * link the packages they belong to. An application that declares its own `appstreamUrl` keeps
    * that metadata, only components that name a package of the repository are imported, and a known
-   * application is only rewritten when the component announces a newer version.
+   * application is only rewritten when the component names the ID it is stored under and announces
+   * a newer version.
    */
   private async saveApps(
     repo: Repo,
@@ -368,11 +369,14 @@ export default class RepoSync extends BaseCommand {
       }
 
       const app = current ?? new App()
-      // A component naming an alias of an application is that same application under a former ID,
-      // so its metadata updates the stored entry, which keeps the ID it is stored under. Only a
-      // component naming the stored ID itself (in any casing) renames the entry.
-      const renames = !current || registry.owns(current, entry.appstreamId)
-      if (current && !appstreamVersionIsNewer(current, appstreamVersion(entry.component))) {
+      // A stored application only takes the metadata of a component that names the ID it is stored
+      // under, and only when the component announces a newer version: an ID it answers to as an
+      // alias, or a package name mapped to it, is not enough to import into it
+      const imported =
+        !current ||
+        (registry.owns(current, entry.appstreamId) &&
+          appstreamVersionIsNewer(current, appstreamVersion(entry.component)))
+      if (!imported) {
         result.skipped += 1
       } else {
         app.merge({
@@ -382,7 +386,7 @@ export default class RepoSync extends BaseCommand {
           homepage: appstreamHomepage(entry.component),
           appstreamContent: entry.content,
         })
-        if (renames) app.appstreamId = entry.appstreamId
+        app.appstreamId = entry.appstreamId
         await app.save()
         await replaceTranslations(app, entry.component.name, entry.component.summary)
         if (current) {
@@ -497,8 +501,9 @@ export default class RepoSync extends BaseCommand {
    * packages are linked to a known application by. The metadata file itself is read from the
    * package, and an application is created only once that read succeeded: a file list announces an
    * ID and nothing else, and an application without AppStream content is not one the catalog can
-   * show. A component whose metadata cannot be read leaves its packages to the package name
-   * mappings.
+   * show. A known application is only completed by a component that names the ID it is stored under
+   * and announces a newer version, and a component whose metadata cannot be read leaves its
+   * packages to the package name mappings.
    *
    * The package names the file list assigns to an application are collected in `claimedPkgNames`,
    * which keeps the package name mappings from claiming them again.
@@ -545,6 +550,8 @@ export default class RepoSync extends BaseCommand {
     for (const component of candidates) {
       const files = component.files.filter((file) => pkgNames.has(file.pkgName))
       let app = registry.find(component.appstreamId)
+      // An application that only answers to the ID as an alias keeps what it has
+      const owned = !app || registry.owns(app, component.appstreamId)
 
       // A known application is linked to the packages of the component even when nothing has to be
       // read from them, so that a new package of it shows up on its page
@@ -553,6 +560,7 @@ export default class RepoSync extends BaseCommand {
         for (const file of files) claimedPkgNames.add(file.pkgName)
         if (app.appstreamContent && app.icon) continue
       }
+      if (!owned) continue
 
       const metadata = this.inferredFile(component, byName)
       if (!metadata) continue
@@ -593,10 +601,13 @@ export default class RepoSync extends BaseCommand {
           result.extracted += 1
           result.linked += await this.linkInferredPackages(app, repo, files)
           for (const file of files) claimedPkgNames.add(file.pkgName)
-        } else if (!app.appstreamContent) {
+        } else if (
+          !app.appstreamContent &&
+          appstreamVersionIsNewer(app, appstreamVersion(extracted.component))
+        ) {
           await app.merge({
             type: canonicalAppType(extracted.component.type),
-            version: appstreamVersion(extracted.component) ?? app.version,
+            version: appstreamVersion(extracted.component),
             license: extracted.component.projectLicense ?? app.license,
             homepage: appstreamHomepage(extracted.component) ?? app.homepage,
             appstreamContent: extracted.content,
