@@ -12,6 +12,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -23,7 +24,6 @@ import { useAuth } from '../auth'
 import CountBadge from '../components/CountBadge'
 import DistroRelease from '../components/DistroRelease'
 import PkgList from '../components/PkgList'
-import { useConfirm } from '../confirm'
 import { deleteRepo, getRepo, getRepoPackages } from '../services/repos'
 import { formatCount } from '../utils/format'
 
@@ -39,7 +39,7 @@ type RepoTab = 'packages' | 'distros'
 export default function RepoDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const repoId = Number(id)
@@ -93,15 +93,23 @@ export default function RepoDetailPage() {
     )
   }
 
-  async function remove() {
+  function remove() {
     if (!repo) return
-    if (!(await confirm(t('repos.confirmDelete', { name: repo.name })))) return
-    try {
-      await deleteRepo(repo.id)
-      navigate('/repos')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('repos.deleteError'))
-    }
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('repos.confirmDelete', { name: repo.name })}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        try {
+          await deleteRepo(repo.id)
+          navigate('/repos')
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : t('repos.deleteError'))
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   return (

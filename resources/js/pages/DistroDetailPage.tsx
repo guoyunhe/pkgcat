@@ -1,4 +1,5 @@
 import { Alert, Button, Container, DataList, Group, Loader, Tabs, Text, Title } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -11,7 +12,6 @@ import CountBadge from '../components/CountBadge'
 import DistroRelease from '../components/DistroRelease'
 import PkgList from '../components/PkgList'
 import RepoTable from '../components/RepoTable'
-import { useConfirm } from '../confirm'
 import {
   deleteDistro,
   distroLabel,
@@ -30,7 +30,7 @@ type DistroTab = 'packages' | 'repositories'
 export default function DistroDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const distroId = Number(id)
@@ -83,15 +83,23 @@ export default function DistroDetailPage() {
   const name = distro.version ? `${distro.name} ${distro.version}` : distro.name
   const isExpired = distro.eolDate ? new Date(distro.eolDate).getTime() < Date.now() : false
 
-  async function remove() {
+  function remove() {
     if (!distro) return
-    if (!(await confirm(t('distros.confirmDelete', { name: distroLabel(distro) })))) return
-    try {
-      await deleteDistro(distro.id)
-      navigate('/distros')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('distros.deleteError'))
-    }
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('distros.confirmDelete', { name: distroLabel(distro) })}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        try {
+          await deleteDistro(distro.id)
+          navigate('/distros')
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : t('distros.deleteError'))
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   return (

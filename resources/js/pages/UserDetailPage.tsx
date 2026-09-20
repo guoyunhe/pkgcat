@@ -1,5 +1,6 @@
 import type { Data } from '@generated/data'
 import { Alert, Container, Loader, Text, Title } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'wouter'
@@ -9,7 +10,6 @@ import DistroRelease from '../components/DistroRelease'
 import FavoriteList from '../components/FavoriteList'
 import ReviewList from '../components/ReviewList'
 import UserAvatar from '../components/UserAvatar'
-import { useConfirm } from '../confirm'
 import { deleteReview, getUserReviews } from '../services/reviews'
 import { getUser } from '../services/users'
 import type { Paginated } from '../types/pagination'
@@ -19,7 +19,7 @@ import styles from './UserDetailPage.module.css'
 export default function UserDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const { id } = useParams()
   const userId = Number(id)
 
@@ -81,17 +81,27 @@ export default function UserDetailPage() {
       .finally(() => setReviewsLoading(false))
   }, [i18n.language, userId, reviewsPage, reviewsRefresh])
 
-  async function handleDeleteReview(review: Data.Review) {
-    if (!review.app || !(await confirm(t('reviews.deleteConfirm')))) return
-    setDeletingReviewId(review.id)
-    try {
-      await deleteReview(review.app.id, review.id)
-      setReviewsRefresh((value) => value + 1)
-    } catch (reason) {
-      setReviewsError(reason instanceof Error ? reason.message : t('reviews.deleteError'))
-    } finally {
-      setDeletingReviewId(null)
-    }
+  function handleDeleteReview(review: Data.Review) {
+    const appId = review.app?.id
+    if (!appId) return
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('reviews.deleteConfirm')}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        setDeletingReviewId(review.id)
+        try {
+          await deleteReview(appId, review.id)
+          setReviewsRefresh((value) => value + 1)
+        } catch (reason) {
+          setReviewsError(reason instanceof Error ? reason.message : t('reviews.deleteError'))
+        } finally {
+          setDeletingReviewId(null)
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   if (loading) {

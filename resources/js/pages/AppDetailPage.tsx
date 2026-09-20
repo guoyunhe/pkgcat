@@ -10,6 +10,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -29,7 +30,6 @@ import PkgList from '../components/PkgList'
 import ReviewForm from '../components/ReviewForm'
 import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
-import { useConfirm } from '../confirm'
 import { deleteApp, getApp, getAppPackages } from '../services/apps'
 import type { PkgFilters } from '../services/pkgs'
 import { deleteReview, getAppReviews } from '../services/reviews'
@@ -47,7 +47,7 @@ import styles from './AppDetailPage.module.css'
 export default function AppDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const appId = Number(id)
@@ -116,15 +116,23 @@ export default function AppDetailPage() {
   const screenshots = selectScreenshots(component?.screenshots ?? [], i18n.language)
   const isAdmin = user?.role === 'admin'
 
-  async function remove() {
+  function remove() {
     if (!app) return
-    if (!(await confirm(t('detail.deleteConfirm', { name })))) return
-    try {
-      await deleteApp(app.id)
-      navigate('/apps')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('detail.deleteError'))
-    }
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('detail.deleteConfirm', { name })}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        try {
+          await deleteApp(app.id)
+          navigate('/apps')
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : t('detail.deleteError'))
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   function handleReviewSubmitted() {
@@ -136,17 +144,25 @@ export default function AppDetailPage() {
     setPackagesRefresh((value) => value + 1)
   }
 
-  async function handleDeleteReview(review: Data.Review) {
-    if (!(await confirm(t('reviews.deleteConfirm')))) return
-    setDeletingReviewId(review.id)
-    try {
-      await deleteReview(app!.id, review.id)
-      setReviewsRefresh((value) => value + 1)
-    } catch (reason) {
-      setReviewsError(reason instanceof Error ? reason.message : t('reviews.deleteError'))
-    } finally {
-      setDeletingReviewId(null)
-    }
+  function handleDeleteReview(review: Data.Review) {
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('reviews.deleteConfirm')}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        setDeletingReviewId(review.id)
+        try {
+          await deleteReview(app!.id, review.id)
+          setReviewsRefresh((value) => value + 1)
+        } catch (reason) {
+          setReviewsError(reason instanceof Error ? reason.message : t('reviews.deleteError'))
+        } finally {
+          setDeletingReviewId(null)
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   return (

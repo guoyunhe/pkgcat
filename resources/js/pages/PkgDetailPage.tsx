@@ -11,6 +11,7 @@ import {
   Text,
   Title,
 } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { DownloadSimpleIcon } from '@phosphor-icons/react/DownloadSimple'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
@@ -20,7 +21,6 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
-import { useConfirm } from '../confirm'
 import { deletePkg, getPkg } from '../services/pkgs'
 import { localized } from '../utils/appstream'
 import { formatBytes } from '../utils/format'
@@ -38,7 +38,7 @@ const packageTypesWithIcons = new Set(['rpm', 'deb', 'pacman', 'appimage'])
 export default function PkgDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const pkgId = Number(id)
@@ -79,15 +79,23 @@ export default function PkgDetailPage() {
   // Everything that names the package at a glance, without the fields it may not carry
   const version = [pkg.type, pkg.version, pkg.release, pkg.arch].filter(Boolean).join(' · ')
 
-  async function remove() {
+  function remove() {
     if (!pkg) return
-    if (!(await confirm(t('packages.deleteConfirm', { name: pkg.name })))) return
-    try {
-      await deletePkg(pkg.id)
-      navigate('/pkgs')
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('packages.deleteError'))
-    }
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('packages.deleteConfirm', { name: pkg.name })}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        try {
+          await deletePkg(pkg.id)
+          navigate('/pkgs')
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : t('packages.deleteError'))
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   return (

@@ -1,5 +1,6 @@
 import type { Data } from '@generated/data'
 import { Alert, Button, Container, Select, Text, Title } from '@mantine/core'
+import { useModals } from '@mantine/modals'
 import { PencilSimpleIcon } from '@phosphor-icons/react/PencilSimple'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { TrashIcon } from '@phosphor-icons/react/Trash'
@@ -11,7 +12,6 @@ import { Link, useLocation } from 'wouter'
 import { useAuth } from '../auth'
 import { filterWidth } from '../components/ListFilter'
 import RepoTable from '../components/RepoTable'
-import { useConfirm } from '../confirm'
 import {
   deleteRepo,
   getRepos,
@@ -26,7 +26,7 @@ import styles from './ReposPage.module.css'
 export default function ReposPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
-  const confirm = useConfirm()
+  const modals = useModals()
   const [, navigate] = useLocation()
   const isAdmin = ready && user?.role === 'admin'
   // The sort order is read by the API, so it is kept in the query string and the listing is re-read
@@ -48,14 +48,22 @@ export default function ReposPage() {
     [sort],
   )
 
-  async function remove(repo: Data.Repo) {
-    if (!(await confirm(t('repos.confirmDelete', { name: repo.name })))) return
-    try {
-      await deleteRepo(repo.id)
-      setRefresh((value) => value + 1)
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : t('repos.deleteError'))
-    }
+  function remove(repo: Data.Repo) {
+    modals.openConfirmModal({
+      centered: true,
+      children: <Text>{t('repos.confirmDelete', { name: repo.name })}</Text>,
+      confirmProps: { color: 'red' },
+      labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
+      onConfirm: async () => {
+        try {
+          await deleteRepo(repo.id)
+          setRefresh((value) => value + 1)
+        } catch (reason) {
+          setError(reason instanceof Error ? reason.message : t('repos.deleteError'))
+        }
+      },
+      title: t('common.confirm'),
+    })
   }
 
   // Every order is shared with the listing it names, so no label lives in the repositories section
