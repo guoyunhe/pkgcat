@@ -29,6 +29,7 @@ import PkgList from '../components/PkgList'
 import ReviewForm from '../components/ReviewForm'
 import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
+import { useConfirm } from '../confirm'
 import { deleteApp, getApp, getAppPackages } from '../services/apps'
 import type { PkgFilters } from '../services/pkgs'
 import { deleteReview, getAppReviews } from '../services/reviews'
@@ -46,6 +47,7 @@ import styles from './AppDetailPage.module.css'
 export default function AppDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const appId = Number(id)
@@ -116,7 +118,7 @@ export default function AppDetailPage() {
 
   async function remove() {
     if (!app) return
-    if (!window.confirm(t('detail.deleteConfirm', { name }))) return
+    if (!(await confirm(t('detail.deleteConfirm', { name })))) return
     try {
       await deleteApp(app.id)
       navigate('/apps')
@@ -135,7 +137,7 @@ export default function AppDetailPage() {
   }
 
   async function handleDeleteReview(review: Data.Review) {
-    if (!window.confirm(t('reviews.deleteConfirm'))) return
+    if (!(await confirm(t('reviews.deleteConfirm')))) return
     setDeletingReviewId(review.id)
     try {
       await deleteReview(app!.id, review.id)

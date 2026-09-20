@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "Cancelar",
+    "confirm": "Confirmar",
     "close": "Fechar",
     "download": "Baixar",
     "search": "Buscar",

@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "取消",
+    "confirm": "确认",
     "close": "关闭",
     "download": "下载",
     "search": "搜索",

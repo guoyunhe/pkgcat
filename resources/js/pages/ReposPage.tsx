@@ -11,6 +11,7 @@ import { Link, useLocation } from 'wouter'
 import { useAuth } from '../auth'
 import { filterWidth } from '../components/ListFilter'
 import RepoTable from '../components/RepoTable'
+import { useConfirm } from '../confirm'
 import {
   deleteRepo,
   getRepos,
@@ -25,6 +26,7 @@ import styles from './ReposPage.module.css'
 export default function ReposPage() {
   const { t } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const [, navigate] = useLocation()
   const isAdmin = ready && user?.role === 'admin'
   // The sort order is read by the API, so it is kept in the query string and the listing is re-read
@@ -47,7 +49,7 @@ export default function ReposPage() {
   )
 
   async function remove(repo: Data.Repo) {
-    if (!window.confirm(t('repos.confirmDelete', { name: repo.name }))) return
+    if (!(await confirm(t('repos.confirmDelete', { name: repo.name })))) return
     try {
       await deleteRepo(repo.id)
       setRefresh((value) => value + 1)

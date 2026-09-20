@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "取消",
+    "confirm": "確認",
     "close": "關閉",
     "download": "下載",
     "search": "搜尋",

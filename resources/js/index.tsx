@@ -3,6 +3,7 @@ import '@mantine/carousel/styles.css'
 import '@mantine/dropzone/styles.css'
 import './styles.css'
 import { MantineProvider, localStorageColorSchemeManager } from '@mantine/core'
+import { ModalsProvider } from '@mantine/modals'
 import { createRoot } from 'react-dom/client'
 
 import App from './App'
@@ -21,7 +22,9 @@ const container = createRoot(root)
 function render() {
   container.render(
     <MantineProvider defaultColorScheme='auto' colorSchemeManager={colorSchemeManager}>
-      <App />
+      <ModalsProvider>
+        <App />
+      </ModalsProvider>
     </MantineProvider>,
   )
 }

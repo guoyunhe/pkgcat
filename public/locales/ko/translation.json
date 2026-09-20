@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "취소",
+    "confirm": "확인",
     "close": "닫기",
     "download": "다운로드",
     "search": "검색",

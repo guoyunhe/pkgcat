@@ -9,6 +9,7 @@ import DistroRelease from '../components/DistroRelease'
 import FavoriteList from '../components/FavoriteList'
 import ReviewList from '../components/ReviewList'
 import UserAvatar from '../components/UserAvatar'
+import { useConfirm } from '../confirm'
 import { deleteReview, getUserReviews } from '../services/reviews'
 import { getUser } from '../services/users'
 import type { Paginated } from '../types/pagination'
@@ -18,6 +19,7 @@ import styles from './UserDetailPage.module.css'
 export default function UserDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const { id } = useParams()
   const userId = Number(id)
 
@@ -80,7 +82,7 @@ export default function UserDetailPage() {
   }, [i18n.language, userId, reviewsPage, reviewsRefresh])
 
   async function handleDeleteReview(review: Data.Review) {
-    if (!review.app || !window.confirm(t('reviews.deleteConfirm'))) return
+    if (!review.app || !(await confirm(t('reviews.deleteConfirm')))) return
     setDeletingReviewId(review.id)
     try {
       await deleteReview(review.app.id, review.id)

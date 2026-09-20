@@ -11,6 +11,7 @@ import CountBadge from '../components/CountBadge'
 import DistroRelease from '../components/DistroRelease'
 import PkgList from '../components/PkgList'
 import RepoTable from '../components/RepoTable'
+import { useConfirm } from '../confirm'
 import {
   deleteDistro,
   distroLabel,
@@ -29,6 +30,7 @@ type DistroTab = 'packages' | 'repositories'
 export default function DistroDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const distroId = Number(id)
@@ -83,7 +85,7 @@ export default function DistroDetailPage() {
 
   async function remove() {
     if (!distro) return
-    if (!window.confirm(t('distros.confirmDelete', { name: distroLabel(distro) }))) return
+    if (!(await confirm(t('distros.confirmDelete', { name: distroLabel(distro) })))) return
     try {
       await deleteDistro(distro.id)
       navigate('/distros')

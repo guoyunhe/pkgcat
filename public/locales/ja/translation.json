@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "キャンセル",
+    "confirm": "確認",
     "close": "閉じる",
     "download": "ダウンロード",
     "search": "検索",

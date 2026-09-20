@@ -23,6 +23,7 @@ import { useAuth } from '../auth'
 import CountBadge from '../components/CountBadge'
 import DistroRelease from '../components/DistroRelease'
 import PkgList from '../components/PkgList'
+import { useConfirm } from '../confirm'
 import { deleteRepo, getRepo, getRepoPackages } from '../services/repos'
 import { formatCount } from '../utils/format'
 
@@ -38,6 +39,7 @@ type RepoTab = 'packages' | 'distros'
 export default function RepoDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const repoId = Number(id)
@@ -93,7 +95,7 @@ export default function RepoDetailPage() {
 
   async function remove() {
     if (!repo) return
-    if (!window.confirm(t('repos.confirmDelete', { name: repo.name }))) return
+    if (!(await confirm(t('repos.confirmDelete', { name: repo.name })))) return
     try {
       await deleteRepo(repo.id)
       navigate('/repos')

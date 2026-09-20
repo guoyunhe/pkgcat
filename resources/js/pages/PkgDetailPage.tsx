@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
+import { useConfirm } from '../confirm'
 import { deletePkg, getPkg } from '../services/pkgs'
 import { localized } from '../utils/appstream'
 import { formatBytes } from '../utils/format'
@@ -37,6 +38,7 @@ const packageTypesWithIcons = new Set(['rpm', 'deb', 'pacman', 'appimage'])
 export default function PkgDetailPage() {
   const { t, i18n } = useTranslation()
   const { ready, user } = useAuth()
+  const confirm = useConfirm()
   const [, navigate] = useLocation()
   const { id } = useParams()
   const pkgId = Number(id)
@@ -79,7 +81,7 @@ export default function PkgDetailPage() {
 
   async function remove() {
     if (!pkg) return
-    if (!window.confirm(t('packages.deleteConfirm', { name: pkg.name }))) return
+    if (!(await confirm(t('packages.deleteConfirm', { name: pkg.name })))) return
     try {
       await deletePkg(pkg.id)
       navigate('/pkgs')

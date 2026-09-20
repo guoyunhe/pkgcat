@@ -27,6 +27,7 @@
   },
   "common": {
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "close": "Close",
     "download": "Download",
     "search": "Search",
