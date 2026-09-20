@@ -16,7 +16,7 @@ import Distro from '#models/distro'
 import Pkg from '#models/pkg'
 import PackageFileExtractor from '#services/package_file_extractor'
 import PkgTransformer from '#transformers/pkg_transformer'
-import { archIndependentPackageArches } from '#utils/arch'
+import { archIndependentPackageArch } from '#utils/arch'
 import { pkgListValidator, pkgValidator } from '#validators/pkg'
 
 // Package files are uploaded outside of the global multipart limit (see config/bodyparser.ts)
@@ -55,7 +55,7 @@ export default class PkgsController {
         pkgsQuery.where((query) => {
           query
             .where('arch', distro.arch)
-            .orWhereIn('arch', archIndependentPackageArches)
+            .orWhere('arch', archIndependentPackageArch)
             .orWhereNull('arch')
         })
       } else {

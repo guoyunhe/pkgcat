@@ -6,6 +6,7 @@ import { pipeline } from 'node:stream/promises'
 
 import { Exception } from '@adonisjs/core/exceptions'
 
+import { canonicalPackageArch } from '#utils/arch'
 import {
   compressionOf,
   decompress as decompressMetadata,
@@ -557,7 +558,9 @@ export default class PackageFileExtractor {
       name,
       version: version.version,
       release: version.release,
-      arch: fields.Architecture ? this.fromDebArch(fields.Architecture) : null,
+      arch: canonicalPackageArch(
+        fields.Architecture ? this.fromDebArch(fields.Architecture) : null,
+      ),
       license: fields.License ?? null,
       summary: description.summary,
       description: description.description,

@@ -1,6 +1,7 @@
 import { XMLParser } from 'fast-xml-parser'
 
 import type Repo from '#models/repo'
+import { canonicalPackageArch } from '#utils/arch'
 import {
   compressionExtension,
   compressionOf,
@@ -265,7 +266,7 @@ export default class RepoPackageExtractor {
       name,
       version: version.version,
       release: version.release,
-      arch: text(fields.ARCH),
+      arch: canonicalPackageArch(text(fields.ARCH)),
       // A package may be licensed under several terms, which the database lists one per line
       license: text(fields.LICENSE?.replace(/\n/g, ', ')),
       // A pacman database carries no long description, only the one line summary
@@ -366,7 +367,7 @@ export default class RepoPackageExtractor {
             name: stanza.Package,
             version: version.version,
             release: version.release,
-            arch: arch ? this.fromDebArch(arch) : null,
+            arch: canonicalPackageArch(arch ? this.fromDebArch(arch) : null),
             license: text(stanza.License),
             summary: description.summary,
             description: description.description,
