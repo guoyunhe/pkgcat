@@ -29,7 +29,7 @@ async function findDistro({ name, version, arch }: DistroSelector) {
 export default class RepoSeeder extends BaseSeeder {
   async run() {
     for (const { distros, ...attributes } of [...communityRepos, ...vendorRepos]) {
-      const repo = await Repo.updateOrCreate({ name: attributes.name }, attributes)
+      const repo = await Repo.updateOrCreate({ baseUrl: attributes.baseUrl }, attributes)
       // `sync` keeps the list of served releases exact: a repository this seeder no longer links to
       // a release is unlinked from it
       const served = await Promise.all(distros.map((selector) => findDistro(selector)))
