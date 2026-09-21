@@ -115,9 +115,8 @@ export default function DistroFormPage() {
         releaseDate: values.releaseDate || null,
         eolDate: values.eolDate || null,
       }
-      if (distroId) await updateDistro(distroId, payload)
-      else await createDistro(payload)
-      navigate('/distros')
+      const distro = distroId ? await updateDistro(distroId, payload) : await createDistro(payload)
+      navigate(`/distros/${distro.id}`)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('distros.saveError'))
     } finally {

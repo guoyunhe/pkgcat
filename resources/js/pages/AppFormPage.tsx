@@ -143,9 +143,8 @@ export default function AppFormPage() {
   async function save() {
     try {
       setSaving(true)
-      if (appId) await updateApp(appId, form)
-      else await createApp(form)
-      navigate('/apps')
+      const app = appId ? await updateApp(appId, form) : await createApp(form)
+      navigate(`/apps/${app.id}`)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('form.saveError'))
     } finally {

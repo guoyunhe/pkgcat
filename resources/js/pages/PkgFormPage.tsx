@@ -137,9 +137,8 @@ export default function PkgFormPage() {
     try {
       setSaving(true)
       setError(null)
-      if (pkgId) await updatePkg(pkgId, values)
-      else await createPkg(values)
-      navigate('/pkgs')
+      const pkg = pkgId ? await updatePkg(pkgId, values) : await createPkg(values)
+      navigate(`/pkgs/${pkg.id}`)
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : t('packages.saveError'))
     } finally {
