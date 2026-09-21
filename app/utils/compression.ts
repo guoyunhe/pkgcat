@@ -65,13 +65,25 @@ export function decompressStream(data: Buffer, extension: string): Readable {
 
 /**
  * Decompress data that is still being read, which is how a payload much larger than memory is read:
- * the chunks are decompressed as they arrive instead of the whole payload being held.
+ * the chunks are decompressed as they arrive instead of the whole payload being held. `pipe` does
+ * not forward an error of the stream it reads from, and a download that breaks in the middle of a
+ * package reports it there — an error no reader ever sees ends the process the synchronization runs
+ * in — so the source is piped by hand and its error is passed on to whoever reads the copy.
  */
 export function decompressChunks(chunks: AsyncIterable<Buffer>, extension: string): Readable {
   const compressed = Readable.from(chunks)
-  if (extension === '.gz') return compressed.pipe(createGunzip())
-  if (extension === '.zst') return compressed.pipe(createZstdDecompress())
-  if (extension !== '.xz') return compressed
+  const decompressed =
+    extension === '.gz'
+      ? compressed.pipe(createGunzip())
+      : extension === '.zst'
+        ? compressed.pipe(createZstdDecompress())
+        : extension === '.xz'
+          ? compressed.pipe(createDecompressStream())
+          : compressed
 
-  return compressed.pipe(createDecompressStream())
+  // A reader that stopped reading has destroyed the decompressed copy already, and destroying it
+  // again reports nothing
+  if (decompressed !== compressed) compressed.on('error', (error) => decompressed.destroy(error))
+
+  return decompressed
 }
