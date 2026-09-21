@@ -53,7 +53,6 @@ enabled=1
     syncIntervalDays: 7,
     distros: [
       { name: 'elementary OS', version: '8', arch: 'x86_64' },
-      { name: 'Linux Mint', version: '22', arch: 'x86_64' },
       { name: 'Pop!_OS', version: '24.04', arch: 'x86_64' },
       { name: 'Ubuntu', version: '24.04', arch: 'x86_64' },
     ],
@@ -155,11 +154,7 @@ enabled=1
     source: 'vendor',
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64',
     syncIntervalDays: 7,
-    distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'x86_64' },
-      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '8', arch: 'x86_64' },
-    ],
+    distros: [{ name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' }],
     configContent: `[cuda-rhel8-x86_64]
 name=cuda-rhel8-x86_64
 baseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64
@@ -178,11 +173,7 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/x86_64/D42
     source: 'vendor',
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel8/sbsa',
     syncIntervalDays: 7,
-    distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'aarch64' },
-      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '8', arch: 'aarch64' },
-    ],
+    distros: [{ name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' }],
     configContent: `[cuda-rhel8-sbsa]
 name=cuda-rhel8-sbsa
 baseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/sbsa
@@ -201,10 +192,7 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/sbsa/D42D0
     source: 'vendor',
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le',
     syncIntervalDays: 7,
-    distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'ppc64le' },
-      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'ppc64le' },
-    ],
+    distros: [{ name: 'Red Hat Enterprise Linux', version: '8', arch: 'ppc64le' }],
     configContent: `[cuda-rhel8-ppc64le]
 name=cuda-rhel8-ppc64le
 baseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le
@@ -224,10 +212,8 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le/D4
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '9', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '9', arch: 'x86_64' },
     ],
     configContent: `[cuda-rhel9-x86_64]
 name=cuda-rhel9-x86_64
@@ -248,10 +234,8 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/D42
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel9/sbsa',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '9', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '9', arch: 'aarch64' },
     ],
     configContent: `[cuda-rhel9-sbsa]
 name=cuda-rhel9-sbsa
@@ -272,10 +256,8 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/sbsa/D42D0
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '10', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '10', arch: 'x86_64' },
     ],
     configContent: `[cuda-rhel10-x86_64]
 name=cuda-rhel10-x86_64
@@ -296,10 +278,8 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel10/x86_64/CD
     baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel10/sbsa',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '10', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '10', arch: 'aarch64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '10', arch: 'aarch64' },
     ],
     configContent: `[cuda-rhel10-sbsa]
 name=cuda-rhel10-sbsa
@@ -549,7 +529,7 @@ skip_if_unavailable=True
     // Brave publishes one `aptly`-generated apt repository for the Debian-based releases (suite
     // `stable`, component `main`, architectures `amd64` and `arm64`) and one rpm repository per
     // architecture, whose directory is what `$basearch` stands for in the `.repo` file Brave ships
-    name: 'Brave Browser for Debian, Ubuntu and Linux Mint',
+    name: 'Brave Browser for Debian and Ubuntu',
     type: 'deb',
     source: 'vendor',
     baseUrl:
@@ -566,7 +546,6 @@ skip_if_unavailable=True
       { name: 'Ubuntu', version: '24.04', arch: 'aarch64' },
       { name: 'Ubuntu', version: '26.04', arch: 'x86_64' },
       { name: 'Ubuntu', version: '26.04', arch: 'aarch64' },
-      { name: 'Linux Mint', version: '22', arch: 'x86_64' },
     ],
     configContent: `deb [signed-by=/usr/share/keyrings/brave-browser-archive-keyring.gpg] https://brave-browser-apt-release.s3.brave.com stable main`,
     configUrl: 'https://brave-browser-apt-release.s3.brave.com/brave-browser.sources',
@@ -583,9 +562,6 @@ skip_if_unavailable=True
     baseUrl: 'https://brave-browser-rpm-release.s3.brave.com/x86_64/',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'x86_64' },
-      { name: 'AlmaLinux', version: '9', arch: 'x86_64' },
-      { name: 'AlmaLinux', version: '10', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
       { name: 'Fedora Linux', version: '43', arch: 'x86_64' },
@@ -595,9 +571,6 @@ skip_if_unavailable=True
       { name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '8', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '9', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '10', arch: 'x86_64' },
       { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'x86_64' },
       { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'x86_64' },
     ],
@@ -617,9 +590,6 @@ baseurl=https://brave-browser-rpm-release.s3.brave.com/$basearch
     baseUrl: 'https://brave-browser-rpm-release.s3.brave.com/aarch64/',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'aarch64' },
-      { name: 'AlmaLinux', version: '9', arch: 'aarch64' },
-      { name: 'AlmaLinux', version: '10', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '10', arch: 'aarch64' },
       { name: 'Fedora Linux', version: '43', arch: 'aarch64' },
@@ -629,9 +599,6 @@ baseurl=https://brave-browser-rpm-release.s3.brave.com/$basearch
       { name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' },
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '8', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '9', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '10', arch: 'aarch64' },
       { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'aarch64' },
       { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'aarch64' },
     ],
@@ -686,12 +653,6 @@ baseurl=https://brave-browser-rpm-release.s3.brave.com/$basearch
     baseUrl: 'https://rpm.opera.com/rpm/',
     syncIntervalDays: 7,
     distros: [
-      { name: 'AlmaLinux', version: '8', arch: 'x86_64' },
-      { name: 'AlmaLinux', version: '8', arch: 'aarch64' },
-      { name: 'AlmaLinux', version: '9', arch: 'x86_64' },
-      { name: 'AlmaLinux', version: '9', arch: 'aarch64' },
-      { name: 'AlmaLinux', version: '10', arch: 'x86_64' },
-      { name: 'AlmaLinux', version: '10', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
       { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
       { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
@@ -710,12 +671,6 @@ baseurl=https://brave-browser-rpm-release.s3.brave.com/$basearch
       { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
       { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '8', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '8', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '9', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '9', arch: 'aarch64' },
-      { name: 'Rocky Linux', version: '10', arch: 'x86_64' },
-      { name: 'Rocky Linux', version: '10', arch: 'aarch64' },
       { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'x86_64' },
       { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'aarch64' },
       { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'x86_64' },
@@ -728,6 +683,99 @@ baseurl=https://rpm.opera.com/rpm
 gpgcheck=1
 gpgkey=https://rpm.opera.com/rpmrepo.key
 enabled=1
+`,
+  },
+  {
+    // Chrome for the Debian based releases comes from one apt repository whose suite is `stable`
+    // and whose component is `main`, and which publishes the amd64 and the arm64 packages of every
+    // channel. Its apt line is the one the packages Google ships write themselves: the
+    // `google-chrome-repo` package writes it for the architecture it is built for (`[arch=amd64]`
+    // in the amd64 build, `[arch=arm64]` in the arm64 one) and lays a `deb822` file naming the same
+    // suite under `chrome-repo/deb/` next to it, so this row stands for both architectures, which
+    // one URL serves. The key is the one of every Google Linux package. The repository publishes no
+    // DEP-11 metadata and no `Contents` index (both answer 404), so the synchronization reads no
+    // application out of it and its packages are linked to the applications by name instead, the
+    // way the Brave deb packages are linked
+    name: 'Google Chrome for Debian and Ubuntu',
+    type: 'deb',
+    source: 'vendor',
+    baseUrl: 'deb [arch=amd64,arm64] https://dl.google.com/linux/chrome/deb/ stable main',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'Debian', version: '12', arch: 'x86_64' },
+      { name: 'Debian', version: '12', arch: 'aarch64' },
+      { name: 'Debian', version: '13', arch: 'x86_64' },
+      { name: 'Debian', version: '13', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'aarch64' },
+    ],
+    configContent: 'deb [arch=amd64,arm64] https://dl.google.com/linux/chrome/deb/ stable main',
+    installScript:
+      'wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo tee /etc/apt/trusted.gpg.d/google.asc >/dev/null && echo "deb [arch=amd64,arm64] https://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list',
+  },
+  {
+    // Chrome publishes one flat rpm repository per architecture, and its rpm writes the repository
+    // file on installation: the yum family gets `/etc/yum.repos.d/google-chrome.repo` and the SUSE
+    // family `/etc/zypp/repos.d/google-chrome.repo`, which differ in their `autorefresh`, `type`
+    // and `keeppackages` lines only, so this row carries the one the yum family gets, the way the
+    // Opera row does. The repository publishes a file list, which names the metadata file of every
+    // channel (`/usr/share/appdata/google-chrome.appdata.xml` and the ones of the beta, canary and
+    // unstable channels), so the synchronization reads those applications out of the packages
+    name: 'Google Chrome for Fedora, RHEL and SUSE (x86_64)',
+    type: 'rpm',
+    source: 'vendor',
+    baseUrl: 'https://dl.google.com/linux/chrome/rpm/stable/x86_64/',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
+      { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '43', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '44', arch: 'x86_64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'x86_64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'x86_64' },
+    ],
+    configContent: `[google-chrome]
+name=google-chrome
+baseurl=https://dl.google.com/linux/chrome/rpm/stable/x86_64
+enabled=1
+gpgcheck=1
+gpgkey=https://dl.google.com/linux/linux_signing_key.pub
+`,
+  },
+  {
+    name: 'Google Chrome for Fedora, RHEL and SUSE (aarch64)',
+    type: 'rpm',
+    source: 'vendor',
+    baseUrl: 'https://dl.google.com/linux/chrome/rpm/stable/aarch64/',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
+      { name: 'CentOS Stream', version: '10', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '43', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '44', arch: 'aarch64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'aarch64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'aarch64' },
+    ],
+    configContent: `[google-chrome]
+name=google-chrome
+baseurl=https://dl.google.com/linux/chrome/rpm/stable/aarch64
+enabled=1
+gpgcheck=1
+gpgkey=https://dl.google.com/linux/linux_signing_key.pub
 `,
   },
 ]

@@ -44,13 +44,22 @@ export default class PkgsController {
     if (distroId) {
       // A distribution is served by its repositories, which hold the packages of its own
       // architecture, along with the packages that carry no machine code and belong to every
-      // architecture of it. The repositories are read as a subquery, which the database resolves
-      // once: written as a nested `whereHas` it re-reads the link of every package instead, and
-      // written as a list of ids it stops using the subquery and scans the packages one by one.
+      // architecture of it. The release it is binary compatible with is read with it: the packages
+      // built for either of them install on both, and the two are of one architecture, so a release
+      // that continues another one is listed with the packages of the release it continues (a Linux
+      // Mint reads what Ubuntu and its vendors publish, without either of them naming it). The
+      // repositories are read as a subquery, which the database resolves once: written as a nested
+      // `whereHas` it re-reads the link of every package instead, and written as a list of ids it
+      // stops using the subquery and scans the packages one by one.
       const distro = await Distro.find(distroId)
       if (distro) {
+        const releases = [
+          distro.id,
+          ...(distro.compatibleDistroId ? [distro.compatibleDistroId] : []),
+        ]
+
         pkgsQuery.whereHas('repo', (query) =>
-          query.whereHas('distros', (builder) => builder.where('distros.id', distro.id)),
+          query.whereHas('distros', (builder) => builder.whereIn('distros.id', releases)),
         )
         pkgsQuery.where((query) => {
           query
