@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { prefixedUrlKeys } from '../searchParams'
 import { emptyDistroFilters, type Distro, type DistroFilters } from '../services/distros'
 import type { Paginated } from '../types/pagination'
 import { formatCount, formatDate } from '../utils/format'
@@ -12,12 +13,16 @@ import DistroRelease from './DistroRelease'
 
 import styles from './DistroTable.module.css'
 
+/** Names the parameters of the table are kept in the query string under. */
+const paramNames = ['arch', 'page'] as const
+
 /** Architecture a listing starts at, which most releases of the catalog are published for. */
 const defaultArch = 'x86_64'
 
 /**
  * Value the cleared filter leaves in the query string: a parameter that is not there reads the
- * architecture a listing starts at, so every architecture at once needs a value of its own.
+ * architecture a listing starts at, so a listing that starts at one architecture needs a value of
+ * its own for every release at once.
  */
 const anyArch = 'all'
 
@@ -44,17 +49,26 @@ type DistroTableProps = {
    * out, and the table then lists every release the page is about.
    */
   hideFilters?: boolean
+  /**
+   * Architecture the table starts at, which a page whose releases do not follow one architecture
+   * leaves empty: what it lists — the releases a repository serves — are all of them, whatever they
+   * were built for, and the toolbar narrows them from there.
+   */
+  initialArch?: string | null
   /** Admin controls of a row, such as its edit and delete buttons; without them there is no column. */
   renderActions?: (distro: Distro) => ReactNode
   /** What clicking a row opens, usually the detail page; rows that open nothing are plain text. */
   onRowClick?: (distro: Distro) => void
+  /** Prefix the parameters carry, on a page that shows several listings at once. */
+  paramPrefix?: string
 }
 
 /**
  * Table of distribution releases, which reads them itself and narrows them by the architecture its
  * toolbar holds — kept in the query string, so that a narrowed table can be shared and reloaded:
- * shared by the distribution listing and the search results. A listing starts at the architecture
- * most releases are published for, and clearing the filter reads every architecture at once.
+ * shared by the distribution listing, the search results and the detail page of a repository. A
+ * listing starts at the architecture most releases are published for — unless its page says
+ * otherwise — and clearing the filter reads every architecture at once.
  */
 export default function DistroTable({
   load,
@@ -62,8 +76,10 @@ export default function DistroTable({
   errorMessage,
   extraFilters,
   hideFilters = false,
+  initialArch = defaultArch,
   renderActions,
   onRowClick,
+  paramPrefix = '',
 }: DistroTableProps) {
   const { t, i18n } = useTranslation()
   const [result, setResult] = useState<Paginated<Distro> | null>(null)
@@ -72,13 +88,16 @@ export default function DistroTable({
   // The architecture the toolbar narrows the listing to, which the API reads, and the page of the
   // listing the reader is on; both are kept in the query string so that a narrowed table can be
   // shared and reloaded
-  const [{ arch: archParam, page }, setParams] = useQueryStates({
-    arch: parseAsString,
-    page: parseAsInteger.withDefault(1),
-  })
+  const [{ arch: archParam, page }, setParams] = useQueryStates(
+    {
+      arch: parseAsString,
+      page: parseAsInteger.withDefault(1),
+    },
+    { urlKeys: prefixedUrlKeys(paramPrefix, paramNames) },
+  )
   // What the page is read with, held as one value so that it is read again for a change of what
   // narrows it, and for nothing else
-  const arch = archParam === anyArch ? null : (archParam ?? defaultArch)
+  const arch = archParam === anyArch ? null : (archParam ?? initialArch)
   const filters = useMemo<DistroFilters>(
     () => (hideFilters ? emptyDistroFilters : { ...emptyDistroFilters, arch }),
     [arch, hideFilters],

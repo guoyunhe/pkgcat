@@ -51,10 +51,12 @@ export type DistroFilters = {
   arch: string | null
   /** Search terms, which a release is found by its name, version, architecture and format. */
   q: string
+  /** Repository the entries are served by, which the detail page of one reads. */
+  repoId: number | null
 }
 
 /** Listing with nothing set, which a page without the filter reads its entries with. */
-export const emptyDistroFilters: DistroFilters = { arch: null, q: '' }
+export const emptyDistroFilters: DistroFilters = { arch: null, q: '', repoId: null }
 
 /**
  * One page of the distribution listing, which the API pages ten entries at a time; a caller that
@@ -70,7 +72,14 @@ export async function getDistros(
   perPage?: number,
 ) {
   const { data } = await api.get<SerializedPaginated<Distro>>('/distros', {
-    params: { page, perPage, sort, q: filters.q || undefined, arch: filters.arch },
+    params: {
+      page,
+      perPage,
+      sort,
+      q: filters.q || undefined,
+      arch: filters.arch,
+      repoId: filters.repoId,
+    },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Distro>
 }

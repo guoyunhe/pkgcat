@@ -1,6 +1,6 @@
 import vine from '@vinejs/vine'
 
-import { firstValue, knownValue, pageNumber, pageSize } from '#utils/query_params'
+import { firstValue, knownValue, pageNumber, pageSize, positiveInteger } from '#utils/query_params'
 import { pkgTypes } from '#validators/pkg'
 
 /**
@@ -72,4 +72,12 @@ export const distroListValidator = vine.create({
   q: vine.string().parse(firstValue).toLowerCase().optional(),
   /** Architecture the listing is narrowed to; a request without one reads every entry. */
   arch: vine.string().parse(firstValue).optional(),
+  /**
+   * Repository whose releases are read, which the detail page of one lists: they are the releases
+   * that repository serves. A value that is not one widens the listing to every release.
+   */
+  repoId: vine
+    .number()
+    .parse((value) => positiveInteger(firstValue(value)))
+    .optional(),
 })

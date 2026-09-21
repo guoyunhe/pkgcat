@@ -7,7 +7,6 @@ import {
   DataList,
   Group,
   Loader,
-  Stack,
   Tabs,
   Text,
   Title,
@@ -22,8 +21,9 @@ import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
 import CountBadge from '../components/CountBadge'
-import DistroRelease from '../components/DistroRelease'
+import DistroTable from '../components/DistroTable'
 import PkgList from '../components/PkgList'
+import { getDistros, type DistroFilters } from '../services/distros'
 import { deleteRepo, getRepo, getRepoPackages } from '../services/repos'
 import { formatCount } from '../utils/format'
 
@@ -51,6 +51,15 @@ export default function RepoDetailPage() {
     (page: number) =>
       repoId ? getRepoPackages(repoId, page, i18n.language) : Promise.resolve(null),
     [repoId, i18n.language],
+  )
+
+  // The releases the repository serves, which the table lists the way every distribution listing
+  // does — narrowed by architecture, ordered by name. The repository is fixed by the page, so only
+  // what the table holds itself is read from it
+  const readDistros = useCallback(
+    (page: number, filters: DistroFilters) =>
+      repoId ? getDistros('name', { ...filters, repoId }, page) : Promise.resolve(null),
+    [repoId],
   )
 
   useEffect(() => {
@@ -245,24 +254,17 @@ export default function RepoDetailPage() {
         </Tabs.Panel>
 
         <Tabs.Panel pt='lg' value='distros'>
-          {repo.distros.length === 0 ? (
-            <Text c='dimmed'>{t('repos.detail.noDistros')}</Text>
-          ) : (
-            // Every architecture of a release is an entry of its own, and the repository serves all
-            // of them
-            <Stack gap={4}>
-              {repo.distros.map((distro) => (
-                <Anchor
-                  className={styles.namedLink}
-                  component={Link}
-                  href={`/distros/${distro.id}`}
-                  key={distro.id}
-                >
-                  <DistroRelease distro={distro} />
-                </Anchor>
-              ))}
-            </Stack>
-          )}
+          {/* The packages are listed beside these, so the parameters of this table carry a prefix of
+              their own: the page of one listing is not read as the page of the other. The releases
+              it lists are the ones the repository serves, which are all of them whatever they were
+              built for, so nothing is narrowed away before the reader narrows it */}
+          <DistroTable
+            emptyMessage={t('repos.detail.noDistros')}
+            initialArch={null}
+            load={readDistros}
+            onRowClick={(distro) => navigate(`/distros/${distro.id}`)}
+            paramPrefix='distros'
+          />
         </Tabs.Panel>
       </Tabs>
     </Container>

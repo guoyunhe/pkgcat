@@ -13,7 +13,8 @@ function toDateTime(value: string | null) {
 
 export default class DistrosController {
   async index({ request, serialize }: HttpContext) {
-    const { page, perPage, sort, q, arch } = await request.validateUsing(distroListValidator)
+    const { page, perPage, sort, q, arch, repoId } =
+      await request.validateUsing(distroListValidator)
     // The counts a listing shows are stored with the entry it lists (`Distro.pkgCount` and
     // `Distro.appCount`, written by the synchronization that changes the packages), so the entries a
     // page holds and the counts they show are read together, and the order by a count is the order
@@ -34,6 +35,8 @@ export default class DistrosController {
     query.orderBy('name').orderBy('releaseDate', 'desc').orderBy('arch')
     if (q) query.apply((scopes) => scopes.search(q))
     if (arch) query.where('arch', arch)
+    // The releases one repository serves, which its detail page lists
+    if (repoId) query.whereHas('repos', (repos) => repos.where('repos.id', repoId))
 
     // A listing that asked for no page size receives every release, which the pagination of the
     // database cannot express; the others are paged by it
