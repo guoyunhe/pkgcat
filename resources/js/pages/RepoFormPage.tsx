@@ -181,13 +181,7 @@ export default function RepoFormPage() {
             error={form.errors.distroIds}
           />
 
-          <Textarea
-            autosize
-            label={t('repos.fields.configUrl')}
-            maxRows={6}
-            minRows={2}
-            {...form.getInputProps('configUrl')}
-          />
+          <TextInput label={t('repos.fields.configUrl')} {...form.getInputProps('configUrl')} />
 
           <Textarea
             autosize
