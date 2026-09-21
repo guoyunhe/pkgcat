@@ -57,6 +57,16 @@ class DownloadError extends Error {
 export type DownloadOptions = { optional?: boolean }
 
 /**
+ * Statuses that mean a file cannot be had at all, which is how the metadata only some repositories
+ * publish is asked for: a path a repository does not have is answered with 404, or with 410 when it
+ * was removed. A path the server refuses to hand over is read the same way, because a repository
+ * may be served through a filter that blocks whole directory names — every path under the `dep11`
+ * directory of `packages.microsoft.com` answers 403 — and a catalog that cannot read the metadata
+ * of a repository is read without it, rather than not at all.
+ */
+const absentStatuses = [403, 404, 410]
+
+/**
  * Read a file of a repository into memory. A file a repository does not publish is `null` when
  * `optional` is set, which is how the metadata repositories only some of them carry is asked for.
  */
@@ -70,8 +80,7 @@ async function readFile(url: string, options: DownloadOptions): Promise<Buffer |
   const response = await openResponse(url)
   const status = response.statusCode ?? 0
 
-  // A path a repository does not have is answered with 404, or with 410 when it was removed
-  if (options.optional && (status === 404 || status === 410)) {
+  if (options.optional && absentStatuses.includes(status)) {
     response.resume()
     return null
   }

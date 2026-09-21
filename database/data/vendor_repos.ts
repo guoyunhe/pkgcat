@@ -778,4 +778,97 @@ gpgcheck=1
 gpgkey=https://dl.google.com/linux/linux_signing_key.pub
 `,
   },
+  {
+    // Visual Studio Code for the Debian based releases comes from the apt repository Microsoft
+    // publishes its Linux packages in, whose suite is `stable` and whose component is `main`. The
+    // manual documents the source as a `deb822` file (`/etc/apt/sources.list.d/vscode.sources`)
+    // that names the architectures `amd64,arm64,armhf` and the key under
+    // `/usr/share/keyrings/microsoft.gpg`; the package installs it itself, for the one
+    // architecture it is built for, and the classic form its postinst names
+    // (`deb [arch=amd64] https://packages.microsoft.com/repos/code stable main`) is what this row
+    // stores, the way the Chrome row stores the line of its own package. The suite publishes every
+    // version it keeps of the stable, insiders and exploration channels of amd64, arm64 and armhf
+    // (359 index entries for amd64, 360 for arm64), of which the catalog serves the two that a
+    // release of its own states. It publishes no AppStream metadata: the `dep11` directory of the
+    // suite is refused by the server (403) and its `Contents` index is not there (404), so the
+    // synchronization reads no application out of it and its packages are linked to the
+    // applications by name instead, the way the Brave and Chrome deb packages are linked
+    name: 'Visual Studio Code for Debian and Ubuntu',
+    type: 'deb',
+    source: 'vendor',
+    baseUrl:
+      'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'Debian', version: '12', arch: 'x86_64' },
+      { name: 'Debian', version: '12', arch: 'aarch64' },
+      { name: 'Debian', version: '13', arch: 'x86_64' },
+      { name: 'Debian', version: '13', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'aarch64' },
+    ],
+    configContent:
+      'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main',
+    installScript:
+      'wget -qO- https://packages.microsoft.com/keys/microsoft.asc | sudo gpg --dearmor -o /usr/share/keyrings/microsoft.gpg && echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list',
+  },
+  {
+    // Visual Studio Code for the RPM based releases comes from the yum repository Microsoft
+    // publishes its packages in, which keeps the packages of every architecture of every channel
+    // in one flat directory (`Packages/`), so one row of this catalog serves both architectures
+    // that a release states, the way the Opera rpm row does. The manual documents the repository
+    // file of the yum family and the one of the SUSE family, which are the same file written to
+    // `/etc/yum.repos.d/vscode.repo` and `/etc/zypp/repos.d/vscode.repo`, so this row carries it
+    // once. Its `repomd.xml` names primary, file lists and other metadata but no AppStream catalog,
+    // so the applications are read from the file lists instead, which name the metadata file of
+    // every channel (`/usr/share/appdata/code.appdata.xml`, and the ones of the insiders, the
+    // exploration and the `com.microsoft.VSCodeInsiders` IDs), the way the Chrome rpm row reads
+    // them. The packages are built for RHEL 8 (`libc.so.6(GLIBC_2.28)`), which every release
+    // linked here provides, and the repository publishes the armv7hl packages of the same channels
+    // next to the x86_64 and aarch64 ones, which no release of this catalog installs
+    name: 'Visual Studio Code for Fedora, RHEL and SUSE',
+    type: 'rpm',
+    source: 'vendor',
+    baseUrl: 'https://packages.microsoft.com/yumrepos/vscode/',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
+      { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
+      { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
+      { name: 'CentOS Stream', version: '10', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '43', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '43', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '44', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '44', arch: 'aarch64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'x86_64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'aarch64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'x86_64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'aarch64' },
+    ],
+    configContent: `[code]
+name=Visual Studio Code
+baseurl=https://packages.microsoft.com/yumrepos/vscode
+enabled=1
+autorefresh=1
+type=rpm-md
+gpgcheck=1
+gpgkey=https://packages.microsoft.com/keys/microsoft.asc
+`,
+    installScript:
+      'sudo rpm --import https://packages.microsoft.com/keys/microsoft.asc && echo -e "[code]\\nname=Visual Studio Code\\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\\nenabled=1\\nautorefresh=1\\ntype=rpm-md\\ngpgcheck=1\\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null',
+  },
 ]
