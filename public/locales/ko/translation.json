@@ -81,6 +81,8 @@
     "yourRating": "내 평점",
     "comment": "댓글",
     "commentPlaceholder": "이 앱을 써 본 느낌을 남겨 주세요 (선택)",
+    "language": "리뷰 언어",
+    "languageHint": "리뷰를 작성한 언어이며, 읽는 사람이 이 언어로 걸러 볼 수 있습니다.",
     "submit": "리뷰 등록",
     "submitError": "리뷰를 등록할 수 없습니다",
     "delete": "리뷰 삭제",
@@ -88,6 +90,8 @@
     "deleteError": "리뷰를 삭제할 수 없습니다",
     "loadError": "리뷰를 불러올 수 없습니다",
     "empty": "아직 리뷰가 없습니다.",
+    "filterAnyLanguage": "모든 언어",
+    "filterEmpty": "이 언어로 작성된 리뷰가 없습니다.",
     "deletedUser": "삭제된 사용자"
   },
   "profile": {

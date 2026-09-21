@@ -318,7 +318,7 @@ export class RepoSchema extends BaseModel {
 }
 
 export class ReviewSchema extends BaseModel {
-  static $columns = ['appId', 'comment', 'createdAt', 'distroId', 'id', 'rating', 'updatedAt', 'userId'] as const
+  static $columns = ['appId', 'comment', 'createdAt', 'distroId', 'id', 'locale', 'rating', 'updatedAt', 'userId'] as const
   $columns = ReviewSchema.$columns
   @column()
   declare appId: number
@@ -330,6 +330,8 @@ export class ReviewSchema extends BaseModel {
   declare distroId: number | null
   @column({ isPrimary: true })
   declare id: number
+  @column()
+  declare locale: string
   @column()
   declare rating: number
   @column.dateTime({ autoCreate: true, autoUpdate: true })

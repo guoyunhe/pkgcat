@@ -81,6 +81,8 @@
     "yourRating": "Tu valoración",
     "comment": "Comentario",
     "commentPlaceholder": "Cuenta tu experiencia con esta aplicación (opcional)",
+    "language": "Idioma de la reseña",
+    "languageHint": "El idioma en el que escribiste la reseña, con el que los lectores pueden filtrar.",
     "submit": "Enviar reseña",
     "submitError": "No se pudo enviar la reseña",
     "delete": "Eliminar reseña",
@@ -88,6 +90,8 @@
     "deleteError": "No se pudo eliminar la reseña",
     "loadError": "No se pudieron cargar las reseñas",
     "empty": "Todavía no hay reseñas.",
+    "filterAnyLanguage": "Todos los idiomas",
+    "filterEmpty": "No hay reseñas en este idioma.",
     "deletedUser": "Usuario eliminado"
   },
   "profile": {

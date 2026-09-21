@@ -81,6 +81,8 @@
     "yourRating": "La tua valutazione",
     "comment": "Commento",
     "commentPlaceholder": "Racconta la tua esperienza con questa applicazione (facoltativo)",
+    "language": "Lingua della recensione",
+    "languageHint": "La lingua in cui hai scritto la recensione, con cui i lettori possono filtrare.",
     "submit": "Invia recensione",
     "submitError": "Impossibile inviare la recensione",
     "delete": "Elimina recensione",
@@ -88,6 +90,8 @@
     "deleteError": "Impossibile eliminare la recensione",
     "loadError": "Impossibile caricare le recensioni",
     "empty": "Ancora nessuna recensione.",
+    "filterAnyLanguage": "Tutte le lingue",
+    "filterEmpty": "Nessuna recensione in questa lingua.",
     "deletedUser": "Utente eliminato"
   },
   "profile": {

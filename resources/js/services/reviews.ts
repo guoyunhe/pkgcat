@@ -15,18 +15,35 @@ export type ReviewPayload = {
   rating: number
   comment?: string
   distroId: number | null
+  /** Language the review is written in, which the interface of the reviewer names by default. */
+  locale: string | null
 }
 
-export async function getAppReviews(appId: number, page = 1, locale?: string) {
+/** What a listing of reviews is narrowed by: the language the reviews were written in. */
+export type ReviewFilters = {
+  reviewLocale: string | null
+}
+
+export async function getAppReviews(
+  appId: number,
+  page: number,
+  filters: ReviewFilters,
+  locale?: string,
+) {
   const { data } = await api.get<SerializedPaginated<Data.Review>>(`/apps/${appId}/reviews`, {
-    params: { page, locale },
+    params: { page, locale, reviewLocale: filters.reviewLocale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Review>
 }
 
-export async function getUserReviews(userId: number, page = 1, locale?: string) {
+export async function getUserReviews(
+  userId: number,
+  page: number,
+  filters: ReviewFilters,
+  locale?: string,
+) {
   const { data } = await api.get<SerializedPaginated<Data.Review>>(`/users/${userId}/reviews`, {
-    params: { page, locale },
+    params: { page, locale, reviewLocale: filters.reviewLocale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Review>
 }

@@ -81,6 +81,8 @@
     "yourRating": "你的評分",
     "comment": "評論內容",
     "commentPlaceholder": "分享你對該應用程式的使用體驗（選填）",
+    "language": "評論語言",
+    "languageHint": "你撰寫這則評論所用的語言，其他讀者可以依語言篩選。",
     "submit": "提交評論",
     "submitError": "無法提交評論",
     "delete": "刪除評論",
@@ -88,6 +90,8 @@
     "deleteError": "無法刪除評論",
     "loadError": "無法載入評論清單",
     "empty": "尚無評論。",
+    "filterAnyLanguage": "全部語言",
+    "filterEmpty": "尚無該語言的評論。",
     "deletedUser": "已註銷使用者"
   },
   "profile": {

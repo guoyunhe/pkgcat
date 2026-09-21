@@ -5,41 +5,40 @@ import Review from '#models/review'
 import User from '#models/user'
 import { attachTranslations } from '#services/app_translations'
 import ReviewTransformer from '#transformers/review_transformer'
-import { reviewValidator } from '#validators/review'
+import { reviewListValidator, reviewValidator } from '#validators/review'
 
 export default class ReviewsController {
   async index({ params, request, serialize }: HttpContext) {
     await App.findOrFail(params.app_id)
-    const page = this.positiveInteger(request.input('page'), 1)
-    const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
+    const { page, perPage, reviewLocale } = await request.validateUsing(reviewListValidator)
 
-    const paginator = await Review.query()
+    const query = Review.query()
       .where('appId', params.app_id)
       .preload('user', (userQuery) => userQuery.preload('avatar'))
       .preload('distro')
       .orderBy('createdAt', 'desc')
-      .paginate(page, perPage)
+    if (reviewLocale) query.where('locale', reviewLocale)
 
+    const paginator = await query.paginate(page, perPage)
     return serialize(ReviewTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
   async userIndex({ params, request, serialize }: HttpContext) {
     await User.findOrFail(params.id)
-    const page = this.positiveInteger(request.input('page'), 1)
-    const perPage = Math.min(this.positiveInteger(request.input('perPage'), 12), 50)
+    const { locale, page, perPage, reviewLocale } = await request.validateUsing(reviewListValidator)
 
-    const paginator = await Review.query()
+    const query = Review.query()
       .where('userId', params.id)
       .preload('app')
       .preload('user', (userQuery) => userQuery.preload('avatar'))
       .preload('distro')
       .orderBy('createdAt', 'desc')
-      .paginate(page, perPage)
+    if (reviewLocale) query.where('locale', reviewLocale)
 
-    const locale = request.input('locale')
+    const paginator = await query.paginate(page, perPage)
     await attachTranslations(
       paginator.all().flatMap((review) => (review.app ? [review.app] : [])),
-      typeof locale === 'string' ? locale : null,
+      locale,
     )
     return serialize(ReviewTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
@@ -55,6 +54,7 @@ export default class ReviewsController {
         rating: payload.rating,
         comment: payload.comment?.trim() || null,
         distroId: payload.distroId,
+        locale: payload.locale,
       },
     )
     await review.load('user', (userQuery) => userQuery.preload('avatar'))
@@ -76,10 +76,5 @@ export default class ReviewsController {
 
     await review.delete()
     return response.noContent()
-  }
-
-  private positiveInteger(value: unknown, fallback: number) {
-    const parsed = Number(value)
-    return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
   }
 }

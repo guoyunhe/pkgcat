@@ -47,7 +47,7 @@ export default class ReviewSeeder extends BaseSeeder {
 
         await Review.updateOrCreate(
           { userId: user.id, appId: app.id },
-          { rating: review.rating, comment: review.comment, distroId },
+          { rating: review.rating, comment: review.comment, distroId, locale: review.locale },
         )
       }
     }

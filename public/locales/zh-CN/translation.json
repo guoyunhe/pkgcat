@@ -81,6 +81,8 @@
     "yourRating": "你的评分",
     "comment": "评价内容",
     "commentPlaceholder": "分享你对该应用的使用体验（可选）",
+    "language": "评价语言",
+    "languageHint": "你撰写这条评价所用的语言，其他读者可以按语言筛选。",
     "submit": "提交评价",
     "submitError": "无法提交评价",
     "delete": "删除评价",
@@ -88,6 +90,8 @@
     "deleteError": "无法删除评价",
     "loadError": "无法加载评价列表",
     "empty": "暂无评价。",
+    "filterAnyLanguage": "全部语言",
+    "filterEmpty": "暂无该语言的评价。",
     "deletedUser": "已注销用户"
   },
   "profile": {

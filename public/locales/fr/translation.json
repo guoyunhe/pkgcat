@@ -81,6 +81,8 @@
     "yourRating": "Votre note",
     "comment": "Commentaire",
     "commentPlaceholder": "Partagez votre expérience avec cette application (facultatif)",
+    "language": "Langue de l’avis",
+    "languageHint": "La langue dans laquelle vous avez écrit votre avis, sur laquelle les lecteurs peuvent filtrer.",
     "submit": "Publier l’avis",
     "submitError": "Impossible de publier l’avis",
     "delete": "Supprimer l’avis",
@@ -88,6 +90,8 @@
     "deleteError": "Impossible de supprimer l’avis",
     "loadError": "Impossible de charger les avis",
     "empty": "Aucun avis pour le moment.",
+    "filterAnyLanguage": "Toutes les langues",
+    "filterEmpty": "Aucun avis dans cette langue.",
     "deletedUser": "Utilisateur supprimé"
   },
   "profile": {

@@ -122,9 +122,9 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/review').reviewListValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['userIndex']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['userIndex']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['userIndex']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'apps.index': {
@@ -254,9 +254,9 @@ export interface Registry {
       body: {}
       paramsTuple: [ParamValue]
       params: { app_id: ParamValue }
-      query: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/review').reviewListValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['index']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/reviews_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'apps.reviews.store': {

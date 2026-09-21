@@ -81,6 +81,8 @@
     "yourRating": "Ihre Bewertung",
     "comment": "Kommentar",
     "commentPlaceholder": "Teilen Sie Ihre Erfahrung mit dieser Anwendung (optional)",
+    "language": "Sprache der Bewertung",
+    "languageHint": "Die Sprache, in der Sie die Bewertung geschrieben haben; Leser filtern damit.",
     "submit": "Bewertung abschicken",
     "submitError": "Die Bewertung konnte nicht abgeschickt werden",
     "delete": "Bewertung löschen",
@@ -88,6 +90,8 @@
     "deleteError": "Die Bewertung konnte nicht gelöscht werden",
     "loadError": "Bewertungen konnten nicht geladen werden",
     "empty": "Noch keine Bewertungen.",
+    "filterAnyLanguage": "Alle Sprachen",
+    "filterEmpty": "Keine Bewertungen in dieser Sprache.",
     "deletedUser": "Gelöschter Benutzer"
   },
   "profile": {

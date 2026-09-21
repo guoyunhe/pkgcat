@@ -81,6 +81,8 @@
     "yourRating": "Your rating",
     "comment": "Comment",
     "commentPlaceholder": "Share your experience with this application (optional)",
+    "language": "Review language",
+    "languageHint": "The language you wrote your review in, which readers of it filter by.",
     "submit": "Submit review",
     "submitError": "Unable to submit review",
     "delete": "Delete review",
@@ -88,6 +90,8 @@
     "deleteError": "Unable to delete review",
     "loadError": "Unable to load reviews",
     "empty": "No reviews yet.",
+    "filterAnyLanguage": "Any language",
+    "filterEmpty": "No reviews in this language.",
     "deletedUser": "Deleted user"
   },
   "profile": {

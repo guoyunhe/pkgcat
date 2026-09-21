@@ -1,15 +1,5 @@
 import type { Data } from '@generated/data'
-import {
-  Alert,
-  Button,
-  Container,
-  DataList,
-  Group,
-  Loader,
-  Pagination,
-  Text,
-  Title,
-} from '@mantine/core'
+import { Alert, Button, Container, DataList, Group, Loader, Text, Title } from '@mantine/core'
 import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
@@ -32,8 +22,7 @@ import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
 import { deleteApp, getApp, getAppPackages } from '../services/apps'
 import type { PkgFilters } from '../services/pkgs'
-import { deleteReview, getAppReviews } from '../services/reviews'
-import type { Paginated } from '../types/pagination'
+import { deleteReview, getAppReviews, type ReviewFilters } from '../services/reviews'
 import {
   localized,
   parseAppStreamContent,
@@ -54,11 +43,8 @@ export default function AppDetailPage() {
   const [app, setApp] = useState<Data.App | null>(null)
   const [packagesRefresh, setPackagesRefresh] = useState(0)
   const [error, setError] = useState<string | null>(null)
-  const [reviews, setReviews] = useState<Paginated<Data.Review> | null>(null)
-  const [reviewsPage, setReviewsPage] = useState(1)
-  const [reviewsLoading, setReviewsLoading] = useState(true)
-  const [reviewsError, setReviewsError] = useState<string | null>(null)
   const [reviewsRefresh, setReviewsRefresh] = useState(0)
+  const [reviewsError, setReviewsError] = useState<string | null>(null)
   const [deletingReviewId, setDeletingReviewId] = useState<number | null>(null)
   const component = useMemo(
     () => parseAppStreamContent(app?.appstreamContent),
@@ -68,6 +54,12 @@ export default function AppDetailPage() {
   const readPkgs = useCallback(
     (page: number, filters: PkgFilters) =>
       appId ? getAppPackages(appId, page, filters, i18n.language) : Promise.resolve(null),
+    [appId, i18n.language],
+  )
+  // The reviews of the application, narrowed by the language the list is set to
+  const readReviews = useCallback(
+    (page: number, filters: ReviewFilters) =>
+      appId ? getAppReviews(appId, page, filters, i18n.language) : Promise.resolve(null),
     [appId, i18n.language],
   )
 
@@ -82,19 +74,6 @@ export default function AppDetailPage() {
         setError(reason instanceof Error ? reason.message : t('common.loadAppError')),
       )
   }, [appId, i18n.language])
-
-  useEffect(() => {
-    if (!appId) return
-
-    setReviewsLoading(true)
-    setReviewsError(null)
-    getAppReviews(appId, reviewsPage, i18n.language)
-      .then(setReviews)
-      .catch((reason) =>
-        setReviewsError(reason instanceof Error ? reason.message : t('reviews.loadError')),
-      )
-      .finally(() => setReviewsLoading(false))
-  }, [appId, i18n.language, reviewsPage, reviewsRefresh])
 
   if (error) {
     return (
@@ -136,7 +115,7 @@ export default function AppDetailPage() {
   }
 
   function handleReviewSubmitted() {
-    setReviewsPage(1)
+    setReviewsError(null)
     setReviewsRefresh((value) => value + 1)
   }
 
@@ -151,6 +130,7 @@ export default function AppDetailPage() {
       confirmProps: { color: 'red' },
       labels: { cancel: t('common.cancel'), confirm: t('common.delete') },
       onConfirm: async () => {
+        setReviewsError(null)
         setDeletingReviewId(review.id)
         try {
           await deleteReview(app!.id, review.id)
@@ -348,22 +328,15 @@ export default function AppDetailPage() {
         <Title order={2}>{t('reviews.title')}</Title>
         <ReviewForm appId={app.id} onSubmitted={handleReviewSubmitted} />
         {reviewsError && <Alert color='red'>{reviewsError}</Alert>}
-        {reviewsLoading ? (
-          <div className={styles.packagesLoading}>
-            <Loader color='orange' size='sm' />
-          </div>
-        ) : reviews ? (
-          <ReviewList
-            currentUserId={user?.id}
-            deletingId={deletingReviewId}
-            language={i18n.language}
-            onDelete={handleDeleteReview}
-            onPageChange={setReviewsPage}
-            page={reviewsPage}
-            reviews={reviews}
-            variant='app'
-          />
-        ) : null}
+        <ReviewList
+          currentUserId={user?.id}
+          deletingId={deletingReviewId}
+          language={i18n.language}
+          load={readReviews}
+          onDelete={handleDeleteReview}
+          refreshKey={reviewsRefresh}
+          variant='app'
+        />
       </section>
     </Container>
   )

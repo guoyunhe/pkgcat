@@ -81,6 +81,8 @@
     "yourRating": "Sua avaliação",
     "comment": "Comentário",
     "commentPlaceholder": "Conte sua experiência com este aplicativo (opcional)",
+    "language": "Idioma da avaliação",
+    "languageHint": "O idioma em que você escreveu a avaliação, pelo qual os leitores podem filtrar.",
     "submit": "Enviar avaliação",
     "submitError": "Não foi possível enviar a avaliação",
     "delete": "Excluir avaliação",
@@ -88,6 +90,8 @@
     "deleteError": "Não foi possível excluir a avaliação",
     "loadError": "Não foi possível carregar as avaliações",
     "empty": "Ainda não há avaliações.",
+    "filterAnyLanguage": "Todos os idiomas",
+    "filterEmpty": "Não há avaliações neste idioma.",
     "deletedUser": "Usuário excluído"
   },
   "profile": {

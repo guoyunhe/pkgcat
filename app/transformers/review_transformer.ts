@@ -10,7 +10,15 @@ export default class ReviewTransformer extends BaseTransformer<Review> {
   toObject() {
     const user = this.resource.user
     return {
-      ...this.pick(this.resource, ['id', 'rating', 'comment', 'createdAt', 'updatedAt']),
+      ...this.pick(this.resource, [
+        'id',
+        'rating',
+        'comment',
+        // The language the review is written in, when its author named one
+        'locale',
+        'createdAt',
+        'updatedAt',
+      ]),
       user: user
         ? {
             id: user.id,

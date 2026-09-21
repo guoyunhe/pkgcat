@@ -81,6 +81,8 @@
     "yourRating": "あなたの評価",
     "comment": "コメント",
     "commentPlaceholder": "このアプリの感想を書いてください（任意）",
+    "language": "レビューの言語",
+    "languageHint": "レビューを書いた言語です。読む人はこの言語で絞り込めます。",
     "submit": "レビューを投稿",
     "submitError": "レビューを投稿できません",
     "delete": "レビューを削除",
@@ -88,6 +90,8 @@
     "deleteError": "レビューを削除できません",
     "loadError": "レビューを読み込めません",
     "empty": "まだレビューはありません。",
+    "filterAnyLanguage": "すべての言語",
+    "filterEmpty": "この言語のレビューはありません。",
     "deletedUser": "削除されたユーザー"
   },
   "profile": {

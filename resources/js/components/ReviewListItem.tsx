@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
 import { localized } from '../utils/appstream'
+import { languageLabel } from '../utils/languages'
 import DistroRelease from './DistroRelease'
 import UserAvatar from './UserAvatar'
 
@@ -70,6 +71,11 @@ export default function ReviewListItem({
               {review.distro && (
                 <Text c='dimmed' component='span' size='xs'>
                   <DistroRelease distro={review.distro} showArch />
+                </Text>
+              )}
+              {review.locale && (
+                <Text c='dimmed' component='span' size='xs'>
+                  {languageLabel(review.locale)}
                 </Text>
               )}
             </div>

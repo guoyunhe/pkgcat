@@ -1,6 +1,23 @@
+/* The field the listing is narrowed by, which sits between the form a review is written in and the
+   reviews themselves */
+.toolbar {
+  margin-top: 20px;
+}
+
 .list {
   border-top: 1px solid var(--ph-border);
   margin-top: 16px;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 48px 0;
+}
+
+.empty {
+  padding: 48px 0;
+  text-align: center;
 }
 
 .pagination {
