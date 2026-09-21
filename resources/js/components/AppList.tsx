@@ -5,6 +5,7 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { prefixedUrlKeys } from '../searchParams'
 import { appSorts, type AppSort } from '../services/apps'
 import type { Paginated } from '../types/pagination'
 import AppListItem from './AppListItem'
@@ -13,6 +14,9 @@ import AppTypeSelect from './AppTypeSelect'
 import CategoryFilter from './CategoryFilter'
 
 import styles from './AppList.module.css'
+
+/** Names the listing keeps in the query string, which a page that shows several listings prefixes. */
+const paramNames = ['category', 'page', 'sort', 'type'] as const
 
 /** What the listing is narrowed and ordered by, which its toolbar holds. */
 export type AppFilters = {
@@ -37,6 +41,8 @@ type AppListProps = {
   errorMessage?: string
   /** Extra controls per item, such as the favorite button. */
   renderActions?: (app: Data.App) => ReactNode
+  /** Prefix the parameters carry, on a page that shows several listings at once. */
+  paramPrefix?: string
 }
 
 /**
@@ -51,16 +57,20 @@ export default function AppList({
   filteredEmptyMessage,
   errorMessage,
   renderActions,
+  paramPrefix = '',
 }: AppListProps) {
   const { t } = useTranslation()
   // The filters and the page are kept in the query string: the listing is read the way the URL says
   // it is, and an order reads as no order of its own when it is the one a listing starts at
-  const [{ category, page, sort, type }, setParams] = useQueryStates({
-    category: parseAsString,
-    page: parseAsInteger.withDefault(1),
-    sort: parseAsStringLiteral(appSorts).withDefault('newest'),
-    type: parseAsString,
-  })
+  const [{ category, page, sort, type }, setParams] = useQueryStates(
+    {
+      category: parseAsString,
+      page: parseAsInteger.withDefault(1),
+      sort: parseAsStringLiteral(appSorts).withDefault('newest'),
+      type: parseAsString,
+    },
+    { urlKeys: prefixedUrlKeys(paramPrefix, paramNames) },
+  )
   // The three are what a page reads, and read as one thing they keep their identity while none of
   // them changes, which is what keeps the listing from reading again on every render
   const filters = useMemo(() => ({ category, sort, type }), [category, sort, type])

@@ -285,7 +285,8 @@
       "back": "Retour aux distributions",
       "eyebrow": "Distribution Linux",
       "noRepos": "Cette distribution n'a pas encore de dépôt.",
-      "noPackages": "Cette distribution n'a pas encore de paquet."
+      "noPackages": "Cette distribution n'a pas encore de paquet.",
+      "noApps": "Cette distribution n'a pas encore d'applications."
     },
     "columns": {
       "compatible": "Compatible (binaire)",

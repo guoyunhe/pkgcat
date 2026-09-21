@@ -289,7 +289,8 @@
       "back": "Back to distributions",
       "eyebrow": "Linux distribution",
       "noRepos": "This distribution has no repositories yet.",
-      "noPackages": "This distribution has no packages yet."
+      "noPackages": "This distribution has no packages yet.",
+      "noApps": "This distribution has no applications yet."
     },
     "columns": {
       "compatible": "Binary compatible",

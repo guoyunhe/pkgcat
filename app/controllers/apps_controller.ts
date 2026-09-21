@@ -1,10 +1,12 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
+import db from '@adonisjs/lucid/services/db'
 
 import App from '#models/app'
 import AppAlias from '#models/app_alias'
 import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
+import Distro from '#models/distro'
 import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
@@ -36,6 +38,7 @@ export default class AppsController {
       type,
       withIcon,
       category,
+      distroId,
       q: query,
       locale,
     } = await request.validateUsing(appListValidator)
@@ -97,6 +100,35 @@ export default class AppsController {
 
     if (type) appsQuery.where('apps.type', type)
     if (withIcon) appsQuery.whereNotNull('apps.icon_id')
+
+    if (distroId) {
+      // The applications a release serves are the ones its packages provide, which its counts are
+      // made of as well (`Distro.refreshCounts`): the links are read as one subquery of the release,
+      // which the database resolves once, instead of as a condition re-read for every application.
+      // The release it is binary compatible with answers for the same packages, so its applications
+      // are listed with them (a Linux Mint reads what Ubuntu and its vendors publish, see
+      // `PkgsController.index`).
+      const distro = await Distro.find(distroId)
+      if (distro) {
+        const releases = [
+          distro.id,
+          ...(distro.compatibleDistroId ? [distro.compatibleDistroId] : []),
+        ]
+        appsQuery.whereIn(
+          'apps.id',
+          db
+            .from('distro_repos')
+            .join('pkgs', 'pkgs.repo_id', 'distro_repos.repo_id')
+            .join('app_pkgs', 'app_pkgs.pkg_id', 'pkgs.id')
+            .whereIn('distro_repos.distro_id', releases)
+            .select('app_pkgs.app_id'),
+        )
+      } else {
+        // A release that does not exist, or that no repository serves, holds no application, which
+        // its counts say as well
+        appsQuery.whereRaw('0 = 1')
+      }
+    }
 
     const paginator = await appsQuery.paginate(page, perPage)
     await attachTranslations(paginator.all(), locale)

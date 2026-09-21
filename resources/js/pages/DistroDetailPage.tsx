@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useParams } from 'wouter'
 
 import { useAuth } from '../auth'
+import AppList, { type AppFilters } from '../components/AppList'
 import CountBadge from '../components/CountBadge'
 import DistroRelease from '../components/DistroRelease'
 import PkgList from '../components/PkgList'
@@ -16,6 +17,7 @@ import {
   deleteDistro,
   distroLabel,
   getDistro,
+  getDistroApps,
   getDistroPackages,
   type Distro,
 } from '../services/distros'
@@ -25,7 +27,7 @@ import { formatCount, formatDate } from '../utils/format'
 import styles from './DetailPage.module.css'
 
 /** Sections of the page, which the tabs switch between. */
-type DistroTab = 'packages' | 'repositories'
+type DistroTab = 'packages' | 'apps' | 'repositories'
 
 export default function DistroDetailPage() {
   const { t, i18n } = useTranslation()
@@ -48,6 +50,12 @@ export default function DistroDetailPage() {
   const readPkgs = useCallback(
     (page: number) =>
       distroId ? getDistroPackages(distroId, page, i18n.language) : Promise.resolve(null),
+    [distroId, i18n.language],
+  )
+  // The applications the release serves, which its packages provide
+  const readApps = useCallback(
+    (page: number, filters: AppFilters) =>
+      distroId ? getDistroApps(distroId, page, filters, i18n.language) : Promise.resolve(null),
     [distroId, i18n.language],
   )
 
@@ -214,16 +222,33 @@ export default function DistroDetailPage() {
           >
             {t('common.packages')}
           </Tabs.Tab>
+          <Tabs.Tab
+            rightSection={<CountBadge count={distro.appCount} loading={false} />}
+            value='apps'
+          >
+            {t('common.apps')}
+          </Tabs.Tab>
           <Tabs.Tab value='repositories'>{t('common.repositories')}</Tabs.Tab>
         </Tabs.List>
 
-        {/* Both listings are read on their own, and the count of each of them is what the tabs show */}
+        {/* All three listings are read on their own, and the count of each of them is what the tabs
+            show; the applications and the repositories parameters carry a prefix of their own, so
+            that the page of one listing is not read as the page of another */}
         <Tabs.Panel pt='lg' value='packages'>
           <PkgList
             emptyMessage={t('distros.detail.noPackages')}
             load={readPkgs}
             showDetails
             showFilters={false}
+          />
+        </Tabs.Panel>
+
+        <Tabs.Panel pt='lg' value='apps'>
+          <AppList
+            emptyMessage={t('distros.detail.noApps')}
+            filteredEmptyMessage={t('apps.filterEmpty')}
+            load={readApps}
+            paramPrefix='apps'
           />
         </Tabs.Panel>
 

@@ -2,6 +2,7 @@ import type { Data } from '@generated/data'
 import xior from 'xior'
 
 import type { Paginated, SerializedPaginated } from '../types/pagination'
+import type { AppSort } from './apps'
 import { getAuthToken } from './auth'
 
 /** A distribution as returned by the API; it is the serialized form of the `distros` table. */
@@ -110,6 +111,47 @@ export async function getDistroPackages(id: number, page = 1, locale?: string) {
     params: { page, distroId: id, locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
+}
+
+/**
+ * What the application listing of a release is narrowed and ordered by, which the toolbar of the
+ * listing holds (`AppList`).
+ */
+export type DistroAppFilters = {
+  category: string | null
+  sort: AppSort
+  type: string | null
+}
+
+/** Listing of a release with nothing narrowed, which it reads before its toolbar is used. */
+export const emptyDistroAppFilters: DistroAppFilters = {
+  category: null,
+  sort: 'newest',
+  type: null,
+}
+
+/**
+ * Applications the release serves: the ones its packages provide, which the API pages ten at a time
+ * and the same ones the application count of the release adds up. The release it is binary
+ * compatible with answers for the same packages, so its applications are listed with them.
+ */
+export async function getDistroApps(
+  id: number,
+  page = 1,
+  filters: DistroAppFilters = emptyDistroAppFilters,
+  locale?: string,
+) {
+  const { data } = await api.get<SerializedPaginated<Data.App>>('/apps', {
+    params: {
+      page,
+      distroId: id,
+      category: filters.category || undefined,
+      type: filters.type || undefined,
+      sort: filters.sort,
+      locale,
+    },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Data.App>
 }
 
 export async function createDistro(payload: DistroPayload) {

@@ -5,7 +5,13 @@ import { canonicalLocale, localeRank } from '#services/app_locales'
 import { pkgNameIsClaimed, pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
 import { appstreamIdIsClaimed } from '#services/app_registry'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
-import { knownValue, localeField, pageNumber } from '#utils/query_params'
+import {
+  firstValue,
+  knownValue,
+  localeField,
+  pageNumber,
+  positiveInteger,
+} from '#utils/query_params'
 
 type LocalizedText = Record<string, string>
 
@@ -260,6 +266,15 @@ export const appListValidator = vine.create({
   sort: vine.enum(appSorts).parse(knownValue(appSorts, 'newest')),
   /** Component type the listing is narrowed to; an unknown type does not narrow it at all. */
   type: vine.enum(appTypes).parse(knownValue(appTypes)).optional(),
+  /**
+   * Release the listing is narrowed to, which its detail page reads: the applications its packages
+   * provide, and the ones of the release it is binary compatible with, which they install on as
+   * well.
+   */
+  distroId: vine
+    .number()
+    .parse((value) => positiveInteger(firstValue(value)))
+    .optional(),
   /**
    * Whether the listing holds the applications that carry an icon alone, which the home page reads:
    * it shows each application next to its icon, and fills its list with another application instead
