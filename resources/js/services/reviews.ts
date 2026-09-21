@@ -16,7 +16,7 @@ export type ReviewPayload = {
   comment?: string
   distroId: number | null
   /** Language the review is written in, which the interface of the reviewer names by default. */
-  locale: string | null
+  locale: string
 }
 
 /** What a listing of reviews is narrowed by: the language the reviews were written in. */
