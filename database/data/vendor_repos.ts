@@ -644,4 +644,90 @@ baseurl=https://brave-browser-rpm-release.s3.brave.com/$basearch
 `,
     configUrl: 'https://brave-browser-rpm-release.s3.brave.com/brave-browser.repo',
   },
+  {
+    // Opera documents one apt repository for the Debian based releases, whose lines are written to
+    // `/etc/apt/sources.list.d/opera-archive.list` with a key of its own in
+    // `/usr/share/keyrings/opera-browser.gpg`. The suite stays `stable` and the component is
+    // `non-free`, whatever the release of the distribution (the manual warns against naming the
+    // suite of a testing or unstable release instead), and the suite publishes amd64 and arm64
+    // packages (its i386 index is empty)
+    name: 'Opera for Debian and Ubuntu',
+    type: 'deb',
+    source: 'vendor',
+    baseUrl:
+      'deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ stable non-free',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'Debian', version: '12', arch: 'x86_64' },
+      { name: 'Debian', version: '12', arch: 'aarch64' },
+      { name: 'Debian', version: '13', arch: 'x86_64' },
+      { name: 'Debian', version: '13', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '22.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '24.04', arch: 'aarch64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'x86_64' },
+      { name: 'Ubuntu', version: '26.04', arch: 'aarch64' },
+    ],
+    configContent: `deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ stable non-free`,
+    installScript:
+      'wget -qO- https://deb.opera.com/archive.key | gpg --dearmor | sudo dd of=/usr/share/keyrings/opera-browser.gpg && echo "deb [signed-by=/usr/share/keyrings/opera-browser.gpg] https://deb.opera.com/opera-stable/ stable non-free" | sudo dd of=/etc/apt/sources.list.d/opera-archive.list',
+  },
+  {
+    // Opera publishes every rpm build of every channel (the stable, beta, developer and GX ones)
+    // in one flat repository, where the x86_64 and aarch64 packages sit next to each other, so one
+    // row of this catalog serves both architectures. The manual documents the repository file of
+    // Fedora and the one of openSUSE, which differ in their `autorefresh` and `keeppackages` lines
+    // only, so this row carries the one the manual writes for Fedora and no install script. The
+    // packages link against `libc.so.6(GLIBC_2.25)`, which every release linked here provides
+    name: 'Opera for Fedora, RHEL and SUSE',
+    type: 'rpm',
+    source: 'vendor',
+    baseUrl: 'https://rpm.opera.com/rpm/',
+    syncIntervalDays: 7,
+    distros: [
+      { name: 'AlmaLinux', version: '8', arch: 'x86_64' },
+      { name: 'AlmaLinux', version: '8', arch: 'aarch64' },
+      { name: 'AlmaLinux', version: '9', arch: 'x86_64' },
+      { name: 'AlmaLinux', version: '9', arch: 'aarch64' },
+      { name: 'AlmaLinux', version: '10', arch: 'x86_64' },
+      { name: 'AlmaLinux', version: '10', arch: 'aarch64' },
+      { name: 'CentOS Stream', version: '9', arch: 'x86_64' },
+      { name: 'CentOS Stream', version: '9', arch: 'aarch64' },
+      { name: 'CentOS Stream', version: '10', arch: 'x86_64' },
+      { name: 'CentOS Stream', version: '10', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '43', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '43', arch: 'aarch64' },
+      { name: 'Fedora Linux', version: '44', arch: 'x86_64' },
+      { name: 'Fedora Linux', version: '44', arch: 'aarch64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'x86_64' },
+      { name: 'openSUSE Leap', version: '16.0', arch: 'aarch64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'x86_64' },
+      { name: 'openSUSE Tumbleweed', version: null, arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '8', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '9', arch: 'aarch64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'x86_64' },
+      { name: 'Red Hat Enterprise Linux', version: '10', arch: 'aarch64' },
+      { name: 'Rocky Linux', version: '8', arch: 'x86_64' },
+      { name: 'Rocky Linux', version: '8', arch: 'aarch64' },
+      { name: 'Rocky Linux', version: '9', arch: 'x86_64' },
+      { name: 'Rocky Linux', version: '9', arch: 'aarch64' },
+      { name: 'Rocky Linux', version: '10', arch: 'x86_64' },
+      { name: 'Rocky Linux', version: '10', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '15.7', arch: 'aarch64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'x86_64' },
+      { name: 'SUSE Linux Enterprise', version: '16.0', arch: 'aarch64' },
+    ],
+    configContent: `[opera]
+name=Opera packages
+type=rpm-md
+baseurl=https://rpm.opera.com/rpm
+gpgcheck=1
+gpgkey=https://rpm.opera.com/rpmrepo.key
+enabled=1
+`,
+  },
 ]
