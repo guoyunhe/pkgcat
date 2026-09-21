@@ -1,7 +1,8 @@
 import { Select } from '@mantine/core'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { appTypes } from '../utils/appTypes'
+import { appTypeKey, appTypes } from '../utils/appTypes'
 import ListFilter from './ListFilter'
 
 type AppTypeSelectProps = {
@@ -20,9 +21,10 @@ type AppTypeSelectProps = {
 
 /**
  * Field that names the AppStream type of an application. Every listing and every form picks from
- * the same vocabulary — the types AppStream defines — and names a type by the identifier itself,
- * the way a package format is named. A form always carries one, so its field cannot be cleared; a
- * listing filters by it, so its field reads as "any type" while nothing is selected.
+ * the same vocabulary — the types AppStream defines — and the field stands for a type by its
+ * identifier, the way a package format is named, while it names that type in the language of the
+ * interface. A form always carries one, so its field cannot be cleared; a listing filters by it, so
+ * its field reads as "any type" while nothing is selected.
  */
 export default function AppTypeSelect({
   clearable,
@@ -33,6 +35,14 @@ export default function AppTypeSelect({
 }: AppTypeSelectProps) {
   const { t } = useTranslation()
   const label = t('common.type')
+
+  // Every option stands for the identifier it sends, so that a reader who does not read the
+  // identifiers of the specification still knows what it picks
+  const typeOptions = useMemo(
+    () =>
+      appTypes.map((type) => ({ label: t(appTypeKey(type), { defaultValue: type }), value: type })),
+    [t],
+  )
 
   if (clearable) {
     return (
@@ -57,6 +67,3 @@ export default function AppTypeSelect({
     />
   )
 }
-
-/** One option per type, named by the AppStream identifier itself, which needs no translation. */
-const typeOptions = appTypes.map((type) => ({ label: type, value: type }))

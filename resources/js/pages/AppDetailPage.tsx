@@ -29,6 +29,7 @@ import {
   resolveDescription,
   selectScreenshots,
 } from '../utils/appstream'
+import { appTypeKey } from '../utils/appTypes'
 import { formatPkgNameMapping } from '../utils/pkgNames'
 
 import styles from './AppDetailPage.module.css'
@@ -213,7 +214,9 @@ export default function AppDetailPage() {
         </DataList.Item>
         <DataList.Item>
           <DataList.ItemLabel>{t('common.type')}</DataList.ItemLabel>
-          <DataList.ItemValue>{app.type}</DataList.ItemValue>
+          <DataList.ItemValue>
+            {t(appTypeKey(app.type), { defaultValue: app.type })}
+          </DataList.ItemValue>
         </DataList.Item>
         {app.appstreamIdAliases.length > 0 && (
           <DataList.Item>
