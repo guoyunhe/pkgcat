@@ -1,6 +1,5 @@
 import type { HttpContext } from '@adonisjs/core/http'
 
-import Distro from '#models/distro'
 import Repo from '#models/repo'
 import RepoTransformer from '#transformers/repo_transformer'
 import { pageOf } from '#utils/pagination'
@@ -63,18 +62,12 @@ export default class ReposController {
     // The form lists every distribution of the repository, so the stored links follow the selection
     if (distroIds) await repo.related('distros').sync(distroIds)
     await repo.load('distros')
-    // A distribution holds the packages of every repository serving it, so the links the form
-    // changed are what its counts are made of
-    await Distro.refreshCounts()
     return serialize(RepoTransformer.transform(repo))
   }
 
   async destroy({ params, response }: HttpContext) {
     const repo = await Repo.findOrFail(params.id)
     await repo.delete()
-    // The packages of the repository are removed with it, so the distributions it served hold
-    // fewer of them
-    await Distro.refreshCounts()
     return response.noContent()
   }
 }
