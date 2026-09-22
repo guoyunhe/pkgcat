@@ -1,4 +1,4 @@
-import { Button, Container, Text, Title } from '@mantine/core'
+import { Button, Container, Group, Text, Title } from '@mantine/core'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback } from 'react'
@@ -34,21 +34,23 @@ export default function AppsPage() {
           <Title order={1}>{t('common.apps')}</Title>
           <Text c='dimmed'>{t('apps.subtitle')}</Text>
         </div>
-        <Button
-          component='a'
-          href='https://github.com/guoyunhe/pkgcat/issues/new?template=app-request.yml'
-        >
-          {t('apps.request')}
-        </Button>
-        {isAdmin && (
+        <Group>
           <Button
-            component={Link}
-            href='/apps/new'
-            leftSection={<PlusIcon size={18} weight='bold' />}
+            component='a'
+            href='https://github.com/guoyunhe/pkgcat/issues/new?template=app-request.yaml'
           >
-            {t('common.add')}
+            {t('apps.request')}
           </Button>
-        )}
+          {isAdmin && (
+            <Button
+              component={Link}
+              href='/apps/new'
+              leftSection={<PlusIcon size={18} weight='bold' />}
+            >
+              {t('common.add')}
+            </Button>
+          )}
+        </Group>
       </header>
 
       <AppList
