@@ -20,6 +20,7 @@
   "loginFailed": "Accesso non riuscito. Controlla indirizzo email e password.",
   "registerFailed": "Impossibile creare l’account.",
   "header": {
+    "menu": "Menu",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Chiaro",

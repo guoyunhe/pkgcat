@@ -14,11 +14,12 @@
   width: 100%;
 }
 
-.nav {
+/* The drawer is opened from the burger of a narrow header only. A button centres what it holds
+   itself, and making it a flex box takes that away, so its lines are centred here by hand. */
+.burger {
   align-items: center;
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
+  display: none;
+  flex: 0 0 auto;
 }
 
 .brand {
@@ -36,9 +37,10 @@
   width: 28px;
 }
 
-.navButton {
+.nav {
+  align-items: center;
+  display: flex;
   flex: 0 0 auto;
-  white-space: nowrap;
 }
 
 /* The search box gives up its width first, so the account controls never wrap */
@@ -52,28 +54,53 @@
   width: 100%;
 }
 
-/* The navigation shrinks to its icons on small screens */
-@media (max-width: 600px) {
+/* The search box of a narrow header is unfolded from this icon */
+.searchToggle {
+  display: none;
+}
+
+.controls {
+  flex: 0 0 auto;
+}
+
+/* Narrow screens: the navigation and the account controls move into the drawer, the color scheme
+   and the language stay next to the search box, and the search box itself is unfolded from its icon
+   over the room they leave. The width is the breakpoint of the shell. */
+@media (max-width: 599.9px) {
   .inner {
     gap: 8px;
-    padding: 0 18px;
+    padding: 0 14px;
   }
 
-  .nav {
-    gap: 0;
+  .burger {
+    display: inline-flex;
   }
 
   .brand {
-    margin-right: 2px;
+    margin-right: auto;
   }
 
+  .nav,
   .searchForm {
-    flex: 1 1 auto;
-    margin-left: 8px;
-    min-width: 0;
+    display: none;
   }
 
-  .header :global(.mantine-Button-label) {
+  /* The drawer names the visitor and signs them out, so the header leaves it the width */
+  .account {
     display: none;
+  }
+
+  .searchToggle {
+    display: inline-flex;
+  }
+
+  .searchOpened .brand,
+  .searchOpened .burger {
+    display: none;
+  }
+
+  .searchOpened .searchForm {
+    display: block;
+    flex: 1 1 auto;
   }
 }

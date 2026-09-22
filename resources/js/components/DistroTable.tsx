@@ -1,4 +1,4 @@
-import { Alert, Group, Loader, Pagination, Table, Text } from '@mantine/core'
+import { Alert, Group, Loader, Pagination, Table, TableScrollContainer, Text } from '@mantine/core'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
 import type { ReactNode } from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -175,66 +175,71 @@ export default function DistroTable({
         </Text>
       ) : (
         <>
-          <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>{t('common.distribution')}</Table.Th>
-                <Table.Th>{t('common.architecture')}</Table.Th>
-                <Table.Th>{t('common.packageFormat')}</Table.Th>
-                <Table.Th>{t('distros.columns.compatible')}</Table.Th>
-                <Table.Th align='right'>{t('common.packages')}</Table.Th>
-                <Table.Th align='right'>{t('common.apps')}</Table.Th>
-                <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
-                <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
-                {renderActions && <Table.Th />}
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {result.data.map((distro) => (
-                <Table.Tr
-                  className={onRowClick ? styles.clickableRow : styles.row}
-                  key={distro.id}
-                  onClick={() => onRowClick?.(distro)}
-                >
-                  <Table.Td>
-                    <DistroRelease distro={distro} />
-                  </Table.Td>
-                  <Table.Td>{distro.arch}</Table.Td>
-                  <Table.Td>
-                    <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
-                  </Table.Td>
-                  <Table.Td>
-                    {distro.compatibleDistro ? (
-                      <DistroRelease arch={distro.arch} distro={distro.compatibleDistro} />
-                    ) : (
-                      '—'
-                    )}
-                  </Table.Td>
-                  <Table.Td align='right'>{formatCount(distro.pkgCount, i18n.language)}</Table.Td>
-                  <Table.Td align='right'>{formatCount(distro.appCount, i18n.language)}</Table.Td>
-                  <Table.Td>
-                    {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}
-                  </Table.Td>
-                  <Table.Td>
-                    {distro.eolDate ? (
-                      <span className={isExpired(distro) ? styles.expired : undefined}>
-                        {formatDate(distro.eolDate, i18n.language)}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </Table.Td>
-                  {renderActions && (
-                    <Table.Td>
-                      <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-                        {renderActions(distro)}
-                      </div>
-                    </Table.Td>
-                  )}
+          <TableScrollContainer minWidth={720} type='native'>
+            <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('common.distribution')}</Table.Th>
+                  <Table.Th>{t('common.architecture')}</Table.Th>
+                  <Table.Th>{t('common.packageFormat')}</Table.Th>
+                  <Table.Th>{t('distros.columns.compatible')}</Table.Th>
+                  <Table.Th align='right'>{t('common.packages')}</Table.Th>
+                  <Table.Th align='right'>{t('common.apps')}</Table.Th>
+                  <Table.Th>{t('distros.columns.releaseDate')}</Table.Th>
+                  <Table.Th>{t('distros.columns.eolDate')}</Table.Th>
+                  {renderActions && <Table.Th />}
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {result.data.map((distro) => (
+                  <Table.Tr
+                    className={onRowClick ? styles.clickableRow : styles.row}
+                    key={distro.id}
+                    onClick={() => onRowClick?.(distro)}
+                  >
+                    <Table.Td>
+                      <DistroRelease distro={distro} />
+                    </Table.Td>
+                    <Table.Td>{distro.arch}</Table.Td>
+                    <Table.Td>
+                      <span className={styles.pkgType}>{distro.pkgType ?? '—'}</span>
+                    </Table.Td>
+                    <Table.Td>
+                      {distro.compatibleDistro ? (
+                        <DistroRelease arch={distro.arch} distro={distro.compatibleDistro} />
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Td>
+                    <Table.Td align='right'>{formatCount(distro.pkgCount, i18n.language)}</Table.Td>
+                    <Table.Td align='right'>{formatCount(distro.appCount, i18n.language)}</Table.Td>
+                    <Table.Td>
+                      {distro.releaseDate ? formatDate(distro.releaseDate, i18n.language) : '—'}
+                    </Table.Td>
+                    <Table.Td>
+                      {distro.eolDate ? (
+                        <span className={isExpired(distro) ? styles.expired : undefined}>
+                          {formatDate(distro.eolDate, i18n.language)}
+                        </span>
+                      ) : (
+                        '—'
+                      )}
+                    </Table.Td>
+                    {renderActions && (
+                      <Table.Td>
+                        <div
+                          className={styles.actions}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {renderActions(distro)}
+                        </div>
+                      </Table.Td>
+                    )}
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </TableScrollContainer>
           {result.meta.lastPage > 1 && (
             <Pagination
               className={styles.pagination}

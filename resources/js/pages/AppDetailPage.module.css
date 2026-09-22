@@ -1,5 +1,8 @@
 .header {
   display: flex;
+  /* The controls the heading shares its row with move to a line of their own on a narrow screen,
+     where squeezing them would clip their labels */
+  flex-wrap: wrap;
   justify-content: space-between;
   margin-bottom: 48px;
 }

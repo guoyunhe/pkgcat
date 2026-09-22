@@ -20,6 +20,7 @@
   "loginFailed": "无法登录，请检查邮箱和密码。",
   "registerFailed": "无法创建账号。",
   "header": {
+    "menu": "菜单",
     "theme": "主题",
     "themeAuto": "跟随系统",
     "themeLight": "浅色模式",

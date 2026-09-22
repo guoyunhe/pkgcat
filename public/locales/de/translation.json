@@ -20,6 +20,7 @@
   "loginFailed": "Anmeldung nicht möglich. Prüfen Sie E-Mail-Adresse und Passwort.",
   "registerFailed": "Das Konto konnte nicht erstellt werden.",
   "header": {
+    "menu": "Menü",
     "theme": "Design",
     "themeAuto": "System",
     "themeLight": "Hell",

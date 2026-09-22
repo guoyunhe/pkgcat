@@ -20,6 +20,7 @@
   "loginFailed": "로그인할 수 없습니다. 이메일 주소와 비밀번호를 확인하세요.",
   "registerFailed": "계정을 만들 수 없습니다.",
   "header": {
+    "menu": "메뉴",
     "theme": "테마",
     "themeAuto": "시스템",
     "themeLight": "라이트",

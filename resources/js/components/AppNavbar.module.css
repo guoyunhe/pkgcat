@@ -1,0 +1,28 @@
+.navbar {
+  background: var(--ph-bg);
+  gap: 4px;
+  padding: 16px 12px;
+}
+
+.links,
+.account {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* The account of the visitor stands at the foot of the drawer, under the rule of its own */
+.account {
+  border-top: 1px solid var(--ph-border);
+  margin-top: auto;
+  padding-top: 16px;
+}
+
+.identity {
+  margin-bottom: 8px;
+  padding: 0 8px;
+}
+
+.names {
+  min-width: 0;
+}

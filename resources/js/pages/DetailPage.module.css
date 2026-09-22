@@ -6,6 +6,9 @@
 
 .header {
   display: flex;
+  /* The controls the heading shares its row with move to a line of their own on a narrow screen,
+     where squeezing them would clip their labels */
+  flex-wrap: wrap;
   justify-content: space-between;
   margin-bottom: 48px;
 }
@@ -15,6 +18,9 @@
   display: grid;
   gap: 28px;
   grid-template-columns: 128px minmax(0, 1fr);
+  /* A name or the URL of a repository may be one long word, which breaks inside its column instead
+     of widening the page */
+  overflow-wrap: anywhere;
 }
 
 .icon {
@@ -55,9 +61,11 @@
   color: var(--mantine-color-red-6);
 }
 
-/* A block of the page that is named by a heading, such as the setup of a repository */
+/* A block of the page that is named by a heading, such as the setup of a repository or the address
+   a package is downloaded from */
 .section {
   margin: 36px 0;
+  overflow-wrap: anywhere;
 }
 
 /* What was configured verbatim — a source list, an install script, a description */

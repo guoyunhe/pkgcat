@@ -20,6 +20,7 @@
   "loginFailed": "Unable to log in. Check your email and password.",
   "registerFailed": "Unable to create the account.",
   "header": {
+    "menu": "Menu",
     "theme": "Theme",
     "themeAuto": "System",
     "themeLight": "Light",

@@ -20,6 +20,7 @@
   "loginFailed": "Não foi possível entrar. Verifique o e-mail e a senha.",
   "registerFailed": "Não foi possível criar a conta.",
   "header": {
+    "menu": "Menu",
     "theme": "Tema",
     "themeAuto": "Sistema",
     "themeLight": "Claro",

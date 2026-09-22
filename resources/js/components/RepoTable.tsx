@@ -1,5 +1,14 @@
 import type { Data } from '@generated/data'
-import { Alert, Group, Loader, Pagination, Table, Text, TextInput } from '@mantine/core'
+import {
+  Alert,
+  Group,
+  Loader,
+  Pagination,
+  Table,
+  TableScrollContainer,
+  Text,
+  TextInput,
+} from '@mantine/core'
 import { useDebouncedValue } from '@mantine/hooks'
 import { MagnifyingGlassIcon } from '@phosphor-icons/react/MagnifyingGlass'
 import { parseAsInteger, parseAsString, useQueryStates } from 'nuqs'
@@ -239,100 +248,105 @@ export default function RepoTable({
         </Text>
       ) : (
         <>
-          <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>{t('common.packageFormat')}</Table.Th>
-                <Table.Th>{t('common.source')}</Table.Th>
-                <Table.Th>{t('common.repository')}</Table.Th>
-                {showDistros && <Table.Th>{t('common.distributions')}</Table.Th>}
-                <Table.Th>{t('common.packages')}</Table.Th>
-                <Table.Th>{t('common.apps')}</Table.Th>
-                <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
-                <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
-                {renderActions && <Table.Th />}
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {result.data.map((repo) => (
-                <Table.Tr
-                  className={onRowClick ? styles.clickableRow : styles.row}
-                  key={repo.id}
-                  onClick={() => onRowClick?.(repo)}
-                >
-                  <Table.Td>
-                    <span className={styles.typeCell}>
-                      {packageTypesWithIcons.has(repo.type) && (
-                        <img
-                          alt=''
-                          className={styles.typeIcon}
-                          src={`/packages/${repo.type}.svg`}
-                        />
-                      )}
-                      {repo.type}
-                    </span>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size='sm' c='dimmed'>
-                      {/* A source the interface does not know is still named by the value it was stored as */}
-                      {t(`repos.sources.${repo.source}`, { defaultValue: repo.source })}
-                    </Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <div className={styles.name}>{repo.name}</div>
-                    <div className={styles.baseUrl}>{repo.baseUrl}</div>
-                  </Table.Td>
-                  {showDistros && (
-                    <Table.Td>
-                      {repo.distros.length === 0 ? (
-                        '—'
-                      ) : (
-                        <div className={styles.distrosCell}>
-                          {repo.distros.map((distro) => (
-                            <span className={styles.distroCell} key={distro.id}>
-                              <img
-                                alt=''
-                                className={styles.distroIcon}
-                                src={`/distros/${encodeURIComponent(distro.name)}.svg`}
-                              />
-                              <span>{distro.name}</span>
-                              {distro.version && (
-                                <span className={styles.distroVersion}>{distro.version}</span>
-                              )}
-                              <span className={styles.distroArch}>{distro.arch}</span>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </Table.Td>
-                  )}
-                  <Table.Td>
-                    <Text size='sm'>{formatCount(repo.pkgCount, i18n.language)}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size='sm'>{formatCount(repo.appCount, i18n.language)}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    {repo.syncIntervalDays
-                      ? t('repos.everyDays', { count: repo.syncIntervalDays })
-                      : t('repos.manual')}
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size='sm' c='dimmed'>
-                      {formatDate(repo.lastSyncedAt)}
-                    </Text>
-                  </Table.Td>
-                  {renderActions && (
-                    <Table.Td>
-                      <div className={styles.actions} onClick={(event) => event.stopPropagation()}>
-                        {renderActions(repo)}
-                      </div>
-                    </Table.Td>
-                  )}
+          <TableScrollContainer minWidth={720} type='native'>
+            <Table className={styles.table} highlightOnHover verticalSpacing='sm'>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>{t('common.packageFormat')}</Table.Th>
+                  <Table.Th>{t('common.source')}</Table.Th>
+                  <Table.Th>{t('common.repository')}</Table.Th>
+                  {showDistros && <Table.Th>{t('common.distributions')}</Table.Th>}
+                  <Table.Th>{t('common.packages')}</Table.Th>
+                  <Table.Th>{t('common.apps')}</Table.Th>
+                  <Table.Th>{t('repos.columns.syncInterval')}</Table.Th>
+                  <Table.Th>{t('repos.columns.lastSynced')}</Table.Th>
+                  {renderActions && <Table.Th />}
                 </Table.Tr>
-              ))}
-            </Table.Tbody>
-          </Table>
+              </Table.Thead>
+              <Table.Tbody>
+                {result.data.map((repo) => (
+                  <Table.Tr
+                    className={onRowClick ? styles.clickableRow : styles.row}
+                    key={repo.id}
+                    onClick={() => onRowClick?.(repo)}
+                  >
+                    <Table.Td>
+                      <span className={styles.typeCell}>
+                        {packageTypesWithIcons.has(repo.type) && (
+                          <img
+                            alt=''
+                            className={styles.typeIcon}
+                            src={`/packages/${repo.type}.svg`}
+                          />
+                        )}
+                        {repo.type}
+                      </span>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size='sm' c='dimmed'>
+                        {/* A source the interface does not know is still named by the value it was stored as */}
+                        {t(`repos.sources.${repo.source}`, { defaultValue: repo.source })}
+                      </Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <div className={styles.name}>{repo.name}</div>
+                      <div className={styles.baseUrl}>{repo.baseUrl}</div>
+                    </Table.Td>
+                    {showDistros && (
+                      <Table.Td>
+                        {repo.distros.length === 0 ? (
+                          '—'
+                        ) : (
+                          <div className={styles.distrosCell}>
+                            {repo.distros.map((distro) => (
+                              <span className={styles.distroCell} key={distro.id}>
+                                <img
+                                  alt=''
+                                  className={styles.distroIcon}
+                                  src={`/distros/${encodeURIComponent(distro.name)}.svg`}
+                                />
+                                <span>{distro.name}</span>
+                                {distro.version && (
+                                  <span className={styles.distroVersion}>{distro.version}</span>
+                                )}
+                                <span className={styles.distroArch}>{distro.arch}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </Table.Td>
+                    )}
+                    <Table.Td>
+                      <Text size='sm'>{formatCount(repo.pkgCount, i18n.language)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size='sm'>{formatCount(repo.appCount, i18n.language)}</Text>
+                    </Table.Td>
+                    <Table.Td>
+                      {repo.syncIntervalDays
+                        ? t('repos.everyDays', { count: repo.syncIntervalDays })
+                        : t('repos.manual')}
+                    </Table.Td>
+                    <Table.Td>
+                      <Text size='sm' c='dimmed'>
+                        {formatDate(repo.lastSyncedAt)}
+                      </Text>
+                    </Table.Td>
+                    {renderActions && (
+                      <Table.Td>
+                        <div
+                          className={styles.actions}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {renderActions(repo)}
+                        </div>
+                      </Table.Td>
+                    )}
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </TableScrollContainer>
           {result.meta.lastPage > 1 && (
             <Pagination
               className={styles.pagination}

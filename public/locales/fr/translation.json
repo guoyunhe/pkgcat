@@ -20,6 +20,7 @@
   "loginFailed": "Connexion impossible. Vérifiez votre adresse e-mail et votre mot de passe.",
   "registerFailed": "Le compte n’a pas pu être créé.",
   "header": {
+    "menu": "Menu",
     "theme": "Thème",
     "themeAuto": "Système",
     "themeLight": "Clair",
