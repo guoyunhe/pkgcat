@@ -50,4 +50,11 @@ export default await Env.create(new URL('../', import.meta.url), {
   */
   OBS_USER: Env.schema.string.optional(),
   OBS_PASSWORD: Env.schema.secret.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring @adonisjs/queue
+  |----------------------------------------------------------
+  */
+  QUEUE_DRIVER: Env.schema.enum(['redis', 'database', 'sync'] as const),
 })
