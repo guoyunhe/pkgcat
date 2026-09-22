@@ -3,6 +3,7 @@ import { useDisclosure } from '@mantine/hooks'
 
 import AppRoutes from './AppRoutes'
 import { AuthProvider } from './auth'
+import AppFooter from './components/AppFooter'
 import AppHeader from './components/AppHeader'
 import AppNavbar from './components/AppNavbar'
 import { SearchParamsProvider } from './searchParams'
@@ -37,6 +38,7 @@ export default function App() {
           <AppNavbar onClose={closeNavbar} />
           <AppShell.Main>
             <AppRoutes />
+            <AppFooter />
           </AppShell.Main>
         </AppShell>
       </AuthProvider>

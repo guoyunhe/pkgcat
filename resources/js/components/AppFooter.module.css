@@ -1,0 +1,9 @@
+/* The rule of the footer spans the page, the links under it line up with the content above */
+.footer {
+  border-top: 1px solid var(--ph-border);
+}
+
+/* The pages carry the room their content leaves above the rule themselves */
+.inner {
+  padding: 28px 0 36px;
+}
