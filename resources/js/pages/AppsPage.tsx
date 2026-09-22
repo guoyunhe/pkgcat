@@ -1,4 +1,5 @@
 import { Button, Container, Group, Text, Title } from '@mantine/core'
+import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
 import { PlusIcon } from '@phosphor-icons/react/Plus'
 import { parseAsString, useQueryState } from 'nuqs'
 import { useCallback } from 'react'
@@ -38,15 +39,13 @@ export default function AppsPage() {
           <Button
             component='a'
             href='https://github.com/guoyunhe/pkgcat/issues/new?template=app-request.yaml'
+            target='_blank'
+            leftSection={<ArrowSquareOutIcon size={18} />}
           >
             {t('apps.request')}
           </Button>
           {isAdmin && (
-            <Button
-              component={Link}
-              href='/apps/new'
-              leftSection={<PlusIcon size={18} weight='bold' />}
-            >
+            <Button component={Link} href='/apps/new' leftSection={<PlusIcon size={18} />}>
               {t('common.add')}
             </Button>
           )}
