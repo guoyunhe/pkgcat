@@ -1,0 +1,45 @@
+name: App Request
+description: Request a new application to be added or packaged
+title: '[App Request]: '
+labels: ['app-request']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for submitting an application request! Please fill out the form below with as much detail as possible.
+
+  - type: input
+    id: homepage
+    attributes:
+      label: Home Page URL
+      description: The official website or main homepage of the project.
+      placeholder: https://example.com
+    validations:
+      required: true
+
+  - type: input
+    id: source_code
+    attributes:
+      label: Source Code URL
+      description: Link to the source code repository (e.g., GitHub, GitLab, Codeberg), if open-source.
+      placeholder: https://github.com/username/project
+    validations:
+      required: false
+
+  - type: input
+    id: download_url
+    attributes:
+      label: Download Page URL
+      description: Direct link to the release or download page, if available.
+      placeholder: https://example.com/download
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional_info
+    attributes:
+      label: Additional Context
+      description: Add any other context, features, or notes about the app here.
+      placeholder: Briefly describe what the application does or why it should be added.
+    validations:
+      required: false

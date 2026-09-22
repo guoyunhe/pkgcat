@@ -114,6 +114,7 @@
     "subtitle": "Discover software metadata, launchers and upstream sources.",
     "filterAny": "All types",
     "filterEmpty": "No applications of this type.",
+    "request": "Request an application",
     "types": {
       "generic": "Generic",
       "desktop-application": "Desktop application",

@@ -114,6 +114,7 @@
     "subtitle": "发现软件元数据、启动器和上游来源。",
     "filterAny": "全部类型",
     "filterEmpty": "没有该类型的应用。",
+    "request": "请求添加应用",
     "types": {
       "generic": "通用",
       "desktop-application": "桌面应用",

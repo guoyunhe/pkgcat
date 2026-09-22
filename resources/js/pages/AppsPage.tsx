@@ -34,6 +34,12 @@ export default function AppsPage() {
           <Title order={1}>{t('common.apps')}</Title>
           <Text c='dimmed'>{t('apps.subtitle')}</Text>
         </div>
+        <Button
+          component='a'
+          href='https://github.com/guoyunhe/pkgcat/issues/new?template=app-request.yml'
+        >
+          {t('apps.request')}
+        </Button>
         {isAdmin && (
           <Button
             component={Link}
