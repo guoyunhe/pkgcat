@@ -1,20 +1,12 @@
 import { args, BaseCommand, flags } from '@adonisjs/core/ace'
 import type { CommandOptions } from '@adonisjs/core/types/ace'
 import chalk from 'chalk'
-import { DateTime } from 'luxon'
 
-import Distro from '#models/distro'
-import Repo from '#models/repo'
-import RepoSynchronizer, {
-  type RepoSyncOptions,
+import type Repo from '#models/repo'
+import RepoSyncRunner, {
+  type RepoSyncRunOptions,
   type RepoSyncSummary,
-} from '#services/repo_synchronizer'
-
-/**
- * Repositories read at a time. A catalog holds as many of them as its distributions and their
- * vendors publish, so they are read a page at a time instead of being held in memory as a whole.
- */
-const reposPerPage = 50
+} from '#services/repo_sync_runner'
 
 export default class RepoSync extends BaseCommand {
   static commandName = 'repo:sync'
@@ -47,79 +39,44 @@ export default class RepoSync extends BaseCommand {
   declare force: boolean
 
   async run() {
-    const synchronizer = new RepoSynchronizer()
-    const options: RepoSyncOptions = { arch: this.arch ?? null, sampleSize: this.limit }
-    let synced = 0
+    const options: RepoSyncRunOptions = {
+      name: this.repoName ?? null,
+      arch: this.arch ?? null,
+      force: this.force,
+      sampleSize: this.limit,
+    }
 
-    if (this.repoName) {
-      const repo = await Repo.query().where('name', this.repoName).preload('distros').firstOrFail()
-      if (await this.syncOne(synchronizer, repo, options)) synced += 1
-    } else {
-      // The repositories are read a page at a time, in the order the run has to reach them in: the
-      // ones that change most often first, so that a run that is long or stopped early reaches them,
-      // and the ones without an interval last, since they are only read when they are forced. A
-      // name is stored once, so the order is total and a page never repeats or skips a repository
-      let page = 1
-      let found = 0
+    for await (const event of new RepoSyncRunner().run(options)) {
+      switch (event.type) {
+        case 'skipped':
+          this.logger.info(`${event.repo.name}: ${chalk.dim(`skipped, ${event.reason}`)}`)
+          break
 
-      while (true) {
-        const paginator = await Repo.query()
-          .whereIn('type', ['deb', 'rpm', 'pacman'])
-          .orderByRaw('sync_interval_days is null')
-          .orderBy('syncIntervalDays')
-          .orderBy('name')
-          .preload('distros')
-          .paginate(page, reposPerPage)
-        found = paginator.total
+        case 'reading':
+          this.logger.info(
+            `Extracting packages from ${chalk.cyan(event.repo.name)} (${event.repo.type})`,
+          )
+          break
 
-        for (const repo of paginator.all()) {
-          if (await this.syncOne(synchronizer, repo, options)) synced += 1
-        }
-        if (!paginator.hasMorePages) break
-        page += 1
+        case 'read':
+          this.report(event.repo, event.summary)
+          break
+
+        case 'unreadable':
+          this.logger.error(`${event.repo.name}: ${event.message}`)
+          break
+
+        case 'empty':
+          this.logger.warning('No deb/rpm/pacman repositories found')
+          return
+
+        case 'done':
+          if (event.synced === 0) {
+            this.logger.warning('No repositories were synchronized, use --force to sync anyway')
+          }
+          break
       }
-
-      if (found === 0) {
-        this.logger.warning('No deb/rpm/pacman repositories found')
-        return
-      }
     }
-
-    // The packages the run wrote are what the counts of the repositories it synchronized and of the
-    // distributions they serve are made of, so they are counted once the run has written them all
-    await Repo.refreshCounts()
-    await Distro.refreshCounts()
-
-    if (synced === 0) {
-      this.logger.warning('No repositories were synchronized, use --force to sync anyway')
-    }
-  }
-
-  /**
-   * Synchronize one repository and report what it contributed. Reports whether the repository was
-   * read at all, which the ones its interval leaves out are not; a repository whose metadata could
-   * not be read was read, and counts as such, so that the next run retries it.
-   */
-  private async syncOne(synchronizer: RepoSynchronizer, repo: Repo, options: RepoSyncOptions) {
-    const skipReason = this.syncSkipReason(repo)
-    if (skipReason) {
-      this.logger.info(`${repo.name}: ${chalk.dim(`skipped, ${skipReason}`)}`)
-      return false
-    }
-
-    this.logger.info(`Extracting packages from ${chalk.cyan(repo.name)} (${repo.type})`)
-    try {
-      // A deb repository holds the packages of several architectures under the same URLs, so a
-      // repository that is shared by distributions of different architectures is read once per
-      // architecture, which the service reports apart
-      for (const summary of await synchronizer.sync(repo, options)) {
-        this.report(repo, summary)
-      }
-    } catch (error) {
-      this.logger.error(`${repo.name}: ${error instanceof Error ? error.message : String(error)}`)
-    }
-
-    return true
   }
 
   /** Report what one architecture of a repository contributed, and what it could not read. */
@@ -171,20 +128,5 @@ export default class RepoSync extends BaseCommand {
         chalk.dim(`  ... and ${summary.packages.total - summary.packages.sample.length} more`),
       )
     }
-  }
-
-  /**
-   * Returns why a repository is not synchronized, or `null` when it is. A repository that was never
-   * synchronized always runs, while one without an interval is only synchronized manually once it
-   * has been synchronized before, which is what `--force` does.
-   */
-  private syncSkipReason(repo: Repo): string | null {
-    if (this.force) return null
-    if (!repo.lastSyncedAt) return null
-    if (repo.syncIntervalDays === null) return 'no sync interval, use --force to sync'
-
-    const nextSync = repo.lastSyncedAt.plus({ days: repo.syncIntervalDays })
-    if (nextSync <= DateTime.now()) return null
-    return `next sync at ${nextSync.toFormat('yyyy-MM-dd HH:mm')}, use --force to sync now`
   }
 }

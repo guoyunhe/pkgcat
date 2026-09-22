@@ -108,8 +108,9 @@ type ArchSync = {
  * application phase, and the metadata of a package is only downloaded for the components whose file
  * list named it.
  *
- * What a run decides — which repositories it reads at all, and what it prints — is left to the
- * command that drives this (`commands/repo_sync`), which passes the reports on to its reader.
+ * Which repositories a run reads, and what happens with its reports, which the command prints and
+ * the job on a schedule logs, is left to the runner that drives this
+ * (`#services/repo_sync_runner`).
  */
 export default class RepoSynchronizer {
   private packages = new RepoPackageExtractor()

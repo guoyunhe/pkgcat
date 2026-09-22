@@ -17,16 +17,22 @@
 */
 
 import DistroCount from '#jobs/distro_count'
+import RepoCount from '#jobs/repo_count'
+import RepoImport from '#jobs/repo_import'
+import RepoSync from '#jobs/repo_sync'
 
-/**
- * The counts a distribution listing reads are written by the runs that change the packages of a
- * distribution (`repo:sync`, `app:prune`), and this schedule is the safety net under them: a run
- * that was stopped early leaves the counts of a catalog that has moved on. Counting every
- * distribution is a handful of grouped statements (`Distro.refreshCounts`), so the distributions
- * are counted once a day, at 03:00 UTC, when the repositories are not being synchronized.
- *
- * The schedule is created (or updated) here instead of being written by a migration, so that the
- * interval and the job it dispatches are read in one place. Its id is fixed, so that the row
- * survives the job being renamed.
- */
+// Imported before the daily runs read the catalog, so the repositories a run adds are read too
+await RepoImport.schedule({ project: null, dryRun: false, concurrency: 8 })
+  .id('repo-import')
+  .cron('0 2 * * MON')
+  .run()
+
+// Safety net under the counts the runs that write the catalog refresh
 await DistroCount.schedule({}).id('distro-count').cron('0 3 * * *').run()
+await RepoCount.schedule({}).id('repo-count').cron('30 3 * * *').run()
+
+// Reads the repositories whose sync interval has elapsed, the shortest interval first
+await RepoSync.schedule({ name: null, arch: null, force: false })
+  .id('repo-sync')
+  .cron('0 4 * * *')
+  .run()
