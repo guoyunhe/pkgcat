@@ -349,11 +349,13 @@ export default class RepoPackageExtractor {
 
       for (const url of indexUrls) {
         // A suite publishes its index gzipped, but the update streams and the security archive of
-        // Debian only carry the xz one. A suite with no index at all is simply empty, as apt also
-        // treats it.
+        // Debian only carry the xz one, and a vendor that generates a repository of its own
+        // (Collabora Office) publishes it uncompressed. A suite with no index at all is simply
+        // empty, as apt also treats it.
         const content =
           (await this.downloadText(`${url}.gz`, { optional: true })) ??
-          (await this.downloadText(`${url}.xz`, { optional: true }))
+          (await this.downloadText(`${url}.xz`, { optional: true })) ??
+          (await this.downloadText(url, { optional: true }))
         if (content === null) continue
         for (const stanza of parseDebStanzas(content)) {
           const version = splitDebVersion(stanza.Version)

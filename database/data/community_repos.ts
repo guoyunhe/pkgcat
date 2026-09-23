@@ -1,3 +1,4 @@
+import { debDistros, rpmDistros } from '#database/data/repo_distros'
 import type { RepoSeed } from '#database/data/types'
 
 /**
@@ -428,5 +429,76 @@ gpgkey=https://ftp.gwdg.de/pub/linux/misc/packman/suse/SLE_15/repodata/repomd.xm
 `,
     installScript:
       'sudo zypper addrepo -cfp 90 https://ftp.gwdg.de/pub/linux/misc/packman/suse/SLE_15/ packman',
+  },
+  {
+    // Teams for Linux is the unofficial client of the project of the same name, which publishes one
+    // flat rpm repository (the x86_64, the aarch64 and the armv7l packages sit in one tree, so one
+    // row serves both architectures of the catalog) and one apt repository whose suite is `stable`.
+    // opi records the rpm one, and the repository file of it names no key: the project documents it
+    // as a separate download
+    name: 'Teams for Linux for Fedora, RHEL and SUSE',
+    type: 'rpm',
+    source: 'community',
+    baseUrl: 'https://repo.teamsforlinux.de/rpm/',
+    syncIntervalDays: 7,
+    distros: rpmDistros(['x86_64', 'aarch64']),
+    configContent: `[teams-for-linux]
+name=Repo for the unofficial Teams for Linux package
+baseurl=https://repo.teamsforlinux.de/rpm/
+enabled=1
+gpgcheck=1
+`,
+    configUrl: 'https://repo.teamsforlinux.de/rpm/teams-for-linux.repo',
+    installScript:
+      'curl -1sLf -o /tmp/teams-for-linux.asc https://repo.teamsforlinux.de/teams-for-linux.asc && sudo rpm --import /tmp/teams-for-linux.asc && sudo curl -1sLf -o /etc/yum.repos.d/teams-for-linux.repo https://repo.teamsforlinux.de/rpm/teams-for-linux.repo',
+  },
+  {
+    name: 'Teams for Linux for Debian and Ubuntu',
+    type: 'deb',
+    source: 'community',
+    baseUrl:
+      'deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/teams-for-linux.asc] https://repo.teamsforlinux.de/debian/ stable main',
+    syncIntervalDays: 7,
+    distros: debDistros(['x86_64', 'aarch64']),
+    configContent:
+      'deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/teams-for-linux.asc] https://repo.teamsforlinux.de/debian/ stable main',
+    installScript: 'curl -fsSL https://repo.teamsforlinux.de/install.sh | sudo bash',
+  },
+  {
+    // VSCodium is built by the community project that maintains this repository rather than by
+    // Microsoft, and one rpm tree carries the x86_64 and the aarch64 package of it. The project
+    // writes the same repository file for the Fedora family and for the SUSE one
+    name: 'VSCodium for Fedora, RHEL and SUSE',
+    type: 'rpm',
+    source: 'community',
+    baseUrl: 'https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/rpms/',
+    syncIntervalDays: 7,
+    distros: rpmDistros(['x86_64', 'aarch64']),
+    configContent: `[gitlab.com_paulcarroty_vscodium_repo]
+name=gitlab.com_paulcarroty_vscodium_repo
+baseurl=https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/rpms/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg
+metadata_expire=1h
+`,
+    installScript:
+      'sudo rpm --import https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg && sudo curl -1sLf -o /etc/yum.repos.d/vscodium.repo https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/rpms/vscodium.repo',
+  },
+  {
+    // The apt repository of the same project names its suite after the project (`vscodium`) and
+    // carries the amd64 and the arm64 package in its `main` component
+    name: 'VSCodium for Debian and Ubuntu',
+    type: 'deb',
+    source: 'community',
+    baseUrl:
+      'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main',
+    syncIntervalDays: 7,
+    distros: debDistros(['x86_64', 'aarch64']),
+    configContent:
+      'deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main',
+    installScript:
+      'sudo wget https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg -O /usr/share/keyrings/vscodium-archive-keyring.asc && echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/vscodium-archive-keyring.asc] https://paulcarroty.gitlab.io/vscodium-deb-rpm-repo/debs vscodium main" | sudo tee /etc/apt/sources.list.d/vscodium.list',
   },
 ]
