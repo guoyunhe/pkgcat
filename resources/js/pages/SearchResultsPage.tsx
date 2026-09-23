@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation } from 'wouter'
 
 import AppList, { type AppFilters } from '../components/AppList'
+import AppRequestButton from '../components/AppRequestButton'
 import CountBadge from '../components/CountBadge'
 import DistroTable from '../components/DistroTable'
 import PkgList from '../components/PkgList'
@@ -170,6 +171,7 @@ export default function SearchResultsPage() {
             count the page reads for it */}
         <Tabs.Panel pt='lg' value='apps'>
           <AppList
+            emptyAction={<AppRequestButton />}
             emptyMessage={t('common.appsNotFound')}
             errorMessage={t('search.loadError')}
             load={readApps}

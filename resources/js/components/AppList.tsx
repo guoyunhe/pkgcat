@@ -39,6 +39,11 @@ type AppListProps = {
   filteredEmptyMessage?: string
   /** Message of a listing that could not be read. */
   errorMessage?: string
+  /**
+   * Control the empty listing shows below its message, such as the button that asks for an
+   * application the catalog does not hold. Shown whether the filters narrowed it down or not.
+   */
+  emptyAction?: ReactNode
   /** Extra controls per item, such as the favorite button. */
   renderActions?: (app: Data.App) => ReactNode
   /** Prefix the parameters carry, on a page that shows several listings at once. */
@@ -56,6 +61,7 @@ export default function AppList({
   emptyMessage,
   filteredEmptyMessage,
   errorMessage,
+  emptyAction,
   renderActions,
   paramPrefix = '',
 }: AppListProps) {
@@ -133,9 +139,14 @@ export default function AppList({
           <Loader color='orange' />
         </div>
       ) : !result || result.data.length === 0 ? (
-        <Text c='dimmed' className={styles.empty}>
-          {narrowed ? (filteredEmptyMessage ?? emptyMessage) : emptyMessage}
-        </Text>
+        <div className={styles.empty}>
+          <Text c='dimmed'>{narrowed ? (filteredEmptyMessage ?? emptyMessage) : emptyMessage}</Text>
+          {emptyAction && (
+            <Group justify='center' mt='md'>
+              {emptyAction}
+            </Group>
+          )}
+        </div>
       ) : (
         <>
           <section className={styles.grid}>
