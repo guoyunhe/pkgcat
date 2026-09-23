@@ -31,13 +31,10 @@ export default class PkgsController {
     // name stable, so that paging never repeats or skips a row the way a partly ordered list does.
     // It is asked for in ascending order on purpose: a descending one cannot be read from the index
     // of the names and makes the database sort half a million rows for every page.
-    const pkgsQuery = Pkg.query().orderBy('name').orderBy('id')
+    const pkgsQuery = Pkg.query().orderBy('name')
 
     if (params.app_id) {
-      await App.findOrFail(params.app_id)
       pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
-    } else if (q) {
-      pkgsQuery.apply((scopes) => scopes.search(q))
     }
 
     // The filters apply both to the package list and to the packages of a single application
@@ -76,6 +73,10 @@ export default class PkgsController {
 
     if (type) pkgsQuery.where('type', type)
     if (repoId) pkgsQuery.where('repo_id', repoId)
+
+    if (q) {
+      pkgsQuery.apply((scopes) => scopes.search(q))
+    }
 
     const paginator = await pkgsQuery.paginate(page, perPage)
     return serialize(PkgTransformer.paginate(paginator.all(), paginator.getMeta()))
