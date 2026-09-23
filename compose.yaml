@@ -3,7 +3,6 @@
 services:
   mariadb:
     image: mariadb:11
-    container_name: infdet-mariadb
     restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
