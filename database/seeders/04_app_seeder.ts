@@ -73,6 +73,8 @@ function parseMetaInfo(xml: string) {
 }
 
 export default class AppSeeder extends BaseSeeder {
+  static environment = ['development', 'test']
+
   async run() {
     for (const { appstreamUrl, desktopUrl, iconUrl, packages = [] } of applications) {
       const appstreamData = await this.download(appstreamUrl, 'AppStream XML')
