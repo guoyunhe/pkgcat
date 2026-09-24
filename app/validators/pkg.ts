@@ -73,4 +73,5 @@ export const pkgListValidator = vine.create({
     .parse((value) => positiveInteger(firstValue(value)))
     .optional(),
   type: singleValue(),
+  arch: singleValue(),
 })

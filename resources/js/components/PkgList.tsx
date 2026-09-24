@@ -5,9 +5,17 @@ import type { ReactNode } from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { useAuth } from '../auth'
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import type { Paginated } from '../types/pagination'
-import PkgFilters, { emptyPkgFilters, useStoredPkgFilters } from './PkgFilters'
+import { distroIndependentPackageTypes } from '../utils/pkgTypes'
+import PkgFilters, {
+  emptyPkgFilters,
+  filterDefaults,
+  filtersAreNarrowed,
+  useDistroCatalog,
+  useStoredPkgFilters,
+} from './PkgFilters'
 import PkgListItem from './PkgListItem'
 
 import styles from './PkgList.module.css'
@@ -26,8 +34,8 @@ type PkgListProps = {
    */
   showFilters?: boolean
   /**
-   * Whether the distribution is remembered for a later visit, which the package listing asks for: a
-   * distribution the query string does not name is read from what was set last time. A listing that
+   * Whether the filters are remembered for a later visit, which the package listing asks for: a
+   * filter the query string does not name is read from what was set last time. A listing that
    * shares its page with others — the search results, which reset what a tab was narrowed by —
    * leaves it out, and reads the query string alone.
    */
@@ -64,28 +72,49 @@ export default function PkgList({
   showDetails,
 }: PkgListProps) {
   const { t } = useTranslation()
-  // The distribution the reader narrowed to is remembered across visits, which is what a listing
-  // that names none falls back to; the package format is never remembered
+  const { ready, user } = useAuth()
+  // The releases the toolbar offers, which the two required filters of the reader are also read from
+  const catalog = useDistroCatalog(showFilters)
   const [remembered, setRemembered] = useStoredPkgFilters()
-  const [{ distroId, page, type }, setParams] = useQueryStates({
-    distroId: parseAsString,
-    page: parseAsInteger.withDefault(1),
-    type: parseAsString,
-  })
-  // What the query string names wins over what an earlier visit remembered, and a listing without a
-  // toolbar is narrowed by nothing at all
+  const [{ arch: chosenArch, distroId: chosenDistro, page, type: chosenType }, setParams] =
+    useQueryStates({
+      arch: parseAsString,
+      distroId: parseAsString,
+      page: parseAsInteger.withDefault(1),
+      type: parseAsString,
+    })
+  const distroIdOfUser = user?.distroId ?? null
+  // The package format and the architecture of the release the reader runs, which is what the two
+  // required filters start at
+  const defaults = useMemo(
+    () => filterDefaults(catalog ?? [], distroIdOfUser),
+    [catalog, distroIdOfUser],
+  )
+  // The package format and the architecture always name a value — what the query string names,
+  // then what an earlier visit remembered, then the release the reader runs — while the
+  // distribution is only named when the reader picked one. A listing without a toolbar is narrowed
+  // by nothing at all, and the defaulted values are nowhere read from storage
   const filters = useMemo<PkgFiltersValue>(() => {
     if (!showFilters) return emptyPkgFilters
+    const stored = rememberFilters ? remembered : emptyPkgFilters
+    const type = chosenType ?? stored.type ?? defaults.type
     return {
-      distroId: distroId ?? (rememberFilters ? remembered.distroId : null),
+      arch: chosenArch ?? stored.arch ?? defaults.arch,
+      distroId: distroIndependentPackageTypes.includes(type)
+        ? null
+        : (chosenDistro ?? stored.distroId),
       type,
     }
-  }, [distroId, rememberFilters, remembered, showFilters, type])
+  }, [chosenArch, chosenDistro, chosenType, defaults, rememberFilters, remembered, showFilters])
   const [result, setResult] = useState<Paginated<Data.Pkg> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  // The reader's release is what the two required filters start at, so the first read waits for it
+  const waiting = showFilters && (!ready || catalog === null)
 
   useEffect(() => {
+    if (waiting) return
+
     let active = true
 
     setLoading(true)
@@ -111,25 +140,33 @@ export default function PkgList({
     return () => {
       active = false
     }
-  }, [errorMessage, filters, load, page, refreshKey, t])
+  }, [errorMessage, filters, load, page, refreshKey, t, waiting])
 
-  // What the toolbar is set to is kept in the query string, the chosen distribution is also
-  // remembered for a later visit, and a narrowing the reader changes reads the first page of the
-  // listing again
+  // What the toolbar is set to is kept in the query string, the filters are also remembered for a
+  // later visit, and a narrowing the reader changes reads the first page of the listing again
   function changeFilters(next: PkgFiltersValue) {
-    if (rememberFilters) setRemembered({ distroId: next.distroId })
+    if (rememberFilters) setRemembered(next)
     void setParams({
+      arch: next.arch,
       distroId: next.distroId,
       page: null,
       type: next.type,
     })
   }
 
-  const narrowed = filters.distroId !== null || filters.type !== null
+  const narrowed = showFilters && filtersAreNarrowed(filters, defaults)
 
   return (
     <>
-      {showFilters && <PkgFilters onChange={changeFilters} value={filters} />}
+      {showFilters && (
+        <PkgFilters
+          arches={catalog?.map((distro) => distro.arch) ?? []}
+          catalog={catalog ?? []}
+          defaults={defaults}
+          onChange={changeFilters}
+          value={filters}
+        />
+      )}
       {error ? (
         <Alert color='red' mb='lg'>
           {error}

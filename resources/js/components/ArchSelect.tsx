@@ -14,6 +14,8 @@ type ArchSelectProps = {
   value: string | null
   placeholder?: string
   searchable?: boolean
+  /** Whether the field offers to be cleared, which a field that always names a value does not. */
+  clearable?: boolean
   width?: number
 }
 

@@ -15,6 +15,7 @@ export type PkgPayload = Omit<Partial<Data.Pkg>, 'apps'> & { appIds?: number[] }
 
 /** Filters applied to package listings. */
 export type PkgFilters = {
+  arch: string | null
   distroId: string | null
   type: string | null
 }
@@ -27,6 +28,7 @@ function authHeaders() {
 /** Query parameters of the package filters; unset filters are omitted from the query. */
 export function filterParams(filters: PkgFilters) {
   return {
+    arch: filters.arch ?? undefined,
     distroId: filters.distroId ?? undefined,
     type: filters.type ?? undefined,
   }
@@ -39,7 +41,7 @@ export function filterParams(filters: PkgFilters) {
 export async function getPkgs(
   query = '',
   page = 1,
-  filters: PkgFilters = { distroId: null, type: null },
+  filters: PkgFilters = { arch: null, distroId: null, type: null },
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>('/pkgs', {
     params: { page, q: query || undefined, ...filterParams(filters) },

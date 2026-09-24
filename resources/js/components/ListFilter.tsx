@@ -29,6 +29,8 @@ type ListFilterProps = {
   /** Text of the field while nothing is selected, which a field that reads as "any" shows */
   placeholder?: string
   searchable?: boolean
+  /** Whether the field offers to be cleared, which a filter that always names a value does not. */
+  clearable?: boolean
   value: string | null
   /** Width of the field, which every field of a toolbar shares unless a listing says otherwise. */
   width?: number
@@ -43,6 +45,7 @@ type ListFilterProps = {
  * back when the field is cleared; a listing the server pages asks it for the narrowed page.
  */
 export default function ListFilter({
+  clearable = true,
   data,
   description,
   label,
@@ -56,7 +59,7 @@ export default function ListFilter({
 
   return (
     <Select
-      clearable
+      clearable={clearable}
       data={data}
       description={description}
       label={label}

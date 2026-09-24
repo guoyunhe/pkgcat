@@ -104,7 +104,7 @@ export async function getApp(id: number, locale?: string) {
 export async function getAppPackages(
   id: number,
   page = 1,
-  filters: PkgFilters = { distroId: null, type: null },
+  filters: PkgFilters = { arch: null, distroId: null, type: null },
   locale?: string,
 ) {
   const { data } = await api.get<SerializedPaginated<Data.Pkg>>(`/apps/${id}/pkgs`, {

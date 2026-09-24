@@ -24,7 +24,7 @@ const maxPackageSize = 2 * 1024 * 1024 * 1024
 
 export default class PkgsController {
   async index({ params, request, serialize }: HttpContext) {
-    const { page, perPage, q, distroId, repoId, type } =
+    const { page, perPage, q, distroId, repoId, type, arch } =
       await request.validateUsing(pkgListValidator)
     // Packages are listed by name, which is how a package is looked up; the id keeps the order of a
     // name stable, so that paging never repeats or skips a row the way a partly ordered list does.
@@ -41,9 +41,11 @@ export default class PkgsController {
       // A release is narrowed through the link it holds its packages by (`Pkg.distros`), which
       // settles the repositories, the binary compatibility and the architecture when it is written
       pkgsQuery.whereHas('distros', (query) => query.where('distros.id', distroId))
+    } else {
+      if (type) pkgsQuery.where('type', type)
+      if (arch) pkgsQuery.whereIn('arch', [arch, 'noarch'])
     }
 
-    if (type) pkgsQuery.where('type', type)
     if (repoId) pkgsQuery.where('repo_id', repoId)
 
     if (q) {
