@@ -10,13 +10,13 @@ import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import drive from '@adonisjs/drive/services/main'
+import db from '@adonisjs/lucid/services/db'
 
 import App from '#models/app'
-import Distro from '#models/distro'
 import Pkg from '#models/pkg'
 import PackageFileExtractor from '#services/package_file_extractor'
+import { refreshPackageRows } from '#services/pkg_distros'
 import PkgTransformer from '#transformers/pkg_transformer'
-import { archIndependentPackageArch } from '#utils/arch'
 import { pkgListValidator, pkgValidator } from '#validators/pkg'
 
 // Package files are uploaded outside of the global multipart limit (see config/bodyparser.ts)
@@ -37,38 +37,15 @@ export default class PkgsController {
       pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
     }
 
-    // The filters apply both to the package list and to the packages of a single application
+    // The filters apply both to the package list and to the packages of a single application. A
+    // listing that is narrowed to an application, or to the repository a package was taken from, is
+    // read from the packages themselves, because those are the things the table of a release does
+    // not name; it is narrowed to a release through that table, which holds the packages of one as
+    // a subquery the database resolves once. Which repositories serve a release, which release it
+    // is binary compatible with and which packages of them its own architecture takes are settled
+    // when those rows are written, so they are not resolved again for every request.
     if (distroId) {
-      // A distribution is served by its repositories, which hold the packages of its own
-      // architecture, along with the packages that carry no machine code and belong to every
-      // architecture of it. The release it is binary compatible with is read with it: the packages
-      // built for either of them install on both, and the two are of one architecture, so a release
-      // that continues another one is listed with the packages of the release it continues (a Linux
-      // Mint reads what Ubuntu and its vendors publish, without either of them naming it). The
-      // repositories are read as a subquery, which the database resolves once: written as a nested
-      // `whereHas` it re-reads the link of every package instead, and written as a list of ids it
-      // stops using the subquery and scans the packages one by one.
-      const distro = await Distro.find(distroId)
-      if (distro) {
-        const releases = [
-          distro.id,
-          ...(distro.compatibleDistroId ? [distro.compatibleDistroId] : []),
-        ]
-
-        pkgsQuery.whereHas('repo', (query) =>
-          query.whereHas('distros', (builder) => builder.whereIn('distros.id', releases)),
-        )
-        pkgsQuery.where((query) => {
-          query
-            .where('arch', distro.arch)
-            .orWhere('arch', archIndependentPackageArch)
-            .orWhereNull('arch')
-        })
-      } else {
-        // A release that does not exist, or that no repository serves, holds no package, which its
-        // counts say as well
-        pkgsQuery.whereRaw('0 = 1')
-      }
+      pkgsQuery.whereIn('id', db.from('pkg_distros').select('pkg_id').where('distro_id', distroId))
     }
 
     if (type) pkgsQuery.where('type', type)
@@ -159,6 +136,8 @@ export default class PkgsController {
     await pkg.merge(attributes).save()
     // The form lists every application of the package, so the stored links follow the selection
     if (appIds) await pkg.related('apps').sync(appIds, true)
+    // The releases that carry the package are written with its architecture, which this form edits
+    await refreshPackageRows(pkg.id)
     await pkg.load('apps')
     return serialize(PkgTransformer.transform(pkg))
   }

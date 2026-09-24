@@ -284,6 +284,21 @@ export class PkgSchema extends BaseModel {
   declare version: string | null
 }
 
+export class PkgDistroSchema extends BaseModel {
+  static $columns = ['createdAt', 'distroId', 'id', 'pkgId', 'updatedAt'] as const
+  $columns = PkgDistroSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare distroId: number
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare pkgId: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class QueueJobSchema extends BaseModel {
   static $columns = ['acquiredAt', 'data', 'dedupAt', 'dedupId', 'dedupTtl', 'error', 'executeAt', 'finishedAt', 'id', 'queue', 'score', 'status', 'workerId'] as const
   $columns = QueueJobSchema.$columns

@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 
 import Distro from '#models/distro'
 import Repo from '#models/repo'
+import { refreshPackageDistros } from '#services/pkg_distros'
 import RepoSynchronizer, {
   type RepoSyncOptions,
   type RepoSyncSummary,
@@ -75,9 +76,12 @@ export default class RepoSyncRunner {
       }
     }
 
-    // The counts are made of the packages the run wrote, so they are recomputed once it wrote them
+    // The counts are made of the packages the run wrote, so they are recomputed once it wrote them,
+    // and the packages a release carries are read from a table of their own (`pkg_distros`), which
+    // is rewritten with the same packages
     await Repo.refreshCounts()
     await Distro.refreshCounts()
+    await refreshPackageDistros()
 
     yield { type: 'done', synced }
   }
