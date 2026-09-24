@@ -135,6 +135,7 @@ export default function SearchResultsPage() {
             emptyMessage={t('common.packagesNotFound')}
             errorMessage={t('search.loadPackagesError')}
             load={readPkgs}
+            rememberFilters
           />
         </Tabs.Panel>
 

@@ -8,11 +8,11 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '../auth'
 import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import type { Paginated } from '../types/pagination'
-import { distroIndependentPackageTypes } from '../utils/pkgTypes'
 import PkgFilters, {
   emptyPkgFilters,
   filterDefaults,
   filtersAreNarrowed,
+  offeredDistroId,
   useDistroCatalog,
   useStoredPkgFilters,
 } from './PkgFilters'
@@ -34,10 +34,10 @@ type PkgListProps = {
    */
   showFilters?: boolean
   /**
-   * Whether the filters are remembered for a later visit, which the package listing asks for: a
-   * filter the query string does not name is read from what was set last time. A listing that
-   * shares its page with others — the search results, which reset what a tab was narrowed by —
-   * leaves it out, and reads the query string alone.
+   * Whether the filters are remembered for a later visit, which the package listings ask for: a
+   * filter the query string does not name is read from what was set last time. The listing of the
+   * search results remembers them as well, so what the reader narrows one listing by narrows the
+   * others.
    */
   rememberFilters?: boolean
   /** Bumped by the page when something outside the listing changed it, such as a deleted package. */
@@ -84,32 +84,44 @@ export default function PkgList({
       type: parseAsString,
     })
   const distroIdOfUser = user?.distroId ?? null
-  // The package format and the architecture of the release the reader runs, which is what the two
-  // required filters start at
+  // The release the reader runs, which is what the filters of the listing start at
   const defaults = useMemo(
     () => filterDefaults(catalog ?? [], distroIdOfUser),
     [catalog, distroIdOfUser],
   )
-  // The package format and the architecture always name a value — what the query string names,
-  // then what an earlier visit remembered, then the release the reader runs — while the
-  // distribution is only named when the reader picked one. A listing without a toolbar is narrowed
-  // by nothing at all, and the defaulted values are nowhere read from storage
+  // The filters of a listing that shows a toolbar, which always name a package format, an
+  // architecture and a distribution: what the query string names, then what an earlier visit
+  // remembered, then the release the reader runs. A listing without a toolbar is narrowed by
+  // nothing at all, the defaulted values are nowhere read from storage, and a distribution the
+  // catalog does not offer for the two of them is replaced by the first one it does
   const filters = useMemo<PkgFiltersValue>(() => {
     if (!showFilters) return emptyPkgFilters
     const stored = rememberFilters ? remembered : emptyPkgFilters
     const type = chosenType ?? stored.type ?? defaults.type
+    const arch = chosenArch ?? stored.arch ?? defaults.arch
     return {
-      arch: chosenArch ?? stored.arch ?? defaults.arch,
-      distroId: distroIndependentPackageTypes.includes(type)
-        ? null
-        : (chosenDistro ?? stored.distroId),
+      arch,
+      distroId: offeredDistroId(catalog, {
+        arch,
+        distroId: chosenDistro ?? stored.distroId ?? defaults.distroId,
+        type,
+      }),
       type,
     }
-  }, [chosenArch, chosenDistro, chosenType, defaults, rememberFilters, remembered, showFilters])
+  }, [
+    catalog,
+    chosenArch,
+    chosenDistro,
+    chosenType,
+    defaults,
+    rememberFilters,
+    remembered,
+    showFilters,
+  ])
   const [result, setResult] = useState<Paginated<Data.Pkg> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  // The reader's release is what the two required filters start at, so the first read waits for it
+  // The release the reader runs is what the filters start at, so the first read waits for it
   const waiting = showFilters && (!ready || catalog === null)
 
   useEffect(() => {

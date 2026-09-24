@@ -17,31 +17,68 @@ const storageKey = 'pkg-filters'
 export const emptyPkgFilters: PkgFiltersValue = { arch: null, distroId: null, type: null }
 
 /**
- * The package format and the architecture most of the catalog is published in, which a reader whose
- * release the catalog does not know reads it in.
+ * The release the filters of a listing start at for a reader the catalog knows none of, along with
+ * the package format and the architecture that release is published in.
  */
+const defaultReleaseName = 'openSUSE Tumbleweed'
 const fallbackFilters = { arch: 'x86_64', type: 'rpm' }
 
+/** What the filters of a listing start at: the two a package always names, and a release or none. */
+export type PkgFilterDefaults = { arch: string; distroId: string | null; type: string }
+
 /**
- * What the two required filters start at: the package format and the architecture of the release
- * the reader runs, and the two above for a reader who runs one the catalog does not know.
+ * What the filters of a listing start at: the release the reader runs, and openSUSE Tumbleweed for
+ * a reader the catalog knows none of.
  */
-export function filterDefaults(catalog: Distro[], distroId?: number | null) {
-  const release = catalog.find((distro) => distro.id === distroId)
+export function filterDefaults(
+  catalog: Distro[],
+  distroIdOfReader?: number | null,
+): PkgFilterDefaults {
+  const release =
+    catalog.find((distro) => distro.id === distroIdOfReader) ?? defaultRelease(catalog)
   return {
     arch: release?.arch ?? fallbackFilters.arch,
+    distroId: release ? String(release.id) : null,
     type: release?.pkgType ?? fallbackFilters.type,
   }
 }
 
-/** Whether a listing is narrowed away from what its two required filters start at. */
-export function filtersAreNarrowed(
-  filters: PkgFiltersValue,
-  defaults: Pick<PkgFiltersValue, 'arch' | 'type'>,
-) {
+/** OpenSUSE Tumbleweed of the architecture most of the catalog is published for. */
+function defaultRelease(catalog: Distro[]) {
+  const rolling = catalog.filter((distro) => distro.name === defaultReleaseName)
+  return rolling.find((distro) => distro.arch === fallbackFilters.arch) ?? rolling[0]
+}
+
+/** Whether a listing is narrowed away from what its filters start at. */
+export function filtersAreNarrowed(filters: PkgFiltersValue, defaults: PkgFilterDefaults) {
   return (
-    filters.distroId !== null || filters.type !== defaults.type || filters.arch !== defaults.arch
+    filters.distroId !== defaults.distroId ||
+    filters.type !== defaults.type ||
+    filters.arch !== defaults.arch
   )
+}
+
+/**
+ * The distribution a listing is narrowed by, which is always one of the releases the catalog offers
+ * for the package format and architecture of the listing: the one the reader picked, the same
+ * release of another architecture when it offers one, and the first it offers otherwise. A catalog
+ * that has not been read yet offers nothing to check a pick with, so it stands until it has.
+ */
+export function offeredDistroId(
+  catalog: Distro[] | null,
+  value: Pick<PkgFiltersValue, 'arch' | 'distroId' | 'type'>,
+) {
+  if (catalog === null) return value.distroId
+  const offered = offeredDistros(catalog, value)
+  if (offered.some((distro) => String(distro.id) === value.distroId)) return value.distroId
+  // A pick the catalog does not offer is replaced by the same release of the architecture it offers,
+  // and by the first one it offers when it holds no such release
+  const picked = catalog.find((distro) => String(distro.id) === value.distroId)
+  const same = offered.find(
+    (distro) => distro.name === picked?.name && distro.version === picked?.version,
+  )
+  const replacement = same ?? offered[0]
+  return replacement ? String(replacement.id) : null
 }
 
 /**
@@ -100,7 +137,7 @@ function parseFilters(raw: string): PkgFiltersValue {
  * Releases the toolbar offers: those that carry the package format and architecture the reader
  * picked, and none at all for a format no release carries.
  */
-function offeredDistros(catalog: Distro[], value: Pick<PkgFiltersValue, 'arch' | 'type'>) {
+export function offeredDistros(catalog: Distro[], value: Pick<PkgFiltersValue, 'arch' | 'type'>) {
   if (distroIndependentPackageTypes.includes(value.type ?? '')) return []
   return catalog.filter(
     (distro) =>
@@ -117,17 +154,17 @@ type PkgFiltersProps = {
    * for.
    */
   arches: string[]
-  /** What the two required filters start at, which clearing the filters returns to. */
-  defaults: Pick<PkgFiltersValue, 'arch' | 'type'>
+  /** What the filters start at, which clearing them returns to. */
+  defaults: PkgFilterDefaults
   value: PkgFiltersValue
   onChange: (value: PkgFiltersValue) => void
 }
 
 /**
- * Package format, architecture and distribution filters, in that order. The package format and the
- * architecture always name a value, since a package is one format for one architecture, and the
- * releases the distribution field offers are the ones the two before it name; a format no release
- * carries drops that field altogether.
+ * Package format, architecture and distribution filters, in that order. Each of them always names a
+ * value — a package is one format for one architecture, published by one release — and the releases
+ * the distribution field offers are the ones the two before it name; a format no release carries
+ * drops that field altogether.
  */
 export default function PkgFilters({
   arches,
@@ -139,13 +176,10 @@ export default function PkgFilters({
   const { t } = useTranslation()
   const hideDistro = distroIndependentPackageTypes.includes(value.type ?? '')
 
-  // The release the reader picked is dropped as soon as the format or the architecture stops
-  // offering it, so that what the toolbar shows is what narrows the listing
+  // A release the format and the architecture do not offer is replaced by the one they do, so that
+  // what the toolbar shows is what narrows the listing
   function changeFilters(next: PkgFiltersValue) {
-    const offered = offeredDistros(catalog, next)
-    const keepsPick = offered.some((distro) => String(distro.id) === next.distroId)
-    const known = catalog.length > 0 || distroIndependentPackageTypes.includes(next.type ?? '')
-    onChange(known && !keepsPick ? { ...next, distroId: null } : next)
+    onChange({ ...next, distroId: offeredDistroId(catalog, next) })
   }
 
   return (
@@ -167,10 +201,10 @@ export default function PkgFilters({
       />
       {!hideDistro && (
         <DistroSelect
+          clearable={false}
           distros={offeredDistros(catalog, value)}
           label={t('common.distribution')}
           onChange={(distroId) => changeFilters({ ...value, distroId })}
-          placeholder={t('packages.filterAny')}
           searchable
           value={value.distroId}
           w={filterWidth}
