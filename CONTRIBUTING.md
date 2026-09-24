@@ -16,3 +16,20 @@ Do not use these credentials outside a local development environment. Run `node 
 ```bash
 sudo zypper install git nodejs mariadb podman-compose dpkg
 ```
+
+## Bootstrap
+
+To bootstrap the development environment, run the following command:
+
+```bash
+pnpm install
+cp .env.example .env
+node ace migration:fresh --seed
+node ace repo:sync
+```
+
+## Running the development environment
+
+```bash
+pnpm dev
+```
