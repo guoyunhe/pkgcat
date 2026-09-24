@@ -1,10 +1,11 @@
 import type { HttpContext } from '@adonisjs/core/http'
+import type { LucidModel, ModelQueryBuilderContract } from '@adonisjs/lucid/types/model'
 
 import App from '#models/app'
 import Distro from '#models/distro'
 import Pkg from '#models/pkg'
 import Repo from '#models/repo'
-import { searchCountsValidator } from '#validators/search'
+import { searchCountValidator, type SearchCountType } from '#validators/search'
 
 /**
  * One counted row: the database answers a total as a number, which the driver may spell as a
@@ -12,42 +13,51 @@ import { searchCountsValidator } from '#validators/search'
  */
 type CountRow = { total: string | number }
 
+/**
+ * How many rows one listing of the catalog holds, once its query has been narrowed the way the
+ * listing itself narrows.
+ */
+function total<Model extends LucidModel>(
+  query: ModelQueryBuilderContract<Model>,
+  terms: string,
+  narrow: (query: ModelQueryBuilderContract<Model>) => void,
+) {
+  if (terms) narrow(query)
+  return query.pojo<CountRow>().count('* as total')
+}
+
+/**
+ * How many rows each listing of the catalog holds for the terms of a search. The listing of a tab
+ * is counted on its own, so that one that is slow to count holds back no other tab, and the query
+ * is narrowed by the scope the listing itself narrows with, so that a count is the total the
+ * listing it counts would report.
+ */
+const countTotals: Record<SearchCountType, (terms: string) => Promise<CountRow[]>> = {
+  apps: (terms) =>
+    total(App.query(), terms, (query) => query.apply((scopes) => scopes.search(terms))),
+  pkgs: (terms) =>
+    total(Pkg.query(), terms, (query) => query.apply((scopes) => scopes.search(terms))),
+  repos: (terms) =>
+    total(Repo.query(), terms, (query) => query.apply((scopes) => scopes.search(terms))),
+  distros: (terms) =>
+    total(Distro.query(), terms, (query) => query.apply((scopes) => scopes.search(terms))),
+}
+
 export default class SearchController {
   /**
-   * How many entries the listings of the catalog hold for the terms a search was made with, which
-   * the tabs of the search results show. The four are counted together and by the terms alone: a
-   * tab is counted whether or not its listing has been opened, and what a listing was narrowed by
-   * on its own page is not part of the search.
+   * How many entries one listing of the catalog holds for the terms a search was made with, which
+   * the tab of that listing shows. Each tab reads its own count, so that a listing that is slow to
+   * count holds back no other tab: a tab is counted whether or not its listing has been opened, and
+   * what a listing was narrowed by on its own page is not part of the search.
    */
-  async counts({ request, serialize }: HttpContext) {
-    const { q } = await request.validateUsing(searchCountsValidator)
-    const terms = q ?? ''
+  async count({ request, serialize }: HttpContext) {
+    const {
+      params: { type },
+      q,
+    } = await request.validateUsing(searchCountValidator)
 
-    // The queries are narrowed by the scope the listings themselves narrow with, so a count is the
-    // total the listing it counts would report
-    const appsQuery = App.query()
-    const pkgsQuery = Pkg.query()
-    const reposQuery = Repo.query()
-    const distrosQuery = Distro.query()
-    if (terms) {
-      appsQuery.apply((scopes) => scopes.search(terms))
-      pkgsQuery.apply((scopes) => scopes.search(terms))
-      reposQuery.apply((scopes) => scopes.search(terms))
-      distrosQuery.apply((scopes) => scopes.search(terms))
-    }
+    const rows = await countTotals[type](q ?? '')
 
-    const [apps, pkgs, repos, distros] = await Promise.all([
-      appsQuery.pojo<CountRow>().count('* as total'),
-      pkgsQuery.pojo<CountRow>().count('* as total'),
-      reposQuery.pojo<CountRow>().count('* as total'),
-      distrosQuery.pojo<CountRow>().count('* as total'),
-    ])
-
-    return serialize({
-      apps: Number(apps[0].total),
-      pkgs: Number(pkgs[0].total),
-      repos: Number(repos[0].total),
-      distros: Number(distros[0].total),
-    })
+    return serialize({ count: Number(rows[0].total) })
   }
 }

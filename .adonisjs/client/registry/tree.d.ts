@@ -77,6 +77,6 @@ export interface ApiDefinition {
     index: typeof routes['categories.index']
   }
   search: {
-    counts: typeof routes['search.counts']
+    count: typeof routes['search.count']
   }
 }

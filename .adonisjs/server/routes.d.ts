@@ -50,7 +50,7 @@ export type ScannedRoutes = {
     'distros.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'distros.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'categories.index': { paramsTuple?: []; params?: {} }
-    'search.counts': { paramsTuple?: []; params?: {} }
+    'search.count': { paramsTuple: [ParamValue]; params: {'type': ParamValue} }
   }
   GET: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
@@ -71,7 +71,7 @@ export type ScannedRoutes = {
     'distros.index': { paramsTuple?: []; params?: {} }
     'distros.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'categories.index': { paramsTuple?: []; params?: {} }
-    'search.counts': { paramsTuple?: []; params?: {} }
+    'search.count': { paramsTuple: [ParamValue]; params: {'type': ParamValue} }
   }
   HEAD: {
     'drive.fs.serve': { paramsTuple: [...ParamValue[]]; params: {'*': ParamValue[]} }
@@ -92,7 +92,7 @@ export type ScannedRoutes = {
     'distros.index': { paramsTuple?: []; params?: {} }
     'distros.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'categories.index': { paramsTuple?: []; params?: {} }
-    'search.counts': { paramsTuple?: []; params?: {} }
+    'search.count': { paramsTuple: [ParamValue]; params: {'type': ParamValue} }
   }
   POST: {
     'auth.register': { paramsTuple?: []; params?: {} }

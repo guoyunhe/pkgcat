@@ -87,7 +87,7 @@ router
     router.get('categories', [controllers.Categories, 'index'])
 
     // Search
-    router.get('search/counts', [controllers.Search, 'counts'])
+    router.get('search/counts/:type', [controllers.Search, 'count'])
   })
   .prefix('/api')
 

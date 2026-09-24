@@ -6,21 +6,20 @@ import {
   useQueryState,
   useQueryStates,
 } from 'nuqs'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'wouter'
 
 import AppList, { type AppFilters } from '../components/AppList'
 import AppRequestButton from '../components/AppRequestButton'
-import CountBadge from '../components/CountBadge'
 import DistroTable from '../components/DistroTable'
 import PkgList from '../components/PkgList'
 import RepoTable from '../components/RepoTable'
+import SearchCountBadge from '../components/SearchCountBadge'
 import { getApps } from '../services/apps'
 import { getDistros, type DistroFilters } from '../services/distros'
 import { getPkgs, type PkgFilters } from '../services/pkgs'
 import { getRepos, type RepoFilters } from '../services/repos'
-import { getSearchCounts } from '../services/search'
 
 import styles from './AppsPage.module.css'
 
@@ -49,14 +48,6 @@ const listingParams = {
   type: parseAsString,
 }
 
-/** What every tab of the search holds, which is nothing until the counts have been read. */
-const noCounts: Record<SearchTab, number | null> = {
-  apps: null,
-  pkgs: null,
-  repos: null,
-  distros: null,
-}
-
 export default function SearchResultsPage() {
   const { t, i18n } = useTranslation()
   // The terms and the tab are both kept in the query string, so that a search is shared and reloaded
@@ -66,8 +57,6 @@ export default function SearchResultsPage() {
   const [, clearListings] = useQueryStates(listingParams)
   const [, navigate] = useLocation()
   const terms = query?.trim() ?? ''
-
-  const [counts, setCounts] = useState(noCounts)
 
   // The applications the search terms name, narrowed and ordered by the filters of the list
   const readApps = useCallback(
@@ -91,26 +80,6 @@ export default function SearchResultsPage() {
     [terms],
   )
 
-  // What every tab of the search holds, which is read in one request for all of them: a tab whose
-  // listing is not mounted shows its count all the same, and it is the count of the terms the
-  // search was made with — a tab that is narrowed reads another page, not another count
-  useEffect(() => {
-    let active = true
-
-    setCounts(noCounts)
-    getSearchCounts(terms)
-      .then((next) => {
-        if (active) setCounts(next)
-      })
-      .catch(() => {
-        // A count that could not be read keeps the tab waiting, which the listing it opens says
-      })
-
-    return () => {
-      active = false
-    }
-  }, [terms])
-
   // The tab the reader opened is the one shown: what the listing it names was narrowed by, and the
   // page of it the reader was on, belong to the tab they were set on, so opening a tab starts the
   // listing of that tab over. The default tab is left out of the query string, the way the orders
@@ -133,35 +102,18 @@ export default function SearchResultsPage() {
 
       <Tabs mb='lg' value={tab} onChange={(value) => changeTab(searchTab(value))}>
         <Tabs.List>
-          <Tabs.Tab
-            value='apps'
-            rightSection={
-              <CountBadge count={counts.apps ?? undefined} loading={counts.apps === null} />
-            }
-          >
+          <Tabs.Tab value='apps' rightSection={<SearchCountBadge terms={terms} type='apps' />}>
             {t('common.apps')}
           </Tabs.Tab>
-          <Tabs.Tab
-            value='pkgs'
-            rightSection={
-              <CountBadge count={counts.pkgs ?? undefined} loading={counts.pkgs === null} />
-            }
-          >
+          <Tabs.Tab value='pkgs' rightSection={<SearchCountBadge terms={terms} type='pkgs' />}>
             {t('common.packages')}
           </Tabs.Tab>
-          <Tabs.Tab
-            value='repos'
-            rightSection={
-              <CountBadge count={counts.repos ?? undefined} loading={counts.repos === null} />
-            }
-          >
+          <Tabs.Tab value='repos' rightSection={<SearchCountBadge terms={terms} type='repos' />}>
             {t('common.repositories')}
           </Tabs.Tab>
           <Tabs.Tab
             value='distros'
-            rightSection={
-              <CountBadge count={counts.distros ?? undefined} loading={counts.distros === null} />
-            }
+            rightSection={<SearchCountBadge terms={terms} type='distros' />}
           >
             {t('common.distributions')}
           </Tabs.Tab>
