@@ -42,7 +42,7 @@ type PkgListProps = {
   errorMessage?: string
   /** Extra controls per item, such as the admin actions. */
   renderActions?: (pkg: Data.Pkg) => ReactNode
-  /** Render the longer package details (license, summary and install command). */
+  /** Render the longer package details (license and install command). */
   showDetails?: boolean
 }
 

@@ -16,11 +16,11 @@ type PkgListItemProps = {
   pkg: Data.Pkg
   /** Extra controls rendered after the download button, such as the admin actions. */
   actions?: ReactNode
-  /** Render the longer package details (license, summary and install command). */
+  /** Render the longer package details (license and install command). */
   showDetails?: boolean
 }
 
-/** A single package row: type icon, name, metadata and the download (plus extra) actions. */
+/** A single package row: type icon, name, summary, metadata and the download (plus extra) actions. */
 export default function PkgListItem({ pkg, actions, showDetails = false }: PkgListItemProps) {
   const { t, i18n } = useTranslation()
   const downloadUrl = pkgDownloadUrl(pkg)
@@ -52,7 +52,7 @@ export default function PkgListItem({ pkg, actions, showDetails = false }: PkgLi
             </Link>
           ))}
         </div>
-        {showDetails && pkg.summary && (
+        {pkg.summary && (
           <Text c='dimmed' className={styles.summary} size='sm'>
             {pkg.summary}
           </Text>
