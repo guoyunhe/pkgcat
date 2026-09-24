@@ -3,6 +3,7 @@ import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 
 import { PkgSchema } from '#database/schema'
 import App from '#models/app'
+import Distro from '#models/distro'
 import Repo from '#models/repo'
 import { searchScope } from '#utils/search'
 
@@ -17,6 +18,17 @@ export default class Pkg extends PkgSchema {
 
   @belongsTo(() => Repo)
   declare repo: BelongsTo<typeof Repo>
+
+  /**
+   * Releases that carry the package, which the repositories of a release, the release it is binary
+   * compatible with and the architecture of every package settle when the link is written.
+   */
+  @manyToMany(() => Distro, {
+    pivotTable: 'pkg_distros',
+    pivotForeignKey: 'pkg_id',
+    pivotRelatedForeignKey: 'distro_id',
+  })
+  declare distros: ManyToMany<typeof Distro>
 
   /**
    * Packages the search terms name: the name a package is listed and looked up by. What a package

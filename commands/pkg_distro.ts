@@ -3,10 +3,7 @@ import type { CommandOptions } from '@adonisjs/core/types/ace'
 
 import { refreshPackageDistros } from '#services/pkg_distros'
 
-/**
- * Rewrites the table of the packages a release carries, which every listing of a release reads. A
- * synchronization run writes it as well; this is what repairs it on its own.
- */
+/** Rewrite the packages each release carries; a synchronization run writes them as well. */
 export default class PkgDistro extends BaseCommand {
   static commandName = 'pkg:distro'
   static description = 'Rewrite the packages each release carries'

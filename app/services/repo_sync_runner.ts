@@ -76,9 +76,7 @@ export default class RepoSyncRunner {
       }
     }
 
-    // The counts are made of the packages the run wrote, so they are recomputed once it wrote them,
-    // and the packages a release carries are read from a table of their own (`pkg_distros`), which
-    // is rewritten with the same packages
+    // The counts and the packages every release carries are recomputed once the run wrote them
     await Repo.refreshCounts()
     await Distro.refreshCounts()
     await refreshPackageDistros()

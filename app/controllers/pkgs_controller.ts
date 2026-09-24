@@ -10,7 +10,6 @@ import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
 import app from '@adonisjs/core/services/app'
 import drive from '@adonisjs/drive/services/main'
-import db from '@adonisjs/lucid/services/db'
 
 import App from '#models/app'
 import Pkg from '#models/pkg'
@@ -37,15 +36,11 @@ export default class PkgsController {
       pkgsQuery.whereHas('apps', (builder) => builder.where('apps.id', params.app_id))
     }
 
-    // The filters apply both to the package list and to the packages of a single application. A
-    // listing that is narrowed to an application, or to the repository a package was taken from, is
-    // read from the packages themselves, because those are the things the table of a release does
-    // not name; it is narrowed to a release through that table, which holds the packages of one as
-    // a subquery the database resolves once. Which repositories serve a release, which release it
-    // is binary compatible with and which packages of them its own architecture takes are settled
-    // when those rows are written, so they are not resolved again for every request.
+    // The filters apply both to the package list and to the packages of a single application
     if (distroId) {
-      pkgsQuery.whereIn('id', db.from('pkg_distros').select('pkg_id').where('distro_id', distroId))
+      // A release is narrowed through the link it holds its packages by (`Pkg.distros`), which
+      // settles the repositories, the binary compatibility and the architecture when it is written
+      pkgsQuery.whereHas('distros', (query) => query.where('distros.id', distroId))
     }
 
     if (type) pkgsQuery.where('type', type)
@@ -136,7 +131,7 @@ export default class PkgsController {
     await pkg.merge(attributes).save()
     // The form lists every application of the package, so the stored links follow the selection
     if (appIds) await pkg.related('apps').sync(appIds, true)
-    // The releases that carry the package are written with its architecture, which this form edits
+    // The architecture this form edits decides which releases carry the package
     await refreshPackageRows(pkg.id)
     await pkg.load('apps')
     return serialize(PkgTransformer.transform(pkg))
