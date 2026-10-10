@@ -143,13 +143,14 @@ export default class AppsController {
       .preload('aliases')
       .preload('pkgNames')
       .preload('categories')
+      .preload('addons', (builder) => builder.preload('icon'))
       .withAggregate('reviews', (subQuery) => subQuery.avg('rating').as('avgRating'))
       .withAggregate('reviews', (subQuery) => subQuery.count('*').as('reviewCount'))
     if (auth.isAuthenticated) {
       appQuery.preload('favoritedBy', (builder) => builder.where('users.id', auth.user!.id))
     }
     const app = await appQuery.firstOrFail()
-    await attachTranslations([app], locale)
+    await attachTranslations([app, ...app.addons], locale)
     return serialize(AppTransformer.transform(app))
   }
 

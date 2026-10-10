@@ -51,6 +51,17 @@ export default class App extends AppSchema {
   })
   declare packages: ManyToMany<typeof Pkg>
 
+  /**
+   * Addons that extend the application. An addon names the applications it extends in its AppStream
+   * metadata, so an application has many addons and an addon may extend several applications.
+   */
+  @manyToMany(() => App, {
+    pivotTable: 'app_addons',
+    pivotForeignKey: 'app_id',
+    pivotRelatedForeignKey: 'addon_id',
+  })
+  declare addons: ManyToMany<typeof App>
+
   @manyToMany(() => Category, {
     pivotTable: 'app_categories',
     pivotForeignKey: 'app_id',

@@ -1,5 +1,5 @@
 import type { Data } from '@generated/data'
-import { Alert, Button, Container, DataList, Group, Loader, Text, Title } from '@mantine/core'
+import { Alert, Anchor, Button, Container, DataList, Group, Loader, Stack, Text, Title } from '@mantine/core'
 import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
@@ -298,6 +298,27 @@ export default function AppDetailPage() {
               </Button>
             )}
           </Group>
+        </section>
+      )}
+
+      {app.addons.length > 0 && (
+        <section className={styles.sources}>
+          <Title order={2}>{t('detail.addons')}</Title>
+          <Stack gap='xs'>
+            {app.addons.map((addon) => (
+              <Group gap='sm' key={addon.id} wrap='nowrap'>
+                {addon.icon && <img alt='' height={32} src={addon.icon.url} width={32} />}
+                <div>
+                  <Anchor component={Link} href={`/apps/${addon.id}`}>
+                    {localized(addon.name, i18n.language) || addon.appstreamId}
+                  </Anchor>
+                  <Text c='dimmed' size='sm'>
+                    {localized(addon.summary, i18n.language)}
+                  </Text>
+                </div>
+              </Group>
+            ))}
+          </Stack>
         </section>
       )}
 

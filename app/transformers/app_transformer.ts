@@ -47,6 +47,14 @@ export default class AppTransformer extends BaseTransformer<App> {
             left.name.localeCompare(right.name) ||
             (left.type ?? '').localeCompare(right.type ?? ''),
         ),
+      /** Addons that extend the application; only the detail of an application loads them. */
+      addons: (this.resource.addons ?? []).map((addon) => ({
+        id: addon.id,
+        appstreamId: addon.appstreamId,
+        name: localizedTexts(addon.translations, 'name'),
+        summary: localizedTexts(addon.translations, 'summary'),
+        icon: addon.icon ? ImageTransformer.transform(addon.icon) : null,
+      })),
       categories: (this.resource.categories ?? []).map((category) => ({
         id: category.id,
         code: category.code,
