@@ -12,6 +12,7 @@ import { attachTranslations, localizedTexts, replaceTranslations } from '#servic
 import RepoAppstreamExtractor, {
   appstreamHomepage,
   appstreamIdVariants,
+  canonicalAppstreamId,
   appstreamVersion,
   canonicalAppType,
   desktopAppTypes,
@@ -302,7 +303,7 @@ export default class RepoSynchronizer {
     const unknownCategories = new Set<string>()
     const candidates = entries.filter(
       (entry) =>
-        desktopAppTypes.includes(entry.component.type) &&
+        (desktopAppTypes.includes(entry.component.type) || entry.component.type === 'addon') &&
         Object.keys(entry.component.name).length > 0 &&
         Object.keys(entry.component.summary).length > 0 &&
         entry.component.pkgNames.some((name) => pkgNames.has(name)),
@@ -326,6 +327,8 @@ export default class RepoSynchronizer {
 
     const registry = await AppRegistry.load()
     const pendingIcons: Array<{ app: App; icon: AppstreamIcon }> = []
+    // Addons together with the AppStream IDs they extend, linked once every application is known
+    const pendingAddons: Array<{ addon: App; extendsIds: string[] }> = []
 
     for (const entry of candidates) {
       const current = registry.find(entry.appstreamId)
@@ -383,6 +386,10 @@ export default class RepoSynchronizer {
         result.linked += names.length
       }
 
+      if (app.id && entry.component.type === 'addon' && entry.component.extends?.length) {
+        pendingAddons.push({ addon: app, extendsIds: entry.component.extends })
+      }
+
       // Categories are linked as well, so that a synchronization backfills applications that were
       // imported before categories were extracted
       if (app.id) {
@@ -391,6 +398,17 @@ export default class RepoSynchronizer {
           entry.component.categories,
           unknownCategories,
         )
+      }
+    }
+
+    for (const { addon, extendsIds } of pendingAddons) {
+      const extended = new Map<number, App>()
+      for (const id of extendsIds) {
+        const target = registry.find(canonicalAppstreamId(id))
+        if (target?.id && target.id !== addon.id) extended.set(target.id, target)
+      }
+      for (const target of extended.values()) {
+        await target.related('addons').sync([addon.id], false)
       }
     }
 

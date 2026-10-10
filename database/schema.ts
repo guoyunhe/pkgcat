@@ -38,6 +38,21 @@ export class AppSchema extends BaseModel {
   declare version: string | null
 }
 
+export class AppAddonSchema extends BaseModel {
+  static $columns = ['addonId', 'appId', 'createdAt', 'id', 'updatedAt'] as const
+  $columns = AppAddonSchema.$columns
+  @column()
+  declare addonId: number
+  @column()
+  declare appId: number
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column({ isPrimary: true })
+  declare id: number
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+}
+
 export class AppAliasSchema extends BaseModel {
   static $columns = ['appId', 'appstreamId', 'createdAt', 'id', 'updatedAt'] as const
   $columns = AppAliasSchema.$columns
