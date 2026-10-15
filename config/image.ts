@@ -25,28 +25,26 @@ const imageConfig = defineConfig({
     },
     avatar: {
       directory: 'avatars',
-      width: 512,
-      height: 512,
+      width: 1024,
+      height: 1024,
       fit: 'cover',
       format: 'webp',
-      quality: { webp: 85 },
       thumbnails: {
         small: { width: 64, height: 64, fit: 'cover', format: 'webp' },
-        medium: { width: 256, height: 256, fit: 'cover', format: 'webp' },
+        medium: { width: 128, height: 128, fit: 'cover', format: 'webp' },
+        large: { width: 256, height: 256, fit: 'cover', format: 'webp' },
       },
     },
     icon: {
       directory: 'icons',
+      width: 1024,
+      height: 1024,
+      fit: 'cover',
       thumbnails: {
-        small: { width: 64, height: 64, fit: 'inside', format: 'webp' },
-        medium: { width: 256, height: 256, fit: 'inside', format: 'webp' },
+        small: { width: 64, height: 64, fit: 'cover', format: 'webp' },
+        medium: { width: 128, height: 128, fit: 'cover', format: 'webp' },
+        large: { width: 256, height: 256, fit: 'cover', format: 'webp' },
       },
-    },
-    photo: {
-      directory: 'photos',
-      width: 6000,
-      height: 6000,
-      quality: { jpeg: 95, webp: 90, avif: 80, png: 100, tiff: 95 },
     },
   },
 })
