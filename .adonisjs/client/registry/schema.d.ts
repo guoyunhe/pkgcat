@@ -323,12 +323,12 @@ export interface Registry {
     methods: ["POST"]
     pattern: '/api/images'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/image').imageUploadValidator)>>
       paramsTuple: []
       params: {}
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/image').imageUploadValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/images_controller').default['store']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/images_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/images_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'images.show': {
@@ -347,12 +347,12 @@ export interface Registry {
     methods: ["PUT","PATCH"]
     pattern: '/api/images/:id'
     types: {
-      body: {}
+      body: ExtractBody<InferInput<(typeof import('#validators/image').imageUploadValidator)>>
       paramsTuple: [ParamValue]
       params: { id: ParamValue }
-      query: {}
+      query: ExtractQuery<InferInput<(typeof import('#validators/image').imageUploadValidator)>>
       response: ExtractResponse<Awaited<ReturnType<import('#controllers/images_controller').default['update']>>>
-      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/images_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/images_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
   'images.destroy': {

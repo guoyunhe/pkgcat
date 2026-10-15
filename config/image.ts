@@ -9,12 +9,12 @@ const imageConfig = defineConfig({
       directory: 'images',
 
       /** Convert all uploads to one format */
-      // convertTo: 'webp',
+      // format: 'webp',
 
       /** Downscale (never enlarge) originals */
-      maxWidth: 2560,
-      maxHeight: 2560,
-      stripMetadata: true,
+      width: 2560,
+      height: 2560,
+      keepMetadata: false,
       quality: { jpeg: 80, webp: 80, avif: 50, png: 90 },
 
       /** Thumbnails generated for each upload */
@@ -25,10 +25,10 @@ const imageConfig = defineConfig({
     },
     avatar: {
       directory: 'avatars',
-      maxWidth: 512,
-      maxHeight: 512,
+      width: 512,
+      height: 512,
       fit: 'cover',
-      convertTo: 'webp',
+      format: 'webp',
       quality: { webp: 85 },
       thumbnails: {
         small: { width: 64, height: 64, fit: 'cover', format: 'webp' },
@@ -37,8 +37,8 @@ const imageConfig = defineConfig({
     },
     photo: {
       directory: 'photos',
-      maxWidth: 6000,
-      maxHeight: 6000,
+      width: 6000,
+      height: 6000,
       quality: { jpeg: 95, webp: 90, avif: 80, png: 100, tiff: 95 },
     },
   },

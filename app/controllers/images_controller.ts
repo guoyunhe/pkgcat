@@ -1,19 +1,13 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
 import db from '@adonisjs/lucid/services/db'
-import type { ImageFormat } from 'adonisjs-image'
 import imageService from 'adonisjs-image/services/main'
 
 import Image from '#models/image'
 import ImageTransformer from '#transformers/image_transformer'
+import { imageUploadValidator } from '#validators/image'
 
-const MAX_IMAGE_SIZE = 10 * 1024 * 1024
-const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg', 'heic', 'heif']
-const acceptedImageFormats = new Set(['svg', 'png', 'jpeg', 'webp', 'avif', 'gif'])
-
-function isAcceptedImageFormat(value: unknown): value is ImageFormat {
-  return typeof value === 'string' && acceptedImageFormats.has(value)
-}
+type ImageUploadPayload = Awaited<ReturnType<typeof imageUploadValidator.validate>>
 
 export default class ImagesController {
   async index({ auth, serialize }: HttpContext) {
@@ -36,8 +30,13 @@ export default class ImagesController {
   }
 
   async store({ auth, request, response, serialize }: HttpContext) {
-    const preset = this.imagePreset(request)
-    const image = await this.uploadToService(request, auth.getUserOrFail().id, preset)
+    const payload = await request.validateUsing(imageUploadValidator)
+    const image = await this.uploadToService(
+      payload.image,
+      auth.getUserOrFail().id,
+      payload.preset ?? 'image',
+      payload.acceptedFormats,
+    )
 
     response.status(201)
     return serialize(ImageTransformer.transform(image))
@@ -46,8 +45,13 @@ export default class ImagesController {
   async update({ auth, params, request, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
     const previous = await this.findUserImage(params.id, user.id)
-    const preset = this.imagePreset(request, previous.preset)
-    const image = await this.uploadToService(request, user.id, preset)
+    const payload = await request.validateUsing(imageUploadValidator)
+    const image = await this.uploadToService(
+      payload.image,
+      user.id,
+      payload.preset ?? previous.preset,
+      payload.acceptedFormats,
+    )
 
     await db.transaction(async (trx) => {
       await trx.from('apps').where('icon_id', previous.id).update({ icon_id: image.id })
@@ -75,16 +79,16 @@ export default class ImagesController {
       .firstOrFail()
   }
 
-  private async uploadToService(request: HttpContext['request'], userId: number, preset: string) {
-    const file = request.file('image', {
-      size: `${MAX_IMAGE_SIZE / 1024 / 1024}mb`,
-      extnames: imageExtensions,
-    })
-    if (!file || !file.isValid || !file.tmpPath) {
+  private async uploadToService(
+    file: ImageUploadPayload['image'],
+    userId: number,
+    preset: string,
+    acceptedFormats?: ImageUploadPayload['acceptedFormats'],
+  ) {
+    if (!file.tmpPath) {
       throw new Exception('A valid image file is required', { status: 422 })
     }
 
-    const acceptedFormats = this.acceptedFormats(request)
     const uploaded = await imageService.use(preset).upload(file.tmpPath, { userId })
 
     if (acceptedFormats && !new Set<string>(acceptedFormats).has(uploaded.format)) {
@@ -93,28 +97,5 @@ export default class ImagesController {
     }
 
     return Image.findOrFail(uploaded.id)
-  }
-
-  private imagePreset(request: HttpContext['request'], fallback = 'image') {
-    const preset = request.input('preset')
-    if (preset === undefined) return fallback
-    if (preset !== 'avatar') {
-      throw new Exception('preset must be avatar', { status: 422 })
-    }
-    return preset
-  }
-
-  private acceptedFormats(request: HttpContext['request']) {
-    const formats = request.input('acceptedFormats')
-    if (formats === undefined) return undefined
-    if (!Array.isArray(formats) || !formats.every(isAcceptedImageFormat)) {
-      throw new Exception(
-        `acceptedFormats must be one of: ${[...acceptedImageFormats].join(', ')}`,
-        {
-          status: 422,
-        },
-      )
-    }
-    return formats
   }
 }

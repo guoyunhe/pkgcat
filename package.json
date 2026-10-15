@@ -68,7 +68,7 @@
     "@phosphor-icons/react": "^2.1.10",
     "@tuyau/core": "^1.2.2",
     "@vinejs/vine": "^4.4.0",
-    "adonisjs-image": "^0.1.2",
+    "adonisjs-image": "^0.2.0",
     "better-sqlite3": "^13.0.3",
     "chalk": "^6.0.0",
     "edge.js": "^6.5.1",
