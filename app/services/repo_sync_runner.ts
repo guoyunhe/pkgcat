@@ -71,6 +71,7 @@ export default class RepoSyncRunner {
 
       // A catalog without a repository to read leaves the counts alone: the run wrote nothing
       if (found === 0) {
+        await refreshPackageDistros()
         yield { type: 'empty' }
         return
       }
