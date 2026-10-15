@@ -1,6 +1,6 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
-import drive from '@adonisjs/drive/services/main'
+import imageService from 'adonisjs-image/services/main'
 
 import Image, { imageFormats, type ImageOptions } from '#models/image'
 import ImageTransformer from '#transformers/image_transformer'
@@ -16,7 +16,7 @@ type OutputFormat = (typeof outputFormats)[number]
 export default class ImagesController {
   async index({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
-    const query = Image.query().orderBy('id', 'desc')
+    const query = Image.query().whereNull('parent_id').orderBy('id', 'desc')
 
     // Admins pick icons for catalog entries from every uploaded image.
     if (user.role !== 'admin') {
@@ -35,10 +35,29 @@ export default class ImagesController {
   }
 
   async store({ auth, request, response, serialize }: HttpContext) {
-    const image = await Image.createFromRequestFile(this.imageFile(request), {
-      userId: auth.getUserOrFail().id,
-      ...this.parseOptions(request),
-    })
+    const preset = request.input('preset')
+    if (preset !== undefined && preset !== 'avatar') {
+      throw new Exception('preset must be avatar', { status: 422 })
+    }
+
+    const file = this.imageFile(request)
+    const userId = auth.getUserOrFail().id
+    const options = this.parseOptions(request)
+    let image: Image
+
+    if (preset === 'avatar') {
+      if (options.acceptedFormats && !options.acceptedFormats.includes('webp')) {
+        throw new Exception('Avatar images are stored as webp', { status: 422 })
+      }
+      if (!file.isValid || !file.tmpPath) {
+        throw new Exception('A valid image file is required', { status: 422 })
+      }
+
+      const uploaded = await imageService.use('avatar').upload(file.tmpPath, { userId })
+      image = await Image.findOrFail(uploaded.id)
+    } else {
+      image = await Image.createFromRequestFile(file, { userId, ...options })
+    }
 
     response.status(201)
     return serialize(ImageTransformer.transform(image))
@@ -54,14 +73,17 @@ export default class ImagesController {
   async destroy({ auth, params, response }: HttpContext) {
     const image = await this.findUserImage(params.id, auth.getUserOrFail().id)
 
-    await drive.use().delete(image.path)
-    await image.delete()
+    await imageService.delete(image)
 
     return response.noContent()
   }
 
   private async findUserImage(id: number, userId: number) {
-    return Image.query().where('id', id).where('user_id', userId).firstOrFail()
+    return Image.query()
+      .where('id', id)
+      .where('user_id', userId)
+      .whereNull('parent_id')
+      .firstOrFail()
   }
 
   private imageFile(request: HttpContext['request']) {

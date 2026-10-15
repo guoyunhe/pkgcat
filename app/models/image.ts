@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises'
 
 import { Exception } from '@adonisjs/core/exceptions'
 import drive from '@adonisjs/drive/services/main'
+import { hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
 import sharp, { type FitEnum } from 'sharp'
 import xior from 'xior'
 
@@ -32,8 +34,11 @@ export type ImageOptions = {
 
 type RequestFile = { tmpPath?: string; isValid: boolean }
 
-export default class Image extends ImageSchema {
+export class Image extends ImageSchema {
   declare format: ImageFormat
+
+  @hasMany(() => Image, { foreignKey: 'parentId' })
+  declare thumbnails: HasMany<typeof Image>
 
   static async createFromLocalFile(filePath: string, options: ImageOptions = {}) {
     return this.createFromBuffer(await readFile(filePath), options)
@@ -201,3 +206,5 @@ export default class Image extends ImageSchema {
     return Buffer.from(response.data)
   }
 }
+
+export default Image
