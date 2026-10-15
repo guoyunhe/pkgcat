@@ -1,9 +1,9 @@
+import imageService from 'adonisjs-image/services/main'
 import { DateTime } from 'luxon'
 
 import App from '#models/app'
 import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
-import Image from '#models/image'
 import Pkg from '#models/pkg'
 import type Repo from '#models/repo'
 import { mappedAppId } from '#services/app_pkg_names'
@@ -429,7 +429,7 @@ export default class RepoSynchronizer {
         const data = buffers.get(iconKey(icon))
         if (!data) continue
 
-        const image = await Image.createFromBuffer(data)
+        const image = await imageService.upload(data)
         app.iconId = image.id
         await app.save()
         result.icons += 1
@@ -612,7 +612,7 @@ export default class RepoSynchronizer {
         }
 
         if (!app.icon && packaged.icon) {
-          const image = await Image.createFromBuffer(packaged.icon)
+          const image = await imageService.upload(packaged.icon)
           app.iconId = image.id
           await app.save()
           result.icons += 1

@@ -1,24 +1,25 @@
 import { Exception } from '@adonisjs/core/exceptions'
 import type { HttpContext } from '@adonisjs/core/http'
+import db from '@adonisjs/lucid/services/db'
+import type { ImageFormat } from 'adonisjs-image'
 import imageService from 'adonisjs-image/services/main'
 
-import Image, { imageFormats, type ImageOptions } from '#models/image'
+import Image from '#models/image'
 import ImageTransformer from '#transformers/image_transformer'
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 const imageExtensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'svg', 'heic', 'heif']
-const fitModes = ['contain', 'cover', 'fill', 'inside', 'outside'] as const
-const outputFormats = ['jpeg', 'png', 'webp', 'avif'] as const
+const acceptedImageFormats = new Set(['svg', 'png', 'jpeg', 'webp', 'avif', 'gif'])
 
-type FitMode = (typeof fitModes)[number]
-type OutputFormat = (typeof outputFormats)[number]
+function isAcceptedImageFormat(value: unknown): value is ImageFormat {
+  return typeof value === 'string' && acceptedImageFormats.has(value)
+}
 
 export default class ImagesController {
   async index({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
     const query = Image.query().whereNull('parent_id').orderBy('id', 'desc')
 
-    // Admins pick icons for catalog entries from every uploaded image.
     if (user.role !== 'admin') {
       query.where('user_id', user.id)
     }
@@ -35,37 +36,25 @@ export default class ImagesController {
   }
 
   async store({ auth, request, response, serialize }: HttpContext) {
-    const preset = request.input('preset')
-    if (preset !== undefined && preset !== 'avatar') {
-      throw new Exception('preset must be avatar', { status: 422 })
-    }
-
-    const file = this.imageFile(request)
-    const userId = auth.getUserOrFail().id
-    const options = this.parseOptions(request)
-    let image: Image
-
-    if (preset === 'avatar') {
-      if (options.acceptedFormats && !options.acceptedFormats.includes('webp')) {
-        throw new Exception('Avatar images are stored as webp', { status: 422 })
-      }
-      if (!file.isValid || !file.tmpPath) {
-        throw new Exception('A valid image file is required', { status: 422 })
-      }
-
-      const uploaded = await imageService.use('avatar').upload(file.tmpPath, { userId })
-      image = await Image.findOrFail(uploaded.id)
-    } else {
-      image = await Image.createFromRequestFile(file, { userId, ...options })
-    }
+    const preset = this.imagePreset(request)
+    const image = await this.uploadToService(request, auth.getUserOrFail().id, preset)
 
     response.status(201)
     return serialize(ImageTransformer.transform(image))
   }
 
   async update({ auth, params, request, serialize }: HttpContext) {
-    const image = await this.findUserImage(params.id, auth.getUserOrFail().id)
-    await Image.replaceFromRequestFile(image, this.imageFile(request), this.parseOptions(request))
+    const user = auth.getUserOrFail()
+    const previous = await this.findUserImage(params.id, user.id)
+    const preset = this.imagePreset(request, previous.preset)
+    const image = await this.uploadToService(request, user.id, preset)
+
+    await db.transaction(async (trx) => {
+      await trx.from('apps').where('icon_id', previous.id).update({ icon_id: image.id })
+      await trx.from('users').where('avatar_id', previous.id).update({ avatar_id: image.id })
+    })
+
+    await imageService.delete(previous)
 
     return serialize(ImageTransformer.transform(image))
   }
@@ -86,58 +75,46 @@ export default class ImagesController {
       .firstOrFail()
   }
 
-  private imageFile(request: HttpContext['request']) {
+  private async uploadToService(request: HttpContext['request'], userId: number, preset: string) {
     const file = request.file('image', {
       size: `${MAX_IMAGE_SIZE / 1024 / 1024}mb`,
       extnames: imageExtensions,
     })
-
-    if (!file) {
+    if (!file || !file.isValid || !file.tmpPath) {
       throw new Exception('A valid image file is required', { status: 422 })
     }
-    return file
+
+    const acceptedFormats = this.acceptedFormats(request)
+    const uploaded = await imageService.use(preset).upload(file.tmpPath, { userId })
+
+    if (acceptedFormats && !new Set<string>(acceptedFormats).has(uploaded.format)) {
+      await imageService.delete(uploaded)
+      throw new Exception(`Image must be one of: ${acceptedFormats.join(', ')}`, { status: 422 })
+    }
+
+    return Image.findOrFail(uploaded.id)
   }
 
-  private parseOptions(request: HttpContext['request']) {
-    const parseDimension = (name: 'width' | 'height') => {
-      const value = request.input(name)
-      if (value === undefined || value === null || value === '') return undefined
-      const dimension = Number(value)
-      if (!Number.isInteger(dimension) || dimension < 1 || dimension > 10000) {
-        throw new Exception(`${name} must be an integer between 1 and 10000`, { status: 422 })
-      }
-      return dimension
+  private imagePreset(request: HttpContext['request'], fallback = 'image') {
+    const preset = request.input('preset')
+    if (preset === undefined) return fallback
+    if (preset !== 'avatar') {
+      throw new Exception('preset must be avatar', { status: 422 })
     }
+    return preset
+  }
 
-    const fit = request.input('fit')
-    if (fit !== undefined && !fitModes.includes(fit)) {
-      throw new Exception(`fit must be one of: ${fitModes.join(', ')}`, { status: 422 })
+  private acceptedFormats(request: HttpContext['request']) {
+    const formats = request.input('acceptedFormats')
+    if (formats === undefined) return undefined
+    if (!Array.isArray(formats) || !formats.every(isAcceptedImageFormat)) {
+      throw new Exception(
+        `acceptedFormats must be one of: ${[...acceptedImageFormats].join(', ')}`,
+        {
+          status: 422,
+        },
+      )
     }
-
-    const format = request.input('format')
-    if (format !== undefined && !outputFormats.includes(format)) {
-      throw new Exception(`format must be one of: ${outputFormats.join(', ')}`, { status: 422 })
-    }
-
-    const acceptedFormats = request.input('acceptedFormats')
-    if (acceptedFormats !== undefined && !Array.isArray(acceptedFormats)) {
-      throw new Exception(`acceptedFormats must be an array`, { status: 422 })
-    }
-    const invalidFormat = acceptedFormats?.find(
-      (value: unknown) => !imageFormats.includes(value as (typeof imageFormats)[number]),
-    )
-    if (invalidFormat !== undefined) {
-      throw new Exception(`acceptedFormats must be one of: ${imageFormats.join(', ')}`, {
-        status: 422,
-      })
-    }
-
-    return {
-      width: parseDimension('width'),
-      height: parseDimension('height'),
-      fit: fit as FitMode | undefined,
-      format: format as OutputFormat | undefined,
-      acceptedFormats: acceptedFormats as ImageOptions['acceptedFormats'],
-    }
+    return formats
   }
 }
