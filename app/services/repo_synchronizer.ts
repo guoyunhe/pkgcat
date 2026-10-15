@@ -429,7 +429,7 @@ export default class RepoSynchronizer {
         const data = buffers.get(iconKey(icon))
         if (!data) continue
 
-        const image = await imageService.upload(data)
+        const image = await imageService.use('icon').upload(data)
         app.iconId = image.id
         await app.save()
         result.icons += 1
@@ -612,7 +612,7 @@ export default class RepoSynchronizer {
         }
 
         if (!app.icon && packaged.icon) {
-          const image = await imageService.upload(packaged.icon)
+          const image = await imageService.use('icon').upload(packaged.icon)
           app.iconId = image.id
           await app.save()
           result.icons += 1

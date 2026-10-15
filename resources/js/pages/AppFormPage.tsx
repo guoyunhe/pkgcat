@@ -315,6 +315,7 @@ export default function AppFormPage() {
           label={t('form.icon')}
           onChange={(iconId) => setForm((current) => ({ ...current, iconId }))}
           previewUrl={iconUrl}
+          preset='icon'
           rejectLabel={t('form.iconRejected')}
           removeLabel={t('form.iconRemove')}
           value={form.iconId ?? null}

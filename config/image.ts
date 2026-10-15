@@ -35,6 +35,13 @@ const imageConfig = defineConfig({
         medium: { width: 256, height: 256, fit: 'cover', format: 'webp' },
       },
     },
+    icon: {
+      directory: 'icons',
+      thumbnails: {
+        small: { width: 64, height: 64, fit: 'inside', format: 'webp' },
+        medium: { width: 256, height: 256, fit: 'inside', format: 'webp' },
+      },
+    },
     photo: {
       directory: 'photos',
       width: 6000,

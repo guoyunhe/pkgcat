@@ -13,6 +13,6 @@ const acceptedImageFormats = [
 
 export const imageUploadValidator = vine.create({
   image: vine.file({ size: '10mb', extnames: imageExtensions }),
-  preset: vine.enum(['avatar'] as const).optional(),
+  preset: vine.enum(['avatar', 'icon'] as const).optional(),
   acceptedFormats: vine.array(vine.enum(acceptedImageFormats)).optional(),
 })

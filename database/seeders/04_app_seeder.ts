@@ -134,7 +134,7 @@ export default class AppSeeder extends BaseSeeder {
 
   private async updateIcon(app: App, iconUrl: string) {
     const previous = app.iconId ? await Image.find(app.iconId) : null
-    const uploaded = await imageService.upload(await this.download(iconUrl, 'icon'))
+    const uploaded = await imageService.use('icon').upload(await this.download(iconUrl, 'icon'))
 
     if (
       uploaded.format !== 'svg' &&

@@ -50,7 +50,7 @@ type ImageUploadProps = {
   errorLabel: string
   /** Round the picture, which an avatar is and an icon is not. */
   round?: boolean
-  preset?: 'avatar'
+  preset?: 'avatar' | 'icon'
 }
 
 /**

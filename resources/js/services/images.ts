@@ -18,7 +18,7 @@ export type ImageFormat = (typeof imageFormats)[number]
 
 export type ImageUploadOptions = {
   acceptedFormats?: ImageFormat[]
-  preset?: 'avatar'
+  preset?: 'avatar' | 'icon'
 }
 
 export async function getImages() {
