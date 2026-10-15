@@ -8,5 +8,6 @@
 /// <reference path="../../config/drive.ts" />
 /// <reference path="../../config/hash.ts" />
 /// <reference path="../../config/i18n.ts" />
+/// <reference path="../../config/image.ts" />
 /// <reference path="../../config/logger.ts" />
 /// <reference path="../../config/queue.ts" />
