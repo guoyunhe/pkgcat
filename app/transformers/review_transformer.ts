@@ -23,7 +23,7 @@ export default class ReviewTransformer extends BaseTransformer<Review> {
         ? {
             id: user.id,
             name: user.name,
-            avatar: user.avatar ? ImageTransformer.describe(user.avatar) : null,
+            avatar: user.avatar ? ImageTransformer.transform(user.avatar) : null,
             /** What the author is shown by while they have uploaded no avatar. */
             gravatarUrl: gravatarUrl(user.email),
           }
