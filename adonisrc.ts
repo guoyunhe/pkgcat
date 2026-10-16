@@ -60,6 +60,7 @@ export default defineConfig({
     () => import('@adonisjs/drive/drive_provider'),
     () => import('@adonisjs/static/static_provider'),
     () => import('@adonisjs/queue/queue_provider'),
+    () => import('adonisjs-image/image_provider'),
   ],
 
   /*

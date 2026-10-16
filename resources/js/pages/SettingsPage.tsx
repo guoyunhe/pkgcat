@@ -151,6 +151,7 @@ export default function SettingsPage() {
                   label={t('settings.avatar')}
                   onChange={(avatarId) => profileForm.setFieldValue('avatarId', avatarId)}
                   previewUrl={user.avatar?.url ?? null}
+                  preset='avatar'
                   rejectLabel={t('settings.avatarRejected')}
                   removeLabel={t('settings.avatarRemove')}
                   round

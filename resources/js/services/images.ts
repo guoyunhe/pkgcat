@@ -18,6 +18,7 @@ export type ImageFormat = (typeof imageFormats)[number]
 
 export type ImageUploadOptions = {
   acceptedFormats?: ImageFormat[]
+  preset?: 'avatar' | 'icon'
 }
 
 export async function getImages() {
@@ -31,6 +32,7 @@ export async function uploadImage(file: File, options: ImageUploadOptions = {}) 
   for (const format of options.acceptedFormats ?? []) {
     payload.append('acceptedFormats[]', format)
   }
+  if (options.preset) payload.append('preset', options.preset)
 
   try {
     const { data } = await api.post<{ data: Data.Image }>('/images', payload, {

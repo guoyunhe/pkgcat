@@ -1,5 +1,7 @@
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
+import db from '@adonisjs/lucid/services/db'
 import { parseAppStreamComponent } from '@guoyunhe/appstream'
+import imageService from 'adonisjs-image/services/main'
 import xior, { isXiorError } from 'xior'
 
 import App from '#models/app'
@@ -131,17 +133,26 @@ export default class AppSeeder extends BaseSeeder {
   }
 
   private async updateIcon(app: App, iconUrl: string) {
-    const icon = app.iconId ? await Image.find(app.iconId) : null
-    const options = {
-      acceptedFormats: ['svg', 'png'] as const,
-      minimumPngSize: 512,
-    }
-    const image = icon
-      ? await Image.replaceFromUrl(icon, iconUrl, options)
-      : await Image.createFromUrl(iconUrl, options)
+    const previous = app.iconId ? await Image.find(app.iconId) : null
+    const uploaded = await imageService.use('icon').upload(await this.download(iconUrl, 'icon'))
 
-    if (app.iconId !== image.id) {
-      await app.merge({ iconId: image.id }).save()
+    if (
+      uploaded.format !== 'svg' &&
+      (uploaded.format !== 'png' || Math.min(uploaded.width, uploaded.height) < 512)
+    ) {
+      await imageService.delete(uploaded)
+      throw new Error('App icon must be an SVG or a PNG at least 512 pixels wide and tall')
+    }
+
+    if (previous) {
+      await db.transaction(async (trx) => {
+        await trx.from('apps').where('icon_id', previous.id).update({ icon_id: uploaded.id })
+        await trx.from('users').where('avatar_id', previous.id).update({ avatar_id: uploaded.id })
+      })
+      app.iconId = uploaded.id
+      await imageService.delete(previous)
+    } else {
+      await app.merge({ iconId: uploaded.id }).save()
     }
   }
 

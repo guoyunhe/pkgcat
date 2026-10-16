@@ -50,6 +50,7 @@ type ImageUploadProps = {
   errorLabel: string
   /** Round the picture, which an avatar is and an icon is not. */
   round?: boolean
+  preset?: 'avatar' | 'icon'
 }
 
 /**
@@ -67,6 +68,7 @@ export default function ImageUpload({
   label,
   onChange,
   previewUrl = null,
+  preset,
   rejectLabel,
   removeLabel,
   round,
@@ -86,7 +88,7 @@ export default function ImageUpload({
     try {
       setUploading(true)
       setError(null)
-      const image = await uploadImage(file, { acceptedFormats: formats })
+      const image = await uploadImage(file, { acceptedFormats: formats, preset })
       setUploadedUrl(image.url)
       onChange(image.id)
     } catch (reason) {
