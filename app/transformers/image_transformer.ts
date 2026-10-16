@@ -1,30 +1,14 @@
 import { BaseTransformer } from '@adonisjs/core/transformers'
+import image from 'adonisjs-image/services/main'
 
 import type Image from '#models/image'
 
 export default class ImageTransformer extends BaseTransformer<Image> {
-  /** Where the bytes of an image are served from, which is what a reader of them is given. */
-  static url(image: Pick<Image, 'path'>) {
-    return `/uploads/${image.path}`
-  }
-
-  /**
-   * What an image is described by. A response that already carries a nested value — the author of a
-   * review — builds the same object itself, because a transformer is resolved one level deep.
-   */
-  static describe(image: Image) {
+  async toObject() {
     return {
-      id: image.id,
-      format: image.format,
-      size: image.size,
-      width: image.width,
-      height: image.height,
-      createdAt: image.createdAt,
-      url: ImageTransformer.url(image),
+      ...this.pick(this.resource, ['id', 'name', 'format', 'size', 'width', 'height']),
+      url: await image.url(this.resource),
+      thumbnails: ImageTransformer.transform(this.whenLoaded(this.resource.thumbnails)),
     }
-  }
-
-  toObject() {
-    return ImageTransformer.describe(this.resource)
   }
 }

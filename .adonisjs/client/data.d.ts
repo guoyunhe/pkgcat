@@ -8,7 +8,7 @@ import type { InferData, InferVariants } from '@adonisjs/core/types/transformers
 import type AppTransformer from '#transformers/app_transformer'
 import type CategoryTransformer from '#transformers/category_transformer'
 import type DistroTransformer from '#transformers/distro_transformer'
-import type ImageTransformer from '#transformers/image'
+import type ImageTransformer from '#transformers/image_transformer'
 import type PkgTransformer from '#transformers/pkg_transformer'
 import type ProfileTransformer from '#transformers/profile_transformer'
 import type RepoTransformer from '#transformers/repo_transformer'
