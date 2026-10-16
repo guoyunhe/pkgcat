@@ -25,14 +25,13 @@ const imageConfig = defineConfig({
     },
     avatar: {
       directory: 'avatars',
-      width: 1024,
-      height: 1024,
+      width: 256,
+      height: 256,
       fit: 'cover',
       format: 'webp',
       thumbnails: {
         small: { width: 64, height: 64, fit: 'cover', format: 'webp' },
         medium: { width: 128, height: 128, fit: 'cover', format: 'webp' },
-        large: { width: 256, height: 256, fit: 'cover', format: 'webp' },
       },
     },
     icon: {
