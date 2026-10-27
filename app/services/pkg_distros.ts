@@ -2,7 +2,6 @@ import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type { RawQueryBindings } from '@adonisjs/lucid/types/querybuilder'
 
-import Pkg from '#models/pkg'
 import { archIndependentPackageArch } from '#utils/arch'
 
 /**
@@ -52,14 +51,4 @@ export async function refreshPackageDistros(distroId?: number) {
       await writePackages(trx, 'distros.id = ?', [release.id, archIndependentPackageArch])
     })
   }
-}
-
-/**
- * Add the repository-derived distribution links of one package. Existing links may be maintained
- * separately to record releases the package supports beyond those served by its repository.
- */
-export async function refreshPackageRows(pkgId: number) {
-  const pkg = await Pkg.findOrFail(pkgId)
-
-  await pkg.autoRelateDistros()
 }

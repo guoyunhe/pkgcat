@@ -1,4 +1,4 @@
-import { belongsTo, manyToMany } from '@adonisjs/lucid/orm'
+import { afterSave, belongsTo, manyToMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 
 import { PkgSchema } from '#database/schema'
@@ -59,6 +59,11 @@ export default class Pkg extends PkgSchema {
       releases.map((release) => release.id),
       false,
     )
+  }
+
+  @afterSave()
+  static async syncDistroRelations(pkg: Pkg) {
+    await pkg.autoRelateDistros()
   }
 
   /**

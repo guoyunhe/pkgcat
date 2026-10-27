@@ -14,7 +14,6 @@ import drive from '@adonisjs/drive/services/main'
 import App from '#models/app'
 import Pkg from '#models/pkg'
 import PackageFileExtractor from '#services/package_file_extractor'
-import { refreshPackageRows } from '#services/pkg_distros'
 import PkgTransformer from '#transformers/pkg_transformer'
 import { pkgListValidator, pkgValidator } from '#validators/pkg'
 
@@ -133,8 +132,6 @@ export default class PkgsController {
     await pkg.merge(attributes).save()
     // The form lists every application of the package, so the stored links follow the selection
     if (appIds) await pkg.related('apps').sync(appIds, true)
-    // The architecture this form edits decides which releases carry the package
-    await refreshPackageRows(pkg.id)
     await pkg.load('apps')
     return serialize(PkgTransformer.transform(pkg))
   }
