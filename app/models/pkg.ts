@@ -5,6 +5,7 @@ import { PkgSchema } from '#database/schema'
 import App from '#models/app'
 import Distro from '#models/distro'
 import Repo from '#models/repo'
+import { archIndependentPackageArch } from '#utils/arch'
 import { searchScope } from '#utils/search'
 
 export default class Pkg extends PkgSchema {
@@ -29,6 +30,36 @@ export default class Pkg extends PkgSchema {
     pivotRelatedForeignKey: 'distro_id',
   })
   declare distros: ManyToMany<typeof Distro>
+
+  /**
+   * Link this package to the releases served by its repository, including releases binary
+   * compatible with them. Architecture-independent packages are linked to every architecture.
+   */
+  async autoRelateDistros() {
+    const pkg: Pkg = this
+    const repoId = pkg.repoId
+    if (repoId === null) return
+
+    const query = Distro.query()
+
+    query.where((releases) => {
+      releases
+        .whereHas('repos', (repos) => repos.where('repos.id', repoId))
+        .orWhereHas('compatibleDistro', (compatibleDistro) =>
+          compatibleDistro.whereHas('repos', (repos) => repos.where('repos.id', repoId)),
+        )
+    })
+    if (pkg.arch !== null && pkg.arch !== archIndependentPackageArch) {
+      query.where('distros.arch', pkg.arch)
+    }
+
+    const releases = await query.select('id')
+
+    await pkg.related('distros').sync(
+      releases.map((release) => release.id),
+      false,
+    )
+  }
 
   /**
    * Packages the search terms name: the name a package is listed and looked up by. What a package

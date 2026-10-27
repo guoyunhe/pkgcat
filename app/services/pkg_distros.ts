@@ -2,6 +2,7 @@ import db from '@adonisjs/lucid/services/db'
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type { RawQueryBindings } from '@adonisjs/lucid/types/querybuilder'
 
+import Pkg from '#models/pkg'
 import { archIndependentPackageArch } from '#utils/arch'
 
 /**
@@ -37,10 +38,9 @@ async function writePackages(
 }
 
 /**
- * Rewrite the rows of the packages a release carries — one release, or every release of the catalog
- * when no id is named. The rows of one release are written in one transaction, so a listing of it
- * reads the packages it carried before the rewrite or the ones it carries after it, never an empty
- * listing in between.
+ * Add the rows of the packages a release carries — one release, or every release of the catalog
+ * when no id is named. Existing links are preserved because a package may support releases its
+ * repository does not serve.
  */
 export async function refreshPackageDistros(distroId?: number) {
   const releasesQuery = db.from('distros').select('id')
@@ -49,19 +49,17 @@ export async function refreshPackageDistros(distroId?: number) {
 
   for (const release of releases as { id: number }[]) {
     await db.transaction(async (trx) => {
-      await trx.from('pkg_distros').where('distro_id', release.id).delete()
       await writePackages(trx, 'distros.id = ?', [release.id, archIndependentPackageArch])
     })
   }
 }
 
 /**
- * Rewrite the rows of one package: the architecture of a package is edited by hand, where the
- * repository it was taken from is not.
+ * Add the repository-derived distribution links of one package. Existing links may be maintained
+ * separately to record releases the package supports beyond those served by its repository.
  */
 export async function refreshPackageRows(pkgId: number) {
-  await db.transaction(async (trx) => {
-    await trx.from('pkg_distros').where('pkg_id', pkgId).delete()
-    await writePackages(trx, 'pkgs.id = ?', [pkgId, archIndependentPackageArch])
-  })
+  const pkg = await Pkg.findOrFail(pkgId)
+
+  await pkg.autoRelateDistros()
 }
