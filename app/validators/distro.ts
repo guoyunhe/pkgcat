@@ -1,5 +1,6 @@
 import vine from '@vinejs/vine'
 
+import { supportedArches } from '#config/arch'
 import { firstValue, knownValue, pageNumber, pageSize, positiveInteger } from '#utils/query_params'
 import { pkgTypes } from '#validators/pkg'
 
@@ -13,7 +14,8 @@ const emptyToNull = (value: unknown) => (value === '' || value === undefined ? n
  * Validator to use when creating or updating a distribution. A distribution is one release of one
  * distribution for one architecture, and that triple is unique in the database, so the uniqueness
  * check of the name also compares the version and the architecture. The `distroId` meta value
- * excludes the distribution being updated from that check.
+ * excludes the distribution being updated from that check. The architecture is one the catalog
+ * supports, which `config/arch.ts` states.
  */
 export const distroValidator = vine.create({
   name: vine
@@ -38,7 +40,7 @@ export const distroValidator = vine.create({
       },
     }),
   version: vine.string().parse(emptyToNull).trim().maxLength(255).nullable(),
-  arch: vine.string().trim().minLength(1).maxLength(255),
+  arch: vine.enum(supportedArches),
   pkgType: vine.enum(pkgTypes).parse(emptyToNull).nullable(),
   // The entry the distribution is binary compatible with; an entry may be named by several others,
   // and the form leaves out the distribution being edited, so it can only point at another one

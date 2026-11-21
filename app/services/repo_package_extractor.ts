@@ -1,7 +1,8 @@
 import { XMLParser } from 'fast-xml-parser'
 
+import { supportedArches } from '#config/arch'
 import type Repo from '#models/repo'
-import { canonicalPackageArch } from '#utils/arch'
+import { toCatalogArch, toFormatArch } from '#utils/arch'
 import {
   compressionExtension,
   compressionOf,
@@ -17,6 +18,9 @@ import { eachTarEntry } from '#utils/tar'
 import { eachXmlElement } from '#utils/xml'
 
 export type RepoPackageType = 'rpm' | 'deb' | 'pacman'
+
+/** Architecture a deb repository that names none is read for: the first the catalog supports. */
+const defaultDebArch = toFormatArch(supportedArches[0], 'deb')
 
 export type ExtractedPackage = {
   type: RepoPackageType
@@ -266,7 +270,7 @@ export default class RepoPackageExtractor {
       name,
       version: version.version,
       release: version.release,
-      arch: canonicalPackageArch(text(fields.ARCH)),
+      arch: toCatalogArch(text(fields.ARCH), 'pacman'),
       // A package may be licensed under several terms, which the database lists one per line
       license: text(fields.LICENSE?.replace(/\n/g, ', ')),
       // A pacman database carries no long description, only the one line summary
@@ -298,7 +302,7 @@ export default class RepoPackageExtractor {
           `The server of ${repo.name} names $arch, which no served distribution states`,
         )
       }
-      url = url.replace(/\$arch/g, arch)
+      url = url.replace(/\$arch/g, toFormatArch(arch, 'pacman'))
     }
 
     return { name, url: url.replace(/\/+$/, '') }
@@ -369,7 +373,7 @@ export default class RepoPackageExtractor {
             name: stanza.Package,
             version: version.version,
             release: version.release,
-            arch: canonicalPackageArch(arch ? this.fromDebArch(arch) : null),
+            arch: toCatalogArch(arch, 'deb'),
             license: text(stanza.License),
             summary: description.summary,
             description: description.description,
@@ -395,7 +399,7 @@ export default class RepoPackageExtractor {
    * is given in its platform form (`x86_64`) and mapped to the deb form (`amd64`).
    */
   debSources(repo: Repo, platformArch: string | null = null): ResolvedDebSource[] {
-    const requestedArch = platformArch ? this.toDebArch(platformArch) : null
+    const requestedArch = platformArch ? toFormatArch(platformArch, 'deb') : null
     const parsed = this.parseDebSources(repo.configContent)
     const matching = parsed.filter((source) => this.sameBase(source.uri, repo.baseUrl))
     const selected = matching.length > 0 ? matching : parsed
@@ -407,7 +411,7 @@ export default class RepoPackageExtractor {
           uri: repo.baseUrl.replace(/\/+$/, ''),
           suite: './',
           components: [],
-          arch: requestedArch ?? 'amd64',
+          arch: requestedArch ?? defaultDebArch,
         },
       ]
     }
@@ -416,7 +420,7 @@ export default class RepoPackageExtractor {
       uri: source.uri.replace(/\/+$/, ''),
       suite: source.suite,
       components: source.components,
-      arch: requestedArch ?? source.arch ?? 'amd64',
+      arch: requestedArch ?? source.arch ?? defaultDebArch,
     }))
   }
 
@@ -468,36 +472,6 @@ export default class RepoPackageExtractor {
     if (value === null || value === undefined || value === '') return null
     const parsed = Number(value)
     return Number.isFinite(parsed) ? parsed : null
-  }
-
-  /**
-   * Architecture of a package as Debian spells it. Only the architectures whose Debian name differs
-   * from the platform one have to be listed (`s390x` and `riscv64` are the same in both).
-   */
-  private toDebArch(arch: string) {
-    switch (arch) {
-      case 'x86_64':
-        return 'amd64'
-      case 'aarch64':
-        return 'arm64'
-      case 'ppc64le':
-        return 'ppc64el'
-      default:
-        return arch
-    }
-  }
-
-  private fromDebArch(arch: string) {
-    switch (arch) {
-      case 'amd64':
-        return 'x86_64'
-      case 'arm64':
-        return 'aarch64'
-      case 'ppc64el':
-        return 'ppc64le'
-      default:
-        return arch
-    }
   }
 
   private sameBase(uri: string, baseUrl: string) {

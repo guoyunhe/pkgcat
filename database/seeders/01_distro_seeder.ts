@@ -5,6 +5,7 @@ import { distros } from '#database/data/distros'
 import type { DistroSelector } from '#database/data/types'
 import Distro from '#models/distro'
 import Repo from '#models/repo'
+import { isSupportedArch } from '#utils/arch'
 
 /** Key of one entry of the catalog: the triple a repository links the releases it serves by. */
 function entryKey({ name, version, arch }: DistroSelector) {
@@ -20,7 +21,8 @@ function releaseLabel({ name, version, arch }: DistroSelector) {
  * Writes the catalog of the distributions and the repositories the distributions publish
  * themselves, which are read from `database/data`. Every architecture of a release becomes an entry
  * of its own, and a repository is stored once per base URL and linked to each release its `distros`
- * selectors name.
+ * selectors name. Only the architectures `config/arch.ts` supports are written, so a release or a
+ * repository of another one is left out.
  *
  * A compatibility is written once every entry exists, so that a release may name one the data
  * declares after it, and whatever names a release the data does not carry is reported instead of
@@ -34,6 +36,8 @@ export default class DistroSeeder extends BaseSeeder {
 
     for (const { arches, compatibleWith, ...attributes } of distros) {
       for (const arch of arches) {
+        if (!isSupportedArch(arch)) continue
+
         // The seed data carries ISO dates, while the Lucid types expect `DateTime` instances
         const distro = await Distro.updateOrCreate(
           { name: attributes.name, version: attributes.version, arch },
@@ -55,8 +59,11 @@ export default class DistroSeeder extends BaseSeeder {
     }
 
     for (const { distros: selectors, ...attributes } of distroRepos) {
+      const servedSelectors = selectors.filter((selector) => isSupportedArch(selector.arch))
+      if (servedSelectors.length === 0) continue
+
       const repo = await Repo.updateOrCreate({ name: attributes.name }, attributes)
-      const served = selectors.map((selector) => {
+      const served = servedSelectors.map((selector) => {
         const distro = entries.get(entryKey(selector))
         if (!distro) throw new Error(`Unknown release: ${releaseLabel(selector)}`)
         return distro.id

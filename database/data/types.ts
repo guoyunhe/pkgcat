@@ -22,7 +22,10 @@ export type DistroSeed = {
   version: string | null
   /** Package format of the release, or `null` when no extractor reads its packages. */
   pkgType: string | null
-  /** Architectures the release is published for; every one of them is an entry of its own. */
+  /**
+   * Architectures the release is published for, every one of them an entry of its own. Only the
+   * ones `config/arch.ts` supports are seeded.
+   */
   arches: string[]
   releaseDate: string | null
   eolDate: string | null

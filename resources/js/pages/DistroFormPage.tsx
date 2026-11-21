@@ -18,15 +18,13 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Redirect, useLocation, useParams } from 'wouter'
 
+import { supportedArches } from '../../../config/arch'
 import { useAuth } from '../auth'
 import DistroSelect from '../components/DistroSelect'
 import { createDistro, getDistro, updateDistro } from '../services/distros'
 import { packageTypes } from '../utils/pkgTypes'
 
 import styles from './AppFormPage.module.css'
-
-/** Architecture names follow `uname -m`, the same vocabulary used by the package extractors. */
-const commonArchs = ['x86_64', 'aarch64', 'i686', 'armv7hl', 'riscv64', 'ppc64le', 's390x']
 
 type DistroFormValues = {
   name: string
@@ -171,7 +169,7 @@ export default function DistroFormPage() {
           />
 
           <Autocomplete
-            data={commonArchs}
+            data={[...supportedArches]}
             description={t('distros.fields.archHint')}
             label={t('common.architecture')}
             placeholder='x86_64'
