@@ -26,6 +26,16 @@ export default class Repo extends RepoSchema {
   declare packages: HasMany<typeof Pkg>
 
   /**
+   * Delete the repositories, and the packages they hold with them: a package belongs to the
+   * repository it was read from, so it is removed with the repository instead of being left behind
+   * without one.
+   */
+  static async deleteWithPackages(ids: number[]) {
+    await Pkg.query().whereIn('repo_id', ids).delete()
+    await Repo.query().whereIn('id', ids).delete()
+  }
+
+  /**
    * Repositories the search terms name: the name a repository is listed and linked by, and the
    * releases it serves, whose name it carries in turn. What a repository is read with — the address
    * its packages are fetched from, the origin it comes from — and what it publishes are not part of

@@ -67,7 +67,7 @@ export default class ReposController {
 
   async destroy({ params, response }: HttpContext) {
     const repo = await Repo.findOrFail(params.id)
-    await repo.delete()
+    await Repo.deleteWithPackages([repo.id])
     return response.noContent()
   }
 }

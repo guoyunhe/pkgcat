@@ -73,7 +73,7 @@ export default class ArchClean extends BaseCommand {
     }
 
     await this.deleteAll(targets.distroIds, (ids) => Distro.query().whereIn('id', ids).delete())
-    await this.deleteAll(targets.repoIds, (ids) => Repo.query().whereIn('id', ids).delete())
+    await this.deleteAll(targets.repoIds, (ids) => Repo.deleteWithPackages(ids))
     await this.deleteAll(targets.packageIds, (ids) => Pkg.query().whereIn('id', ids).delete())
 
     // The deleted entries are part of these counts
@@ -109,7 +109,8 @@ export default class ArchClean extends BaseCommand {
 
   /**
    * Packages of an unsupported architecture, without the ones of a repository that is deleted with
-   * them: those cascade, and counting and deleting them twice would report them twice.
+   * them: those are deleted along with the repository, and counting them twice would report them
+   * twice.
    */
   private packagesOfUnsupportedArches(repoIds: number[]) {
     const query = Pkg.query().whereNotNull('arch').whereNotIn('arch', keptArches)
