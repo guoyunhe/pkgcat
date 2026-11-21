@@ -1,6 +1,12 @@
 import { test } from '@japa/runner'
 
-import { isSupportedArch, toCatalogArch, toFormatArch } from '#utils/arch'
+import {
+  archIndependentPackageArch,
+  isSupportedArch,
+  legacyArchIndependentArches,
+  toCatalogArch,
+  toFormatArch,
+} from '#utils/arch'
 
 test.group('Architecture of a package in the catalog', () => {
   test('maps the name a package format spells to the RPM name', ({ assert }) => {
@@ -10,8 +16,10 @@ test.group('Architecture of a package in the catalog', () => {
   })
 
   test('stores a machine-independent package as noarch', ({ assert }) => {
-    assert.equal(toCatalogArch('all', 'deb'), 'noarch')
-    assert.equal(toCatalogArch('any', 'pacman'), 'noarch')
+    assert.equal(toCatalogArch('all', 'deb'), archIndependentPackageArch)
+    assert.equal(toCatalogArch('any', 'pacman'), archIndependentPackageArch)
+    // The cleanup command keeps these spellings, so they have to stay the names the formats write
+    assert.deepEqual(legacyArchIndependentArches, ['all', 'any'])
   })
 
   test('keeps a name the catalog does not map', ({ assert }) => {

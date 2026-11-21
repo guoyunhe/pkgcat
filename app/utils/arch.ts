@@ -10,8 +10,10 @@ export const archIndependentPackageArch = 'noarch'
 /**
  * Architectures a package that carries no machine code was stored with before the catalog settled
  * on one spelling, one per archive format: Debian and its derivatives write `all`, pacman `any`.
+ * These are the names the formats write, not the `noarch` the maps of `config/arch.ts` resolve them
+ * to.
  */
-export const legacyArchIndependentArches = [debArches.all, pacmanArchs.any]
+export const legacyArchIndependentArches = ['all', 'any']
 
 /** Package formats whose names for an architecture are mapped to the one of the catalog. */
 export type ArchFormat = 'deb' | 'pacman'
