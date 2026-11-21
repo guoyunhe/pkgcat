@@ -198,25 +198,6 @@ gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/sbsa/D42D0
       'sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/sbsa/cuda-rhel8.repo',
   },
   {
-    name: 'NVIDIA CUDA for RHEL 8 (ppc64le)',
-    type: 'rpm',
-    source: 'vendor',
-    baseUrl: 'https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le',
-    syncIntervalDays: 7,
-    distros: [{ name: 'Red Hat Enterprise Linux', version: '8', arch: 'ppc64le' }],
-    configContent: `[cuda-rhel8-ppc64le]
-name=cuda-rhel8-ppc64le
-baseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le
-enabled=1
-gpgcheck=1
-gpgkey=https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le/D42D0685.pub
-`,
-    configUrl:
-      'https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le/cuda-rhel8.repo',
-    installScript:
-      'sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel8/ppc64le/cuda-rhel8.repo',
-  },
-  {
     name: 'NVIDIA CUDA for RHEL 9 (x86_64)',
     type: 'rpm',
     source: 'vendor',
