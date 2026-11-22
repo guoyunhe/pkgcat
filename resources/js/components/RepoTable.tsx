@@ -20,7 +20,7 @@ import { prefixedUrlKeys } from '../searchParams'
 import { emptyRepoFilters, repoSources, type RepoFilters } from '../services/repos'
 import type { Paginated } from '../types/pagination'
 import DistroSelect from './DistroSelect'
-import ListFilter, { filterWidth } from './ListFilter'
+import ListFilter, { filterWidth, wideFilterWidth } from './ListFilter'
 
 import styles from './RepoTable.module.css'
 
@@ -222,7 +222,7 @@ export default function RepoTable({
             placeholder={t('repos.filterAny')}
             searchable
             value={distroParam}
-            w={filterWidth}
+            w={wideFilterWidth}
           />
           <ListFilter
             data={sourceOptions}

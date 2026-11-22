@@ -9,7 +9,7 @@ import type { PkgFilters as PkgFiltersValue } from '../services/pkgs'
 import { distroIndependentPackageTypes, packageTypes } from '../utils/pkgTypes'
 import ArchSelect from './ArchSelect'
 import DistroSelect from './DistroSelect'
-import ListFilter, { filterWidth } from './ListFilter'
+import ListFilter, { narrowFilterWidth, wideFilterWidth } from './ListFilter'
 
 const storageKey = 'pkg-filters'
 
@@ -190,6 +190,7 @@ export default function PkgFilters({
         label={t('common.packageFormat')}
         onChange={(type) => changeFilters({ ...value, type: type ?? value.type })}
         value={value.type}
+        width={narrowFilterWidth}
       />
       <ArchSelect
         arches={arches}
@@ -198,6 +199,7 @@ export default function PkgFilters({
         onChange={(arch) => changeFilters({ ...value, arch: arch ?? value.arch })}
         searchable
         value={value.arch}
+        width={narrowFilterWidth}
       />
       {!hideDistro && (
         <DistroSelect
@@ -207,7 +209,7 @@ export default function PkgFilters({
           onChange={(distroId) => changeFilters({ ...value, distroId })}
           searchable
           value={value.distroId}
-          w={filterWidth}
+          w={wideFilterWidth}
         />
       )}
       {filtersAreNarrowed(value, defaults) && (

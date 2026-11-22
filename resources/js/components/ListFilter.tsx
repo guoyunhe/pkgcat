@@ -9,6 +9,18 @@ import styles from './ListFilter.module.css'
  */
 export const filterWidth = 240
 
+/**
+ * Width of a field that names a value of a word or two, such as a package format or an
+ * architecture, so that the longer fields next to it keep the room they need.
+ */
+export const narrowFilterWidth = 140
+
+/**
+ * Width of a field that names a release — its distribution, version and architecture — which is
+ * longer than the values of the other filters and has to be shown whole.
+ */
+export const wideFilterWidth = 320
+
 /** One value a filter offers, with the icon a listing names its values by, when it has one. */
 export type FilterOption = {
   value: string
