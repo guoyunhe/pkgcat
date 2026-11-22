@@ -3,6 +3,7 @@ import Repo from '#models/repo'
 import {
   eachObsRepository,
   obsRepoConfig,
+  obsRepositoryName,
   type ObsProgress,
   type ObsRelease,
   type ObsRepository,
@@ -138,7 +139,7 @@ export default class ObsRepositoryImporter {
 
   /** Store one repository with the releases it serves, or count what would have been stored. */
   private async save(repository: ObsRepository, distroIds: number[], context: ImportContext) {
-    const name = importLabel(repository)
+    const name = obsRepositoryName(repository)
     const keys = [repoKey(repository.baseUrl), repoKey(name)]
     const attributes = {
       name,
@@ -215,10 +216,6 @@ function releaseKey({ name, version }: ObsRelease) {
 
 function releaseLabel({ name, version }: ObsRelease) {
   return version ? `${name} ${version}` : name
-}
-
-function importLabel(repository: ObsRepository) {
-  return `[OBS] ${repository.project} (${repository.repository})`
 }
 
 function repoKey(value: string) {

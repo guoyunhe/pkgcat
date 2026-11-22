@@ -2,6 +2,7 @@ import { setTimeout as delay } from 'node:timers/promises'
 
 import xior, { isXiorError } from 'xior'
 
+import { ignoredObsProjects, obsApiRoot, obsDownloadRoot, obsPublishedLimit } from '#config/obs'
 import env from '#start/env'
 
 /** Release of the catalog a repository of the build service is built for. */
@@ -40,6 +41,22 @@ export type ObsProgress = {
   failures: number
 }
 
+/** Name the catalog stores a repository of the build service under. */
+export function obsRepositoryName({
+  project,
+  repository,
+}: Pick<ObsRepository, 'project' | 'repository'>) {
+  return `[OBS] ${project} (${repository})`
+}
+
+/**
+ * Project a repository of the build service was built in, as the name the catalog stores it under
+ * tells it, or nothing for a name the import did not write.
+ */
+export function obsRepositoryProject(name: string) {
+  return name.match(/^\[OBS\] (.+) \([^()]*\)$/)?.[1] ?? null
+}
+
 export type ObsImportOptions = {
   /**
    * Project to read instead of the whole service, e.g. `home:guoyunhe`; the projects nested under
@@ -62,21 +79,6 @@ export type ObsImportOptions = {
   /** Called for a lookup that failed, which leaves repositories out of the import. */
   onFailure?: (url: string, error: unknown) => void
 }
-
-/** Where the API of the build service answers, which every read of an import goes through. */
-const apiRoot = 'https://api.opensuse.org'
-
-/** Where the build service publishes the repositories, which the catalog syncs packages from. */
-const downloadRoot = 'https://download.opensuse.org/repositories/'
-
-/** Published repositories one lookup of a repository name reads at once. */
-const publishedLimit = 10000
-
-/**
- * Namespaces left out of the import. The projects under them build the releases of the
- * distributions themselves, which the catalog does not take its repositories from.
- */
-const ignoredNamespaces = ['openSUSE', 'Debian', 'Arch']
 
 /**
  * Name the build service nests the projects of a package branch under (`home:someone:branches:*`).
@@ -238,7 +240,7 @@ export async function eachObsRepository(options: ObsImportOptions): Promise<ObsP
       listed = parseEntries(await read(address))
     } catch (error) {
       progress.failures += 1
-      options.onFailure?.(`${apiRoot}${address}`, error)
+      options.onFailure?.(`${obsApiRoot}${address}`, error)
       return
     }
 
@@ -289,7 +291,7 @@ function obsReader(): ObsReader {
 
   const credentials = Buffer.from(`${user}:${password}`).toString('base64')
   return (path) =>
-    readText(`${apiRoot}${path}`, { ...apiHeaders, Authorization: `Basic ${credentials}` })
+    readText(`${obsApiRoot}${path}`, { ...apiHeaders, Authorization: `Basic ${credentials}` })
 }
 
 /** Repository names the build service defines anywhere, which its releases are picked out of. */
@@ -301,7 +303,7 @@ async function definedRepositoryNames(read: ObsReader): Promise<string[]> {
 /** Address the publish area is asked at for the repositories that carry a repository name. */
 function publishedLookup(repository: string) {
   const match = `repository='${repository}'`
-  return `${apiRoot}/search/published/repoinfo/id?match=${match}&limit=${publishedLimit}`
+  return `${obsApiRoot}/search/published/repoinfo/id?match=${match}&limit=${obsPublishedLimit}`
 }
 
 /**
@@ -311,12 +313,12 @@ function publishedLookup(repository: string) {
 async function publishedRepositories(read: ObsReader, repository: string): Promise<ObsRepoInfo[]> {
   const match = `repository='${repository}'`
   const xml = await read(
-    `/search/published/repoinfo/id?match=${match}&limit=${publishedLimit}&withdownloadurl=1`,
+    `/search/published/repoinfo/id?match=${match}&limit=${obsPublishedLimit}&withdownloadurl=1`,
   )
 
   const head = xml.slice(0, xml.indexOf('>') + 1)
   if (attributeValue(head, 'limited') === 'true') {
-    throw new Error(`More than ${publishedLimit} repositories carry the name`)
+    throw new Error(`More than ${obsPublishedLimit} repositories carry the name`)
   }
   return parseRepoInfo(xml)
 }
@@ -335,7 +337,7 @@ function projectPath(project: string) {
 
 /** URL a repository of a project is published under, which the catalog syncs packages from. */
 function publishUrl(project: string, repository: string) {
-  return `${downloadRoot}${projectPath(project).join('/')}/${repository}/`
+  return `${obsDownloadRoot}${projectPath(project).join('/')}/${repository}/`
 }
 
 /** Path of a repository within the download tree, which is what an import is watched by. */
@@ -343,10 +345,16 @@ function publishPath(project: string, repository: string) {
   return `/${projectPath(project).join('/')}/${repository}/`
 }
 
-/** Whether a project lies in a namespace the catalog does not take repositories from. */
-function ignoredProject(project: string) {
-  const segments = project.split(':')
-  return segments.length > 1 && ignoredNamespaces.includes(segments[0])
+/** Entry of the ignored projects a project falls under, or nothing when the catalog takes it. */
+function ignoredProjectOf(project: string) {
+  return ignoredObsProjects.find((ignored) =>
+    ignored.includes(':') ? project.startsWith(ignored) : project.startsWith(`${ignored}:`),
+  )
+}
+
+/** Whether a project is one the catalog does not take repositories from. */
+export function ignoredObsProject(project: string) {
+  return ignoredProjectOf(project) !== undefined
 }
 
 /** Whether a project belongs to a package branch, which copies a package of another project. */
@@ -366,11 +374,16 @@ function wantedProject(wanted: string | undefined, project: string) {
       return false
     }
 
+    // A project the import leaves out is left out of a scope that contains it as well, while a
+    // scope that names it or lies in it takes it on purpose
+    const ignored = ignoredProjectOf(project)
+    if (ignored && scope !== ignored && !scope.startsWith(`${ignored}:`)) return false
+
     // A branch below the scope is left out, unless the scope names one itself
     return !branchedProject(project.slice(scope.length + 1))
   }
 
-  return !ignoredProject(project) && !branchedProject(project)
+  return !ignoredObsProject(project) && !branchedProject(project)
 }
 
 /** Whether a repository is published at the path the download tree holds for it. */
