@@ -18,10 +18,6 @@
   width: var(--icon-size);
 }
 
-.emptyIcon {
-  background: var(--ph-icon-bg);
-}
-
 .link {
   align-items: center;
   color: inherit;

@@ -35,3 +35,12 @@ export const appTypes = [
 export function appTypeKey(type: string) {
   return `apps.types.${type}`
 }
+
+/**
+ * Icon the catalog shows in place of one an application does not carry. Every AppStream type has an
+ * icon of its own under `public/apps`, drawn from the Breeze icon theme; a type the catalog does
+ * not know falls back to the generic application icon rather than to a missing file.
+ */
+export function appTypeIcon(type: string) {
+  return `/apps/${appTypes.includes(type) ? type : 'generic'}.svg`
+}

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'wouter'
 
 import { localized } from '../utils/appstream'
+import { appTypeIcon } from '../utils/appTypes'
 import AverageRating from './AverageRating'
 import CategoryBadges from './CategoryBadges'
 
@@ -24,11 +25,7 @@ export default function AppListItem({ app, actions }: AppListItemProps) {
   return (
     <Group component='article' className={styles.item}>
       <Link aria-label={name} className={styles.iconLink} href={`/apps/${app.id}`}>
-        {app.icon ? (
-          <img alt='' className={styles.icon} src={app.icon.url} />
-        ) : (
-          <div className={`${styles.icon} ${styles.emptyIcon}`} />
-        )}
+        <img alt='' className={styles.icon} src={app.icon?.url ?? appTypeIcon(app.type)} />
       </Link>
       <Stack gap={4} flex={1}>
         <Title order={4}>

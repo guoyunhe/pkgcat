@@ -20,10 +20,6 @@
   width: 128px;
 }
 
-.emptyIcon {
-  background: var(--ph-icon-bg);
-}
-
 .eyebrow {
   color: var(--ph-primary);
   font-weight: 700;

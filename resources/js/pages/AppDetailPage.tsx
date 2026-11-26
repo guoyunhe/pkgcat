@@ -1,5 +1,16 @@
 import type { Data } from '@generated/data'
-import { Alert, Anchor, Button, Container, DataList, Group, Loader, Stack, Text, Title } from '@mantine/core'
+import {
+  Alert,
+  Anchor,
+  Button,
+  Container,
+  DataList,
+  Group,
+  Loader,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 import { useModals } from '@mantine/modals'
 import { ArrowLeftIcon } from '@phosphor-icons/react/ArrowLeft'
 import { ArrowSquareOutIcon } from '@phosphor-icons/react/ArrowSquareOut'
@@ -29,7 +40,7 @@ import {
   resolveDescription,
   selectScreenshots,
 } from '../utils/appstream'
-import { appTypeKey } from '../utils/appTypes'
+import { appTypeIcon, appTypeKey } from '../utils/appTypes'
 import { formatPkgNameMapping } from '../utils/pkgNames'
 
 import styles from './AppDetailPage.module.css'
@@ -181,11 +192,7 @@ export default function AppDetailPage() {
       </header>
 
       <section className={styles.intro}>
-        {app.icon ? (
-          <img alt='' className={styles.icon} src={app.icon.url} />
-        ) : (
-          <div className={`${styles.icon} ${styles.emptyIcon}`} />
-        )}
+        <img alt='' className={styles.icon} src={app.icon?.url ?? appTypeIcon(app.type)} />
         <div>
           <Text className={styles.eyebrow}>{t('detail.eyebrow')}</Text>
           <Group align='center' gap='sm' wrap='nowrap'>
