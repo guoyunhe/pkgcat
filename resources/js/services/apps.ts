@@ -4,6 +4,7 @@ import xior from 'xior'
 import type { Paginated, SerializedPaginated } from '../types/pagination'
 import type { PkgNameMapping } from '../utils/pkgNames'
 import { getAuthToken } from './auth'
+import { emptyDistroFilters, type Distro, type DistroFilters } from './distros'
 import { filterParams, type PkgFilters } from './pkgs'
 
 export type AppPayload = {
@@ -111,6 +112,21 @@ export async function getAppPackages(
     params: { page, ...filterParams(filters), locale },
   })
   return { data: data.data, meta: data.metadata } satisfies Paginated<Data.Pkg>
+}
+
+/**
+ * Releases whose packages provide the application, which its detail page lists. The listing is
+ * paged and narrowed by the architecture of the release; a page without one reads every release.
+ */
+export async function getAppDistros(
+  id: number,
+  page = 1,
+  filters: DistroFilters = emptyDistroFilters,
+) {
+  const { data } = await api.get<SerializedPaginated<Distro>>(`/apps/${id}/distros`, {
+    params: { page, arch: filters.arch ?? undefined },
+  })
+  return { data: data.data, meta: data.metadata } satisfies Paginated<Distro>
 }
 
 export async function createApp(payload: AppPayload) {

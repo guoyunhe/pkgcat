@@ -196,7 +196,9 @@
     "goToScreenshot": "第 {{index}} 张截图",
     "sources": "来源",
     "appstreamMetadata": "AppStream 元数据",
-    "noPackages": "暂无可用软件包。"
+    "noPackages": "暂无可用软件包。",
+    "distros": "支持的发行版",
+    "noDistros": "没有发行版提供该应用。"
   },
   "form": {
     "saveError": "无法保存应用",

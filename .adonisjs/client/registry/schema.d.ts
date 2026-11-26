@@ -247,6 +247,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/favorites_controller').default['destroy']>>>
     }
   }
+  'apps.distros': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/apps/:id/distros'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#validators/app').appDistroListValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['distros']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/apps_controller').default['distros']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'apps.reviews.index': {
     methods: ["GET","HEAD"]
     pattern: '/api/apps/:app_id/reviews'

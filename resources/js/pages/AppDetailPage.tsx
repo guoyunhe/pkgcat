@@ -25,13 +25,15 @@ import { useAuth } from '../auth'
 import AppMergeModal from '../components/AppMergeModal'
 import AverageRating from '../components/AverageRating'
 import CategoryBadges from '../components/CategoryBadges'
+import DistroTable from '../components/DistroTable'
 import FavoriteButton from '../components/FavoriteButton'
 import PackageUpload from '../components/PackageUpload'
 import PkgList from '../components/PkgList'
 import ReviewForm from '../components/ReviewForm'
 import ReviewList from '../components/ReviewList'
 import ScreenshotCarousel from '../components/ScreenshotCarousel'
-import { deleteApp, getApp, getAppPackages } from '../services/apps'
+import { deleteApp, getApp, getAppDistros, getAppPackages } from '../services/apps'
+import type { DistroFilters } from '../services/distros'
 import type { PkgFilters } from '../services/pkgs'
 import { deleteReview, getAppReviews, type ReviewFilters } from '../services/reviews'
 import {
@@ -67,6 +69,12 @@ export default function AppDetailPage() {
     (page: number, filters: PkgFilters) =>
       appId ? getAppPackages(appId, page, filters, i18n.language) : Promise.resolve(null),
     [appId, i18n.language],
+  )
+  // The releases whose packages provide the application
+  const readDistros = useCallback(
+    (page: number, filters: DistroFilters) =>
+      appId ? getAppDistros(appId, page, filters) : Promise.resolve(null),
+    [appId],
   )
   // The reviews of the application, narrowed by the language the list is set to
   const readReviews = useCallback(
@@ -328,6 +336,16 @@ export default function AppDetailPage() {
           </Stack>
         </section>
       )}
+
+      <section className={styles.distros}>
+        <Title order={2}>{t('detail.distros')}</Title>
+        <DistroTable
+          emptyMessage={t('detail.noDistros')}
+          initialArch={null}
+          load={readDistros}
+          paramPrefix='distros'
+        />
+      </section>
 
       <section className={styles.packages}>
         <Group align='center' justify='space-between'>

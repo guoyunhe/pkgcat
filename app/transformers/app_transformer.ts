@@ -55,6 +55,12 @@ export default class AppTransformer extends BaseTransformer<App> {
         summary: localizedTexts(addon.translations, 'summary'),
         icon: addon.icon ? ImageTransformer.transform(addon.icon) : null,
       })),
+      /**
+       * Names of the distributions whose packages provide the application, unique and ordered by
+       * name, which the listing draws an icon from. Only the listing reads them; another response
+       * carries none.
+       */
+      distroNames: (this.resource.$extras.distroNames as string[] | undefined) ?? [],
       categories: (this.resource.categories ?? []).map((category) => ({
         id: category.id,
         code: category.code,

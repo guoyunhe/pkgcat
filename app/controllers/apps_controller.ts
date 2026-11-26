@@ -7,6 +7,7 @@ import AppAlias from '#models/app_alias'
 import AppPkgName from '#models/app_pkg_name'
 import Category from '#models/category'
 import Distro from '#models/distro'
+import { attachDistroNames } from '#services/app_distros'
 import { fallbackLocale } from '#services/app_locales'
 import { mergeApps } from '#services/app_merger'
 import { pkgNameKey, type PkgNameMapping } from '#services/app_pkg_names'
@@ -14,7 +15,9 @@ import { attachTranslations, replaceTranslations } from '#services/app_translati
 import { appStreamFields, fetchAppStream } from '#services/appstream_import'
 import { appstreamIdKey, canonicalAppstreamId } from '#services/repo_appstream_extractor'
 import AppTransformer from '#transformers/app_transformer'
+import DistroTransformer from '#transformers/distro_transformer'
 import {
+  appDistroListValidator,
   appListValidator,
   appLocaleValidator,
   appValidator,
@@ -131,8 +134,10 @@ export default class AppsController {
     }
 
     const paginator = await appsQuery.paginate(page, perPage)
-    await attachTranslations(paginator.all(), locale)
-    return serialize(AppTransformer.paginate(paginator.all(), paginator.getMeta()))
+    const apps = paginator.all()
+    await attachTranslations(apps, locale)
+    await attachDistroNames(apps)
+    return serialize(AppTransformer.paginate(apps, paginator.getMeta()))
   }
 
   async show({ auth, params, request, serialize }: HttpContext) {
@@ -152,6 +157,37 @@ export default class AppsController {
     const app = await appQuery.firstOrFail()
     await attachTranslations([app, ...app.addons], locale)
     return serialize(AppTransformer.transform(app))
+  }
+
+  /**
+   * Releases whose packages provide the application. A release supports an application when it
+   * carries a package that provides it, which `pkg_distros` already resolves: the links of the
+   * release and of the release it is binary compatible with, for the architecture of every package.
+   * The listing is paged and narrowed by the architecture of the release, and ordered the way the
+   * distribution listing is, so that the releases of one distribution stay together.
+   */
+  async distros({ params, request, serialize }: HttpContext) {
+    const { page, perPage, arch } = await request.validateUsing(appDistroListValidator)
+    const app = await App.findOrFail(params.id)
+
+    const query = Distro.query()
+      .whereIn(
+        'distros.id',
+        db
+          .from('pkg_distros')
+          .join('app_pkgs', 'app_pkgs.pkg_id', 'pkg_distros.pkg_id')
+          .where('app_pkgs.app_id', app.id)
+          .select('pkg_distros.distro_id'),
+      )
+      .preload('compatibleDistro')
+    if (arch) query.where('distros.arch', arch)
+
+    const paginator = await query
+      .orderBy('name')
+      .orderBy('releaseDate', 'desc')
+      .orderBy('arch')
+      .paginate(page, perPage)
+    return serialize(DistroTransformer.paginate(paginator.all(), paginator.getMeta()))
   }
 
   async store({ request, response, serialize }: HttpContext) {

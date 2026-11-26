@@ -43,6 +43,19 @@ export default function AppListItem({ app, actions }: AppListItemProps) {
           <AverageRating count={app.reviewCount} value={app.avgRating} />
           <CategoryBadges categories={app.categories} />
         </Group>
+        {app.distroNames.length > 0 && (
+          <Group gap={4}>
+            {app.distroNames.map((distro) => (
+              <img
+                alt={distro}
+                className={styles.distroIcon}
+                key={distro}
+                src={`/distros/${encodeURIComponent(distro)}.svg`}
+                title={distro}
+              />
+            ))}
+          </Group>
+        )}
       </Stack>
       {actions && <div className={styles.actions}>{actions}</div>}
     </Group>

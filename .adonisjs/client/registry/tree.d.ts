@@ -31,6 +31,7 @@ export interface ApiDefinition {
     merge: typeof routes['apps.merge']
     appstream: typeof routes['apps.appstream']
     appstreamFields: typeof routes['apps.appstream_fields']
+    distros: typeof routes['apps.distros']
     reviews: {
       index: typeof routes['apps.reviews.index']
       store: typeof routes['apps.reviews.store']

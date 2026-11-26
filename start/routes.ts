@@ -53,6 +53,7 @@ router
       .use([middleware.auth(), middleware.admin()])
     router.post('apps/:id/favorite', [controllers.Favorites, 'store']).use(middleware.auth())
     router.delete('apps/:id/favorite', [controllers.Favorites, 'destroy']).use(middleware.auth())
+    router.get('apps/:id/distros', [controllers.Apps, 'distros'])
     router
       .resource('apps.reviews', controllers.Reviews)
       .only(['index', 'store', 'destroy'])

@@ -126,6 +126,12 @@ const routes = {
     tokens: [{"old":"/api/apps/:id/favorite","type":0,"val":"api","end":""},{"old":"/api/apps/:id/favorite","type":0,"val":"apps","end":""},{"old":"/api/apps/:id/favorite","type":1,"val":"id","end":""},{"old":"/api/apps/:id/favorite","type":0,"val":"favorite","end":""}],
     types: placeholder as Registry['favorites.destroy']['types'],
   },
+  'apps.distros': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/apps/:id/distros',
+    tokens: [{"old":"/api/apps/:id/distros","type":0,"val":"api","end":""},{"old":"/api/apps/:id/distros","type":0,"val":"apps","end":""},{"old":"/api/apps/:id/distros","type":1,"val":"id","end":""},{"old":"/api/apps/:id/distros","type":0,"val":"distros","end":""}],
+    types: placeholder as Registry['apps.distros']['types'],
+  },
   'apps.reviews.index': {
     methods: ["GET","HEAD"],
     pattern: '/api/apps/:app_id/reviews',

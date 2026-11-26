@@ -197,7 +197,9 @@
     "goToScreenshot": "Go to screenshot {{index}}",
     "sources": "Sources",
     "appstreamMetadata": "AppStream metadata",
-    "noPackages": "No packages available."
+    "noPackages": "No packages available.",
+    "distros": "Supported distributions",
+    "noDistros": "No distribution provides this application."
   },
   "form": {
     "saveError": "Unable to save application",

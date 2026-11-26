@@ -10,6 +10,7 @@ import {
   knownValue,
   localeField,
   pageNumber,
+  pageSize,
   positiveInteger,
 } from '#utils/query_params'
 
@@ -291,6 +292,17 @@ export const appListValidator = vine.create({
 
 /** Query parameters of a single application of the catalog. */
 export const appLocaleValidator = vine.create({ locale: localeField() })
+
+/**
+ * Query parameters of the releases whose packages provide an application, which the table of its
+ * detail page reads. The listing is paged like the catalog and narrowed by the architecture of the
+ * release; a request without one reads every architecture.
+ */
+export const appDistroListValidator = vine.create({
+  page: vine.number().parse((value) => pageNumber(value, 1)),
+  perPage: vine.number().parse((value) => pageSize(value, 10, 50)),
+  arch: vine.string().parse(firstValue).optional(),
+})
 
 /**
  * URL of the AppStream metadata an editor imports into an application. The server reads the
