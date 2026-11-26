@@ -242,15 +242,6 @@ export const distros: DistroSeed[] = [
     compatibleWith: { name: 'Red Hat Enterprise Linux', version: '10' },
   },
   {
-    name: 'SteamOS',
-    version: '3',
-    pkgType: 'pacman',
-    arches: ['x86_64'],
-    releaseDate: '2022-03-01',
-    eolDate: null,
-    compatibleWith: { name: 'Arch Linux', version: null },
-  },
-  {
     name: 'SUSE Linux Enterprise',
     version: '15.7',
     pkgType: 'rpm',
