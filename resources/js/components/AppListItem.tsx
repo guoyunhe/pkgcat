@@ -31,6 +31,11 @@ export default function AppListItem({ app, actions }: AppListItemProps) {
         <Title order={4}>
           <Link className={styles.link} href={`/apps/${app.id}`}>
             {name || app.appstreamId}{' '}
+            {app.appstreamId && name && (
+              <Text c='dimmed' component='span'>
+                {app.appstreamId}
+              </Text>
+            )}
             {app.version && (
               <Text c='dimmed' component='span'>
                 {app.version}
