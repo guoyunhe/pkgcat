@@ -309,18 +309,22 @@ export default class RepoSynchronizer {
         entry.component.pkgNames.some((name) => pkgNames.has(name)),
     )
     // A pacman catalog names its icons as JPEG XL files of the catalog package, which the extractor
-    // decodes, so the file list of such a repository is only read when it publishes no catalog at
-    // all — its packages are the only place the metadata of its applications lives in then.
+    // decodes. The file list is read in any case, since a repository may ship AppStream metadata
+    // its own catalog does not name.
     if (candidates.length === 0) {
-      // Repositories that publish no AppStream metadata at all still name their applications in
-      // the files their packages ship, which the file list of the repository reveals.
-      if (entries.length === 0) {
-        const inferred = await this.saveInferredApps(repo, pkgNames, claimedPkgNames, context)
-        result.inferred = inferred.created
-        result.inferredLinked = inferred.linked
-        result.inferredExtracted = inferred.extracted
-        result.inferredIcons = inferred.icons
-      }
+      // A repository that publishes no catalog is read from the metadata files its packages ship,
+      // while one whose catalog names no application still has packages the catalog omits
+      const inferred = await this.saveInferredApps(
+        repo,
+        pkgNames,
+        claimedPkgNames,
+        context,
+        entries.length === 0,
+      )
+      result.inferred = inferred.created
+      result.inferredLinked = inferred.linked
+      result.inferredExtracted = inferred.extracted
+      result.inferredIcons = inferred.icons
       result.mapped = await this.linkMappedPackages(repo, claimedPkgNames)
       return result
     }
@@ -436,6 +440,15 @@ export default class RepoSynchronizer {
       }
     }
 
+    // The catalog of a repository does not necessarily name every component its packages ship —
+    // fonts of openSUSE, for one — so the metadata files of the file list link the rest of the
+    // applications, without reading the packages themselves
+    const inferred = await this.saveInferredApps(repo, pkgNames, claimedPkgNames, context, false)
+    result.inferred = inferred.created
+    result.inferredLinked = inferred.linked
+    result.inferredExtracted = inferred.extracted
+    result.inferredIcons = inferred.icons
+
     result.mapped = await this.linkMappedPackages(repo, claimedPkgNames)
     return result
   }
@@ -481,14 +494,15 @@ export default class RepoSynchronizer {
   }
 
   /**
-   * Link the applications of a repository that publishes no AppStream catalog. The file list of the
-   * repository names the AppStream ID of every package that ships a metadata file, which the
-   * packages are linked to a known application by. The metadata file itself is read from the
-   * package, and an application is created only once that read succeeded: a file list announces an
-   * ID and nothing else, and an application without AppStream content is not one the catalog can
-   * show. A known application is only completed by a component that names the ID it is stored under
-   * and announces a newer version, and a component whose metadata cannot be read leaves its
-   * packages to the package name mappings.
+   * Link the applications of a repository through the metadata files its packages ship. The file
+   * list of the repository names the AppStream ID of every package that carries a metadata file,
+   * which links the packages to a known application. When the repository publishes no AppStream
+   * catalog (`extract`), the metadata file is read from the package as well, and an application is
+   * created only once that read succeeded: a file list announces an ID and nothing else, and an
+   * application without AppStream content is not one the catalog can show. A known application is
+   * only completed by a component that names the ID it is stored under and announces a newer
+   * version, and a component whose metadata cannot be read leaves its packages to the package name
+   * mappings.
    *
    * The package names the file list assigns to an application are collected in `claimedPkgNames`,
    * which keeps the package name mappings from claiming them again.
@@ -498,6 +512,7 @@ export default class RepoSynchronizer {
     pkgNames: Set<string>,
     claimedPkgNames: Set<string>,
     context: ArchSync,
+    extract: boolean,
   ) {
     const result = { created: 0, linked: 0, extracted: 0, icons: 0 }
     const components = await this.appstream.inferredComponents(repo)
@@ -511,18 +526,20 @@ export default class RepoSynchronizer {
     ])
     // The packages that ship a metadata file are read back from the catalog, because the packages
     // of the repository were written to it instead of being kept in memory
-    const stored = await Pkg.query()
-      .where('repoId', repo.id)
-      .whereIn('name', [
-        ...new Set(
-          candidates.flatMap((component) =>
-            component.files
-              .filter((file) => pkgNames.has(file.pkgName))
-              .map((file) => file.pkgName),
-          ),
-        ),
-      ])
-      .select('id', 'name', 'type', 'arch', 'summary', 'description', 'license', 'downloadUrl')
+    const stored = extract
+      ? await Pkg.query()
+          .where('repoId', repo.id)
+          .whereIn('name', [
+            ...new Set(
+              candidates.flatMap((component) =>
+                component.files
+                  .filter((file) => pkgNames.has(file.pkgName))
+                  .map((file) => file.pkgName),
+              ),
+            ),
+          ])
+          .select('id', 'name', 'type', 'arch', 'summary', 'description', 'license', 'downloadUrl')
+      : []
     const byName = new Map<string, StoredPackage[]>()
     for (const pkg of stored) {
       const siblings = byName.get(pkg.name) ?? []
@@ -543,8 +560,11 @@ export default class RepoSynchronizer {
       if (app) {
         result.linked += await this.linkInferredPackages(app, repo, files)
         for (const file of files) claimedPkgNames.add(file.pkgName)
-        if (app.appstreamContent && app.icon) continue
+        if (!extract || (app.appstreamContent && app.icon)) continue
       }
+      // The catalog is the only source of applications of a repository that publishes one, so a
+      // metadata file the catalog omits only links packages to an application that already exists
+      if (!extract) continue
       if (!owned) continue
 
       const metadata = this.inferredFile(component, byName)
