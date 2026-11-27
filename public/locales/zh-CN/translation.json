@@ -115,6 +115,7 @@
     "filterAny": "全部类型",
     "filterEmpty": "没有该类型的应用。",
     "request": "请求添加应用",
+    "communityRepoOnly": "仅社区软件源",
     "types": {
       "generic": "通用",
       "desktop-application": "桌面应用",

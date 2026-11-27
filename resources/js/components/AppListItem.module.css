@@ -34,10 +34,27 @@
   justify-self: end;
 }
 
+.distro {
+  display: inline-flex;
+  position: relative;
+}
+
 .distroIcon {
   height: 20px;
   object-fit: contain;
   width: 20px;
+}
+
+/* Marks a distribution whose packages come only from a community or user repository. */
+.distroBadge {
+  background: #f59f00;
+  border: 2px solid var(--ph-bg);
+  border-radius: 50%;
+  height: 8px;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  position: absolute;
+  width: 8px;
 }
 
 @media (max-width: 600px) {

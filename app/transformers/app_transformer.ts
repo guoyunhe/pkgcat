@@ -61,6 +61,13 @@ export default class AppTransformer extends BaseTransformer<App> {
        * carries none.
        */
       distroNames: (this.resource.$extras.distroNames as string[] | undefined) ?? [],
+      /**
+       * Distributions of `distroNames` that only community or user repositories provide — an OBS
+       * project or a PPA, for instance. A listing marks them, since their packages are not part of
+       * the distribution itself.
+       */
+      unofficialDistroNames:
+        (this.resource.$extras.unofficialDistroNames as string[] | undefined) ?? [],
       categories: (this.resource.categories ?? []).map((category) => ({
         id: category.id,
         code: category.code,

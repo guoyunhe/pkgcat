@@ -115,6 +115,7 @@
     "filterAny": "All types",
     "filterEmpty": "No applications of this type.",
     "request": "Request an application",
+    "communityRepoOnly": "Community repository only",
     "types": {
       "generic": "Generic",
       "desktop-application": "Desktop application",

@@ -19,7 +19,7 @@ type AppListItemProps = {
 
 /** A single application row: icon, localized name and summary, categories, rating and metadata. */
 export default function AppListItem({ app, actions }: AppListItemProps) {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
   const name = localized(app.name, i18n.language)
 
   return (
@@ -50,15 +50,22 @@ export default function AppListItem({ app, actions }: AppListItemProps) {
         </Group>
         {app.distroNames.length > 0 && (
           <Group gap={4}>
-            {app.distroNames.map((distro) => (
-              <img
-                alt={distro}
-                className={styles.distroIcon}
-                key={distro}
-                src={`/distros/${encodeURIComponent(distro)}.svg`}
-                title={distro}
-              />
-            ))}
+            {app.distroNames.map((distro) => {
+              const unofficial = app.unofficialDistroNames.includes(distro)
+              return (
+                <span className={styles.distro} key={distro}>
+                  <img
+                    alt={distro}
+                    className={styles.distroIcon}
+                    src={`/distros/${encodeURIComponent(distro)}.svg`}
+                    title={unofficial ? `${distro}: ${t('apps.communityRepoOnly')}` : distro}
+                  />
+                  {unofficial && (
+                    <span className={styles.distroBadge} title={t('apps.communityRepoOnly')} />
+                  )}
+                </span>
+              )
+            })}
           </Group>
         )}
       </Stack>
